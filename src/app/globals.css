@@ -100,6 +100,10 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .primary-button:disabled { cursor: not-allowed; opacity: .38; }
 .secondary-button { background: var(--coral); color: white; }
 .secondary-button:hover { background: var(--coral-dark); }
+.secondary-button:disabled { cursor: wait; opacity: .58; }
+.audio-control { display: flex; align-items: center; gap: 14px; margin: -4px 0 22px; }
+.audio-control .secondary-button { flex: 0 0 auto; margin: 0; }
+.audio-control small { color: var(--muted); line-height: 1.45; }
 .completion-card p { color: var(--muted); line-height: 1.7; }
 .review-note { margin-top: 20px; font-size: .82rem; }
 .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 26px 0 4px; }
@@ -161,6 +165,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgba(223, 114, 93, .5
   .summary-grid { grid-template-columns: 1fr; }
   .diagnostic-options { grid-template-columns: 1fr; }
   .form-actions { align-items: stretch; flex-direction: column-reverse; }
+  .audio-control { align-items: stretch; flex-direction: column; }
   .plan-blocks li { grid-template-columns: 1fr auto; }
   .plan-kind { grid-column: 1 / -1; }
 }

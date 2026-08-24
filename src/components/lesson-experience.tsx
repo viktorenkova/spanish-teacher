@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createEmptyProgress, introductionLesson, type LessonProgress } from "@/domain/lesson";
+import { getListeningClip } from "@/domain/listening";
+import { speakWithBrowser } from "@/tts/browser-provider";
 
 type LessonExperienceProps = {
   learnerId: string;
@@ -21,6 +23,8 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
   const [nextReviewAt, setNextReviewAt] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
   const [loadError, setLoadError] = useState<string>();
+  const [audioStatus, setAudioStatus] = useState<string>();
+  const [playingAudio, setPlayingAudio] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
@@ -90,6 +94,43 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
     }
   }
 
+  async function playListeningAudio() {
+    if (!exercise?.listeningClipId || playingAudio) return;
+    const clip = getListeningClip(exercise.listeningClipId);
+    if (!clip) {
+      setAudioStatus("This listening clip is unavailable.");
+      return;
+    }
+
+    setPlayingAudio(true);
+    setAudioStatus("Preparing Spanish audio…");
+    try {
+      const response = await fetch(`/api/tts/${encodeURIComponent(clip.id)}`);
+      if (response.ok) {
+        const objectUrl = URL.createObjectURL(await response.blob());
+        try {
+          const audio = new Audio(objectUrl);
+          await new Promise<void>((resolve, reject) => {
+            audio.onended = () => resolve();
+            audio.onerror = () => reject(new Error("The Spanish audio could not be played."));
+            void audio.play().catch(reject);
+          });
+          const cacheStatus = response.headers.get("X-TTS-Cache") ?? "unknown";
+          setAudioStatus(`Played with local Piper audio · cache ${cacheStatus}.`);
+        } finally {
+          URL.revokeObjectURL(objectUrl);
+        }
+      } else {
+        const result = await speakWithBrowser(clip);
+        setAudioStatus(`Played with the browser’s Spanish voice: ${result.voiceId}.`);
+      }
+    } catch (error) {
+      setAudioStatus(error instanceof Error ? error.message : "Spanish audio is unavailable.");
+    } finally {
+      setPlayingAudio(false);
+    }
+  }
+
   if (loadError && !progress) {
     return (
       <section className="lesson-card loading-card" role="alert">
@@ -114,10 +155,11 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
         <h2 id="lesson-complete">You can make a first introduction.</h2>
         <p>
           You practised <strong>Me llamo…</strong>, <strong>Soy de…</strong>, and{" "}
-          <strong>Encantada</strong>. Your answers and FSRS review schedule are saved.
+          <strong>Encantada</strong>, and listened for a place name. Your answers and FSRS review
+          schedule are saved.
         </p>
         <dl className="summary-grid">
-          <div><dt>Objectives</dt><dd>{progress.correctAnswers}/3</dd></div>
+          <div><dt>Objectives</dt><dd>{progress.correctAnswers}/{introductionLesson.length}</dd></div>
           <div><dt>Attempts</dt><dd>{progress.attempts}</dd></div>
           <div><dt>Spanish</dt><dd>A1</dd></div>
         </dl>
@@ -138,6 +180,20 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
       <span className="eyebrow">{exercise.eyebrow}</span>
       <h2 id="exercise-title">{exercise.prompt}</h2>
       <p className="context">{exercise.context}</p>
+
+      {exercise.listeningClipId && (
+        <div className="audio-control">
+          <button
+            className="secondary-button"
+            disabled={playingAudio}
+            onClick={playListeningAudio}
+            type="button"
+          >
+            {playingAudio ? "Playing…" : "▶ Play Spanish audio"}
+          </button>
+          <small aria-live="polite">{audioStatus ?? "Listen before choosing an answer."}</small>
+        </div>
+      )}
 
       <div className="options" role="radiogroup" aria-label="Answer choices">
         {exercise.options.map((option) => (

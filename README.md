@@ -74,7 +74,7 @@ npm run build
 2. Onboarding and initial text-based A1 diagnostic. — implemented
 3. Learning items and FSRS. — implemented for the first lesson
 4. Duration-aware lesson engine. — planning and persistence implemented
-5. Listening and cached audio.
+5. Listening and cached audio. — first `es-ES` exercise and provider boundary implemented
 6. Microphone capture and speech transcription.
 7. AI teacher behind a provider interface.
 8. Structured long-term error memory.

@@ -7,6 +7,7 @@ export type LessonExercise = {
   id: string;
   learningItem: LearningItemDefinition;
   modality: "recognition" | "recall" | "listening" | "production";
+  listeningClipId?: string;
   eyebrow: string;
   prompt: string;
   context: string;
@@ -87,6 +88,33 @@ export const introductionLesson: LessonExercise[] = [
     correctOptionId: "name",
     successFeedback: "Good. “Me llamo…” is the useful pattern for giving your name.",
     retryFeedback: "Try again. The question asks for your name, not how you feel or where you are from.",
+  },
+  {
+    id: "listen-origin",
+    learningItem: {
+      id: "listening:introduction-lucia",
+      kind: "phrase",
+      targetText: "Hola, me llamo Lucía. Soy de Madrid.",
+      supportText: "Hello, my name is Lucía. I am from Madrid.",
+      sourceType: "curated",
+      sourceReference: "internal:mvp-listening-v1",
+      license: "Project-authored",
+      attribution: "Spanish Coach",
+      qaStatus: "reviewed",
+    },
+    modality: "listening",
+    listeningClipId: "introduction-lucia",
+    eyebrow: "Listen before reading",
+    prompt: "Where is Lucía from?",
+    context: "Play the audio. The English translation stays hidden.",
+    options: [
+      { id: "madrid", label: "Madrid" },
+      { id: "london", label: "London" },
+      { id: "barcelona", label: "Barcelona" },
+    ],
+    correctOptionId: "madrid",
+    successFeedback: "Correct. You heard “Soy de Madrid.”",
+    retryFeedback: "Listen again for the words after “Soy de…”.",
   },
   {
     id: "respond-origin",
