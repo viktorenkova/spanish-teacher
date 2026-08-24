@@ -1,79 +1,110 @@
 "use client";
 
-import { useMemo, useState, useSyncExternalStore } from "react";
-import {
-  createEmptyProgress,
-  introductionLesson,
-  recordAnswer,
-  type LessonProgress,
-} from "@/domain/lesson";
+import { useEffect, useMemo, useState } from "react";
+import { createEmptyProgress, introductionLesson, type LessonProgress } from "@/domain/lesson";
 
-const storageKey = "spanish-coach:introduction-progress:v1";
-const progressEvent = "spanish-coach:progress-changed";
-const emptyProgressSnapshot = JSON.stringify(createEmptyProgress());
+type LessonExperienceProps = {
+  learnerId: string;
+};
 
-function subscribeToProgress(onStoreChange: () => void) {
-  window.addEventListener("storage", onStoreChange);
-  window.addEventListener(progressEvent, onStoreChange);
-  return () => {
-    window.removeEventListener("storage", onStoreChange);
-    window.removeEventListener(progressEvent, onStoreChange);
-  };
-}
+type AttemptResponse = {
+  correct: boolean;
+  feedback: string;
+  nextReviewAt: string;
+  progress: LessonProgress;
+};
 
-function getProgressSnapshot() {
-  return window.localStorage.getItem(storageKey) ?? emptyProgressSnapshot;
-}
-
-function readProgress(snapshot: string): LessonProgress {
-  try {
-    return JSON.parse(snapshot) as LessonProgress;
-  } catch {
-    return createEmptyProgress();
-  }
-}
-
-function saveProgress(progress: LessonProgress) {
-  window.localStorage.setItem(storageKey, JSON.stringify(progress));
-  window.dispatchEvent(new Event(progressEvent));
-}
-
-export function LessonExperience() {
-  const progressSnapshot = useSyncExternalStore(
-    subscribeToProgress,
-    getProgressSnapshot,
-    () => emptyProgressSnapshot,
-  );
-  const progress = useMemo(() => readProgress(progressSnapshot), [progressSnapshot]);
+export function LessonExperience({ learnerId }: LessonExperienceProps) {
+  const [progress, setProgress] = useState<LessonProgress>();
   const [selectedOption, setSelectedOption] = useState<string>();
   const [feedback, setFeedback] = useState<{ correct: boolean; message: string }>();
+  const [nextReviewAt, setNextReviewAt] = useState<string>();
+  const [submitting, setSubmitting] = useState(false);
+  const [loadError, setLoadError] = useState<string>();
+  const [reloadKey, setReloadKey] = useState(0);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(`/api/lesson/progress?learnerId=${encodeURIComponent(learnerId)}`, {
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const payload = (await response.json()) as { progress?: LessonProgress; error?: string };
+        if (!response.ok || !payload.progress) {
+          throw new Error(payload.error ?? "Lesson progress could not be loaded.");
+        }
+        return payload.progress;
+      })
+      .then((loadedProgress) => {
+        setProgress(loadedProgress);
+        setLoadError(undefined);
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setLoadError(error instanceof Error ? error.message : "Lesson progress could not be loaded.");
+      });
+
+    return () => controller.abort();
+  }, [learnerId, reloadKey]);
+
+  const currentProgress = progress ?? createEmptyProgress();
   const exercise = useMemo(
-    () => introductionLesson.find((item) => !progress.completedExerciseIds.includes(item.id)),
-    [progress.completedExerciseIds],
+    () =>
+      introductionLesson.find(
+        (item) => !currentProgress.completedExerciseIds.includes(item.id),
+      ),
+    [currentProgress.completedExerciseIds],
   );
-  const percent = Math.round((progress.completedExerciseIds.length / introductionLesson.length) * 100);
+  const percent = Math.round(
+    (currentProgress.completedExerciseIds.length / introductionLesson.length) * 100,
+  );
 
-  function submitAnswer() {
-    if (!exercise || !selectedOption) return;
-    const correct = selectedOption === exercise.correctOptionId;
-    saveProgress(recordAnswer(progress, exercise, selectedOption));
-    setFeedback({
-      correct,
-      message: correct ? exercise.successFeedback : exercise.retryFeedback,
-    });
-    if (correct) {
-      window.setTimeout(() => {
-        setSelectedOption(undefined);
-        setFeedback(undefined);
-      }, 1100);
+  async function submitAnswer() {
+    if (!exercise || !selectedOption || submitting) return;
+    setSubmitting(true);
+    setLoadError(undefined);
+    try {
+      const response = await fetch("/api/lesson/attempts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ learnerId, exerciseId: exercise.id, selectedOptionId: selectedOption }),
+      });
+      const payload = (await response.json()) as AttemptResponse & { error?: string };
+      if (!response.ok || !payload.progress) {
+        throw new Error(payload.error ?? "The answer could not be saved.");
+      }
+
+      setProgress(payload.progress);
+      setNextReviewAt(payload.nextReviewAt);
+      setFeedback({ correct: payload.correct, message: payload.feedback });
+      if (payload.correct) {
+        window.setTimeout(() => {
+          setSelectedOption(undefined);
+          setFeedback(undefined);
+        }, 1100);
+      }
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "The answer could not be saved.");
+    } finally {
+      setSubmitting(false);
     }
   }
 
-  function restartLesson() {
-    saveProgress(createEmptyProgress());
-    setSelectedOption(undefined);
-    setFeedback(undefined);
+  if (loadError && !progress) {
+    return (
+      <section className="lesson-card loading-card" role="alert">
+        <div>
+          <p>{loadError}</p>
+          <button className="secondary-button" onClick={() => setReloadKey((value) => value + 1)}>
+            Try again
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  if (!progress) {
+    return <div className="lesson-card loading-card">Loading your saved lesson…</div>;
   }
 
   if (!exercise) {
@@ -83,14 +114,16 @@ export function LessonExperience() {
         <h2 id="lesson-complete">You can make a first introduction.</h2>
         <p>
           You practised <strong>Me llamo…</strong>, <strong>Soy de…</strong>, and{" "}
-          <strong>Encantada</strong>. Speaking and spaced review arrive in the next slices.
+          <strong>Encantada</strong>. Your answers and FSRS review schedule are saved.
         </p>
         <dl className="summary-grid">
           <div><dt>Objectives</dt><dd>{progress.correctAnswers}/3</dd></div>
           <div><dt>Attempts</dt><dd>{progress.attempts}</dd></div>
           <div><dt>Spanish</dt><dd>A1</dd></div>
         </dl>
-        <button className="secondary-button" onClick={restartLesson}>Practise again</button>
+        {nextReviewAt && (
+          <p className="review-note">Latest review scheduled for {new Date(nextReviewAt).toLocaleString()}.</p>
+        )}
       </section>
     );
   }
@@ -113,6 +146,7 @@ export function LessonExperience() {
             key={option.id}
             role="radio"
             aria-checked={selectedOption === option.id}
+            disabled={submitting}
             onClick={() => {
               setSelectedOption(option.id);
               setFeedback(undefined);
@@ -128,9 +162,14 @@ export function LessonExperience() {
           {feedback.message}
         </p>
       )}
+      {loadError && <p className="feedback retry" role="alert">{loadError}</p>}
 
-      <button className="primary-button" disabled={!selectedOption} onClick={submitAnswer}>
-        Check answer
+      <button
+        className="primary-button"
+        disabled={!selectedOption || submitting}
+        onClick={submitAnswer}
+      >
+        {submitting ? "Saving…" : "Check answer"}
       </button>
     </section>
   );

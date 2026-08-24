@@ -23,7 +23,17 @@ and the version is stored with the evidence.
 
 - The browser stores only the learner ID needed to resume the experience.
 - Authentication is deferred while the product remains single-user.
-- Lesson attempts still use browser persistence and will move to PostgreSQL in
-  the learning-items/FSRS slice.
+- The browser keeps only the learner ID; learning progress, attempts, modality
+  evidence, and FSRS state are stored in PostgreSQL.
 - The text diagnostic is a starting hypothesis, not a full CEFR assessment.
 
+## Learning items and reviews
+
+Learning items are project-authored words, phrases, constructions, or grammar
+patterns with explicit source, license, attribution, and QA metadata. Exercise
+attempts reference the underlying item and record modality, submitted answer,
+correctness, FSRS rating, and the due date produced by the scheduler.
+
+Each learner/item pair has one FSRS card. Recognition, recall, listening, and
+production evidence are accumulated separately without creating four unrelated
+cards for the same language unit.

@@ -72,7 +72,7 @@ npm run build
 
 1. Application shell and persistent learner profile. — implemented
 2. Onboarding and initial text-based A1 diagnostic. — implemented
-3. Learning items and FSRS.
+3. Learning items and FSRS. — implemented for the first lesson
 4. Duration-aware lesson engine.
 5. Listening and cached audio.
 6. Microphone capture and speech transcription.

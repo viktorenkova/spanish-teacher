@@ -5,6 +5,8 @@ export type ExerciseOption = {
 
 export type LessonExercise = {
   id: string;
+  learningItem: LearningItemDefinition;
+  modality: "recognition" | "recall" | "listening" | "production";
   eyebrow: string;
   prompt: string;
   context: string;
@@ -12,6 +14,18 @@ export type LessonExercise = {
   correctOptionId: string;
   successFeedback: string;
   retryFeedback: string;
+};
+
+export type LearningItemDefinition = {
+  id: string;
+  kind: "word" | "phrase" | "construction" | "grammar_pattern";
+  targetText: string;
+  supportText: string;
+  sourceType: "curated";
+  sourceReference: string;
+  license: "Project-authored";
+  attribution: string;
+  qaStatus: "reviewed";
 };
 
 export type LessonProgress = {
@@ -24,6 +38,18 @@ export type LessonProgress = {
 export const introductionLesson: LessonExercise[] = [
   {
     id: "meaning-encantada",
+    learningItem: {
+      id: "phrase:encantada-introduction",
+      kind: "phrase",
+      targetText: "Encantada",
+      supportText: "Pleased to meet you (said by a woman)",
+      sourceType: "curated",
+      sourceReference: "internal:mvp-introductions-v1",
+      license: "Project-authored",
+      attribution: "Spanish Coach",
+      qaStatus: "reviewed",
+    },
+    modality: "recognition",
     eyebrow: "Understand in context",
     prompt: "What does Lucía mean by “Encantada”?",
     context: "— Hola, soy Lucía. ¿Cómo te llamas?\n— Me llamo Kate.\n— Encantada, Kate.",
@@ -38,6 +64,18 @@ export const introductionLesson: LessonExercise[] = [
   },
   {
     id: "retrieve-name",
+    learningItem: {
+      id: "construction:me-llamo",
+      kind: "construction",
+      targetText: "Me llamo…",
+      supportText: "My name is…",
+      sourceType: "curated",
+      sourceReference: "internal:mvp-introductions-v1",
+      license: "Project-authored",
+      attribution: "Spanish Coach",
+      qaStatus: "reviewed",
+    },
+    modality: "recall",
     eyebrow: "Retrieve the phrase",
     prompt: "Choose the natural answer to “¿Cómo te llamas?”",
     context: "You are meeting someone for the first time.",
@@ -52,6 +90,18 @@ export const introductionLesson: LessonExercise[] = [
   },
   {
     id: "respond-origin",
+    learningItem: {
+      id: "construction:soy-de",
+      kind: "construction",
+      targetText: "Soy de…",
+      supportText: "I am from…",
+      sourceType: "curated",
+      sourceReference: "internal:mvp-introductions-v1",
+      license: "Project-authored",
+      attribution: "Spanish Coach",
+      qaStatus: "reviewed",
+    },
+    modality: "recognition",
     eyebrow: "Prepare to speak",
     prompt: "Which answer matches “¿De dónde eres?”",
     context: "Keep the complete phrase in mind. A speaking turn will be added in the speech slice.",
@@ -92,4 +142,3 @@ export function recordAnswer(
         : progress.completedAt,
   };
 }
-

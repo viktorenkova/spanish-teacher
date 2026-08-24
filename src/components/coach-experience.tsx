@@ -34,6 +34,5 @@ export function CoachExperience() {
     );
   }
 
-  return <LessonExperience />;
+  return <LessonExperience learnerId={learnerId} />;
 }
-
