@@ -1,4 +1,4 @@
-import { LessonExperience } from "@/components/lesson-experience";
+import { CoachExperience } from "@/components/coach-experience";
 
 export default function Home() {
   return (
@@ -30,8 +30,7 @@ export default function Home() {
         </aside>
       </div>
 
-      <LessonExperience />
+      <CoachExperience />
     </main>
   );
 }
-

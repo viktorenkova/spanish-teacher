@@ -12,8 +12,9 @@ lessons.
 ## Current milestone
 
 The repository is implementing MVP-0: one coherent A1 lesson loop before the
-larger adaptive curriculum is built. The first runnable slice uses a small,
-reviewed lesson about introductions and persists local progress in the browser.
+larger adaptive curriculum is built. The current slice adds persistent learner
+profiles and a deterministic A1 onboarding diagnostic before the reviewed
+introduction lesson.
 
 MVP-0 must eventually support:
 
@@ -50,6 +51,10 @@ contracts that guide implementation.
 
 ```bash
 npm install
+docker compose up -d
+copy .env.example .env.local
+npm run db:generate
+npm run db:migrate
 npm run dev
 ```
 
@@ -65,8 +70,8 @@ npm run build
 
 ## Roadmap
 
-1. Application shell and persistent learner profile.
-2. Onboarding and A1 diagnostic.
+1. Application shell and persistent learner profile. — implemented
+2. Onboarding and initial text-based A1 diagnostic. — implemented
 3. Learning items and FSRS.
 4. Duration-aware lesson engine.
 5. Listening and cached audio.
@@ -81,4 +86,3 @@ npm run build
 Native mobile apps, social features, billing, leaderboards, multiple target
 languages, a course marketplace, advanced pronunciation scoring, a custom LLM,
 and microservices are intentionally excluded.
-

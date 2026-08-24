@@ -106,6 +106,39 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .summary-grid dt { color: var(--muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; }
 .summary-grid dd { margin: 5px 0 0; font: 700 1.35rem Georgia, serif; }
 
+.support-copy { color: var(--muted); line-height: 1.65; max-width: 650px; }
+.profile-form, .diagnostic-form { display: grid; gap: 22px; margin-top: 30px; }
+.profile-form > label { display: grid; gap: 8px; font-size: .84rem; font-weight: 750; }
+.profile-form input[type="text"], .profile-form input:not([type]), .profile-form select {
+  width: 100%;
+  border: 1px solid rgba(23, 59, 55, .18);
+  border-radius: 12px;
+  background: white;
+  padding: 13px 14px;
+  color: var(--ink);
+}
+.profile-form fieldset, .diagnostic-form fieldset { border: 0; padding: 0; margin: 0; }
+.profile-form legend, .diagnostic-form legend { font-weight: 750; font-size: .88rem; margin-bottom: 10px; }
+.duration-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.duration-options label, .diagnostic-options label {
+  cursor: pointer;
+  border: 1px solid rgba(23, 59, 55, .16);
+  border-radius: 12px;
+  background: white;
+  padding: 12px 14px;
+}
+.duration-options input, .diagnostic-options input { position: absolute; opacity: 0; pointer-events: none; }
+.duration-options .chosen, .diagnostic-options .chosen { border-color: var(--coral); background: #fff5f1; box-shadow: 0 0 0 2px rgba(223, 114, 93, .1); }
+.diagnostic-form { gap: 30px; }
+.diagnostic-form legend { display: flex; gap: 10px; align-items: flex-start; line-height: 1.5; }
+.diagnostic-form legend span { display: grid; place-items: center; flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%; background: var(--green-soft); font-size: .72rem; }
+.diagnostic-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.diagnostic-options label { font-size: .84rem; line-height: 1.4; }
+.form-actions { display: flex; align-items: center; gap: 14px; }
+.form-actions .primary-button { margin: 0; }
+.text-button { cursor: pointer; border: 0; background: transparent; color: var(--muted); padding: 12px; }
+.text-button:hover { color: var(--ink); }
+
 button:focus-visible, a:focus-visible { outline: 3px solid rgba(223, 114, 93, .5); outline-offset: 3px; }
 
 @media (max-width: 760px) {
@@ -115,9 +148,10 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgba(223, 114, 93, .5
   .coach-note { display: none; }
   .lesson-card { border-radius: 20px; }
   .summary-grid { grid-template-columns: 1fr; }
+  .diagnostic-options { grid-template-columns: 1fr; }
+  .form-actions { align-items: stretch; flex-direction: column-reverse; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
 }
-
