@@ -163,6 +163,33 @@ export const exerciseAttempts = pgTable(
   ],
 );
 
+export const teacherFeedback = pgTable(
+  "teacher_feedback",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    learnerId: uuid("learner_id")
+      .notNull()
+      .references(() => learners.id, { onDelete: "cascade" }),
+    exerciseAttemptId: uuid("exercise_attempt_id")
+      .notNull()
+      .references(() => exerciseAttempts.id, { onDelete: "cascade" }),
+    providerId: text("provider_id").notNull(),
+    providerVersion: text("provider_version").notNull(),
+    generationMode: text("generation_mode").notNull(),
+    content: jsonb("content").$type<{
+      summary: string;
+      praise: string;
+      corrections: Array<{ issue: string; suggestion: string; explanation: string }>;
+      nextStep: string;
+    }>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("teacher_feedback_attempt_unique").on(table.exerciseAttemptId),
+    index("teacher_feedback_learner_created_idx").on(table.learnerId, table.createdAt),
+  ],
+);
+
 export const lessonPlans = pgTable(
   "lesson_plans",
   {

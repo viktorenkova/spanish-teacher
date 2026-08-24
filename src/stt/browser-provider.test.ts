@@ -5,7 +5,7 @@ describe("browser speech-to-text provider", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("requests es-ES and returns the browser transcript", async () => {
-    let recognition: FakeRecognition | undefined;
+    const recognitions: FakeRecognition[] = [];
     class FakeRecognition {
       lang = "";
       continuous = true;
@@ -19,7 +19,7 @@ describe("browser speech-to-text provider", () => {
       onend?: () => void;
 
       constructor() {
-        recognition = this;
+        recognitions.push(this);
       }
 
       start() {
@@ -43,8 +43,8 @@ describe("browser speech-to-text provider", () => {
     const provider = new BrowserSpeechToTextProvider();
     const result = await provider.transcribe({ locale: "es-ES", maxDurationMs: 1_000 });
 
-    expect(recognition?.lang).toBe("es-ES");
-    expect(recognition?.continuous).toBe(false);
+    expect(recognitions[0]?.lang).toBe("es-ES");
+    expect(recognitions[0]?.continuous).toBe(false);
     expect(result).toEqual({
       text: "Me llamo Katia",
       providerId: "browser-speech-recognition",

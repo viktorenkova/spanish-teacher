@@ -42,6 +42,14 @@ Each learner/item pair has one FSRS card. Recognition, recall, listening, and
 production evidence are accumulated separately without creating four unrelated
 cards for the same language unit.
 
+## Teacher feedback
+
+Teacher feedback is stored separately from exercise attempts. Each record points
+to one attempt and retains the provider ID, provider version, generation mode,
+structured feedback content, and creation time. The current shape contains a
+summary, praise, focused corrections, and one next step. This lets a future LLM
+provider replace the local provider without turning attempts into opaque AI data.
+
 ## Lesson plans
 
 Each generated lesson plan records its requested and estimated duration,

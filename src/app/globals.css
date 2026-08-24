@@ -113,6 +113,16 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .transcript small { color: var(--muted); font-size: .68rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
 .transcript p { font: 700 1.25rem Georgia, serif; margin: 8px 0; }
 .transcript span { color: var(--muted); font-size: .75rem; }
+.teacher-feedback { margin-top: 22px; border: 1px solid rgba(23, 59, 55, .13); border-radius: 18px; padding: 20px; background: #f3f7f2; }
+.teacher-feedback-heading { display: flex; align-items: center; gap: 12px; }
+.teacher-feedback-heading small { color: var(--coral-dark); font-size: .65rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.teacher-feedback h3 { font: 700 1.2rem Georgia, serif; margin: 3px 0 0; }
+.teacher-feedback > p { color: var(--muted); line-height: 1.55; }
+.teacher-feedback ul { display: grid; gap: 8px; list-style: none; padding: 0; }
+.teacher-feedback li { display: grid; gap: 3px; border-left: 3px solid var(--coral); padding: 8px 12px; background: white; }
+.teacher-feedback li span { color: var(--muted); font-size: .82rem; line-height: 1.45; }
+.teacher-next-step { margin-bottom: 8px; }
+.teacher-provider { color: var(--muted); font-size: .66rem; }
 .completion-card p { color: var(--muted); line-height: 1.7; }
 .review-note { margin-top: 20px; font-size: .82rem; }
 .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 26px 0 4px; }

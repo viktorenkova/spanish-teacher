@@ -5,6 +5,7 @@ import { createEmptyProgress, introductionLesson, type LessonProgress } from "@/
 import { getListeningClip } from "@/domain/listening";
 import { BrowserSpeechToTextProvider } from "@/stt/browser-provider";
 import type { SttTranscript } from "@/stt/provider";
+import type { TeacherFeedback } from "@/teacher/provider";
 import { speakWithBrowser } from "@/tts/browser-provider";
 
 type LessonExperienceProps = {
@@ -16,7 +17,37 @@ type AttemptResponse = {
   feedback: string;
   nextReviewAt: string;
   progress: LessonProgress;
+  teacherFeedback?: TeacherFeedback;
 };
+
+function TeacherFeedbackCard({ feedback }: { feedback: TeacherFeedback }) {
+  return (
+    <aside className="teacher-feedback" aria-labelledby="teacher-feedback-title">
+      <div className="teacher-feedback-heading">
+        <span className="coach-mark">C</span>
+        <div>
+          <small>{feedback.generationMode === "deterministic" ? "Local teacher" : "AI teacher"}</small>
+          <h3 id="teacher-feedback-title">{feedback.summary}</h3>
+        </div>
+      </div>
+      <p>{feedback.praise}</p>
+      {feedback.corrections.length > 0 && (
+        <ul>
+          {feedback.corrections.map((correction) => (
+            <li key={`${correction.issue}-${correction.suggestion}`}>
+              <strong lang="es">{correction.suggestion}</strong>
+              <span>{correction.explanation}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <p className="teacher-next-step"><strong>Next:</strong> {feedback.nextStep}</p>
+      <small className="teacher-provider">
+        {feedback.providerId} · {feedback.providerVersion} · pronunciation not assessed
+      </small>
+    </aside>
+  );
+}
 
 export function LessonExperience({ learnerId }: LessonExperienceProps) {
   const [progress, setProgress] = useState<LessonProgress>();
@@ -30,6 +61,7 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
   const [recognizing, setRecognizing] = useState(false);
   const [speechResult, setSpeechResult] = useState<SttTranscript>();
   const [speechError, setSpeechError] = useState<string>();
+  const [teacherFeedback, setTeacherFeedback] = useState<TeacherFeedback>();
   const speechProvider = useRef(new BrowserSpeechToTextProvider());
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -52,6 +84,19 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
         setLoadError(error instanceof Error ? error.message : "Lesson progress could not be loaded.");
+      });
+
+    fetch(`/api/teacher/feedback?learnerId=${encodeURIComponent(learnerId)}`, {
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) return undefined;
+        const payload = (await response.json()) as { teacherFeedback?: TeacherFeedback | null };
+        return payload.teacherFeedback ?? undefined;
+      })
+      .then(setTeacherFeedback)
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
       });
 
     return () => controller.abort();
@@ -147,6 +192,7 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
     setRecognizing(true);
     setSpeechResult(undefined);
     setSpeechError(undefined);
+    setTeacherFeedback(undefined);
     setFeedback(undefined);
     setLoadError(undefined);
     try {
@@ -182,6 +228,7 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
       setProgress(payload.progress);
       setNextReviewAt(payload.nextReviewAt);
       setFeedback({ correct: payload.correct, message: payload.feedback });
+      setTeacherFeedback(payload.teacherFeedback);
       if (payload.correct) {
         window.setTimeout(() => {
           setSpeechResult(undefined);
@@ -230,6 +277,7 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
         {nextReviewAt && (
           <p className="review-note">Latest review scheduled for {new Date(nextReviewAt).toLocaleString()}.</p>
         )}
+        {teacherFeedback && <TeacherFeedbackCard feedback={teacherFeedback} />}
       </section>
     );
   }
@@ -310,6 +358,7 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
           {feedback.message}
         </p>
       )}
+      {teacherFeedback && <TeacherFeedbackCard feedback={teacherFeedback} />}
       {loadError && <p className="feedback retry" role="alert">{loadError}</p>}
 
       <button

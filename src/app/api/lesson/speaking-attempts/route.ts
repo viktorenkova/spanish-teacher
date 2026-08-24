@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { recordSpeakingAttempt } from "@/server/review/service";
+import { submitSpeakingAttemptWithTeacher } from "@/server/teacher/service";
 
 const speakingAttemptSchema = z.object({
   learnerId: z.uuid(),
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    return NextResponse.json(await recordSpeakingAttempt(parsed.data), { status: 201 });
+    return NextResponse.json(await submitSpeakingAttemptWithTeacher(parsed.data), { status: 201 });
   } catch (error) {
     if (error instanceof Error && error.message === "Unknown speaking exercise") {
       return NextResponse.json({ error: error.message }, { status: 404 });

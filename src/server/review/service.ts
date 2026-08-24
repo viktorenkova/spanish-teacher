@@ -120,29 +120,33 @@ async function persistExerciseAttempt(
         set: { ...card, ...evidenceField, updatedAt: now },
       });
 
-    await transaction.insert(exerciseAttempts).values({
-      learnerId: input.learnerId,
-      learningItemId: exercise.learningItem.id,
-      lessonKey: introductionLessonKey,
-      exerciseId: exercise.id,
-      modality: exercise.modality,
-      selectedOptionId: input.selectedOptionId,
-      transcript: input.transcript,
-      evidenceProvider: input.evidenceProvider,
-      providerConfidence: input.providerConfidence,
-      assessmentVersion: input.assessmentVersion,
-      correct,
-      fsrsRating: result.rating,
-      scheduledDue: result.card.due,
-      occurredAt: now,
-    });
+    const [storedAttempt] = await transaction
+      .insert(exerciseAttempts)
+      .values({
+        learnerId: input.learnerId,
+        learningItemId: exercise.learningItem.id,
+        lessonKey: introductionLessonKey,
+        exerciseId: exercise.id,
+        modality: exercise.modality,
+        selectedOptionId: input.selectedOptionId,
+        transcript: input.transcript,
+        evidenceProvider: input.evidenceProvider,
+        providerConfidence: input.providerConfidence,
+        assessmentVersion: input.assessmentVersion,
+        correct,
+        fsrsRating: result.rating,
+        scheduledDue: result.card.due,
+        occurredAt: now,
+      })
+      .returning({ id: exerciseAttempts.id });
 
-    return { due: result.card.due, rating: result.rating };
+    return { due: result.card.due, rating: result.rating, attemptId: storedAttempt.id };
   });
 
   return {
     correct,
     feedback,
+    attemptId: scheduled.attemptId,
     nextReviewAt: scheduled.due.toISOString(),
     progress: await loadLessonProgress(input.learnerId),
   };
@@ -176,7 +180,7 @@ export async function recordSpeakingAttempt(input: {
   }
 
   const assessment = assessIntroductionTranscript(input.transcript);
-  return persistExerciseAttempt(
+  const result = await persistExerciseAttempt(
     {
       ...input,
       selectedOptionId: assessment.complete ? "task-complete" : "task-retry",
@@ -186,4 +190,5 @@ export async function recordSpeakingAttempt(input: {
     assessment.complete,
     assessment.feedback,
   );
+  return { ...result, assessment };
 }

@@ -2,10 +2,9 @@
 
 ## Shape
 
-Spanish Coach begins as a modular monolith. UI, application orchestration, and
-server routes live in one Next.js application. PostgreSQL is the future system
-of record, but the first walking skeleton uses a repository interface backed by
-browser storage so the lesson interaction can be validated first.
+Spanish Coach is a modular monolith. UI, application orchestration, and server
+routes live in one Next.js application. PostgreSQL is the system of record;
+the browser retains only the learner identifier needed to resume the experience.
 
 ```text
 UI components
@@ -47,8 +46,8 @@ logic.
 
 ## Persistence progression
 
-1. Browser repository for the first UI slice.
-2. PostgreSQL + Drizzle repository with the same application contract.
+1. PostgreSQL + Drizzle for profiles, attempts, plans, reviews, and feedback.
+2. Browser storage for the resumable learner identifier only.
 3. Offline cache and synchronization only after server persistence is stable.
 
 ## Content provenance
@@ -56,4 +55,3 @@ logic.
 Imported content carries a source manifest and must remain traceable through
 transformations. Content with `NC`, share-alike, or unclear terms stays in a
 separate layer until its production use is approved.
-

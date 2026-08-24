@@ -47,10 +47,9 @@ small and reviewed before any bulk data import.
 - The next implementation slice can replace browser persistence without
   rewriting lesson UI or domain types.
 
-## Deferred from this slice
+## Still deferred
 
-- Production database and authentication.
-- Real STT, TTS, AI feedback, and FSRS scheduling.
-- Full onboarding and diagnostic.
-- Bulk lexical imports.
-
+- Authentication and multi-user account security.
+- A selected external language-model provider and open-ended AI conversation.
+- Server speech-to-text and broader browser compatibility.
+- Bulk lexical imports and a multi-topic curriculum.

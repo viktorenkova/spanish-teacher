@@ -13,8 +13,8 @@ lessons.
 
 The repository is implementing MVP-0: one coherent A1 lesson loop before the
 larger adaptive curriculum is built. The current slice includes persistent
-profiles, an A1 diagnostic, FSRS review state, listening, and a transcript-backed
-spoken introduction.
+profiles, an A1 diagnostic, FSRS review state, listening, a transcript-backed
+spoken introduction, and persisted provider-based teacher feedback.
 
 MVP-0 must eventually support:
 
@@ -76,7 +76,7 @@ npm run build
 4. Duration-aware lesson engine. — planning and persistence implemented
 5. Listening and cached audio. — first `es-ES` exercise and provider boundary implemented
 6. Microphone capture and speech transcription. — browser `es-ES` provider implemented
-7. AI teacher behind a provider interface.
+7. AI teacher behind a provider interface. — structured contract and local teacher implemented
 8. Structured long-term error memory.
 9. Adaptive curriculum.
 10. Progress and a non-punitive behavioral layer.
