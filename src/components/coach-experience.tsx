@@ -1,8 +1,8 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { LessonExperience } from "./lesson-experience";
 import { OnboardingExperience } from "./onboarding-experience";
+import { PlannedLessonExperience } from "./planned-lesson-experience";
 
 const learnerKey = "spanish-coach:learner-id:v1";
 const learnerEvent = "spanish-coach:learner-changed";
@@ -34,5 +34,5 @@ export function CoachExperience() {
     );
   }
 
-  return <LessonExperience learnerId={learnerId} />;
+  return <PlannedLessonExperience learnerId={learnerId} />;
 }

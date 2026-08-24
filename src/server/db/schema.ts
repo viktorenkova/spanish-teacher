@@ -159,5 +159,33 @@ export const exerciseAttempts = pgTable(
   ],
 );
 
+export const lessonPlans = pgTable(
+  "lesson_plans",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    learnerId: uuid("learner_id")
+      .notNull()
+      .references(() => learners.id, { onDelete: "cascade" }),
+    targetMinutes: integer("target_minutes").notNull(),
+    estimatedMinutes: integer("estimated_minutes").notNull(),
+    status: text("status").notNull().default("planned"),
+    plannerVersion: text("planner_version").notNull(),
+    plan: jsonb("plan").$type<{
+      rationale: string[];
+      blocks: Array<{
+        id: string;
+        kind: string;
+        title: string;
+        objective: string;
+        estimatedSeconds: number;
+        source: string;
+        availability: string;
+      }>;
+    }>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("lesson_plan_learner_created_idx").on(table.learnerId, table.createdAt)],
+);
+
 export type Learner = typeof learners.$inferSelect;
 export type NewLearner = typeof learners.$inferInsert;

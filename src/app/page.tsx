@@ -19,7 +19,7 @@ export default function Home() {
             A calm introduction to useful Spain Spanish, with clear English support when you need it.
           </p>
           <ul className="lesson-meta" aria-label="Lesson details">
-            <li>About 5 minutes</li>
+            <li>5–30 minutes</li>
             <li>Introductions</li>
             <li>3 objectives</li>
           </ul>

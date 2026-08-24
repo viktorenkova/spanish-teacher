@@ -15,6 +15,13 @@
       "when": 1787568926228,
       "tag": "0001_confused_kulan_gath",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787569456405,
+      "tag": "0002_skinny_dragon_man",
+      "breakpoints": true
     }
   ]
 }

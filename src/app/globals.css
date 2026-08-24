@@ -139,6 +139,16 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .form-actions .primary-button { margin: 0; }
 .text-button { cursor: pointer; border: 0; background: transparent; color: var(--muted); padding: 12px; }
 .text-button:hover { color: var(--ink); }
+.planner-durations { margin: 28px 0 8px; }
+.planner-durations button { cursor: pointer; }
+.plan-blocks { list-style: none; display: grid; gap: 8px; padding: 0; margin: 28px 0; }
+.plan-blocks li { display: grid; grid-template-columns: 92px 1fr auto; gap: 14px; align-items: center; border-bottom: 1px solid rgba(23, 59, 55, .1); padding: 13px 0; }
+.plan-blocks strong { font-size: .9rem; }
+.plan-blocks p { color: var(--muted); font-size: .78rem; line-height: 1.45; margin: 4px 0 0; }
+.plan-blocks small { color: var(--muted); white-space: nowrap; }
+.plan-kind { justify-self: start; border-radius: 999px; background: var(--green-soft); padding: 5px 8px; font-size: .62rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+.plan-kind.provider_pending { background: var(--cream-deep); color: var(--muted); }
+.provider-note { color: var(--muted); font-size: .78rem; line-height: 1.5; }
 
 button:focus-visible, a:focus-visible { outline: 3px solid rgba(223, 114, 93, .5); outline-offset: 3px; }
 
@@ -151,6 +161,8 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgba(223, 114, 93, .5
   .summary-grid { grid-template-columns: 1fr; }
   .diagnostic-options { grid-template-columns: 1fr; }
   .form-actions { align-items: stretch; flex-direction: column-reverse; }
+  .plan-blocks li { grid-template-columns: 1fr auto; }
+  .plan-kind { grid-column: 1 / -1; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -37,3 +37,11 @@ correctness, FSRS rating, and the due date produced by the scheduler.
 Each learner/item pair has one FSRS card. Recognition, recall, listening, and
 production evidence are accumulated separately without creating four unrelated
 cards for the same language unit.
+
+## Lesson plans
+
+Each generated lesson plan records its requested and estimated duration,
+planner version, selection rationale, and ordered blocks. Planning uses due FSRS
+state and lower-confidence assessed skills. Speaking and listening remain
+mandatory blocks, but their availability is explicitly `provider_pending` until
+the corresponding evidence-producing integrations exist.
