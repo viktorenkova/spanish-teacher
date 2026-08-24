@@ -1,0 +1,11 @@
+{
+  "name": "Spanish Coach",
+  "short_name": "Coach",
+  "description": "Calm, adaptive Spanish practice for an A1 learner.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f1e8",
+  "theme_color": "#163f3b",
+  "lang": "en"
+}
+
