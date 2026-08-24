@@ -1,6 +1,7 @@
 import "server-only";
 import { and, asc, eq } from "drizzle-orm";
 import { introductionLesson } from "@/domain/lesson";
+import { assessIntroductionTranscript } from "@/domain/speaking";
 import { getDatabase } from "@/server/db/client";
 import {
   exerciseAttempts,
@@ -48,17 +49,24 @@ export async function loadLessonProgress(learnerId: string): Promise<PersistedLe
   };
 }
 
-export async function recordExerciseAttempt(input: {
+type PersistedAttemptInput = {
   learnerId: string;
   exerciseId: string;
   selectedOptionId: string;
+  transcript?: string;
+  evidenceProvider?: string;
+  providerConfidence?: number;
+  assessmentVersion?: string;
   now?: Date;
-}) {
-  const exercise = introductionLesson.find((item) => item.id === input.exerciseId);
-  if (!exercise) throw new Error("Unknown exercise");
+};
 
+async function persistExerciseAttempt(
+  input: PersistedAttemptInput,
+  exercise: (typeof introductionLesson)[number],
+  correct: boolean,
+  feedback: string,
+) {
   const now = input.now ?? new Date();
-  const correct = input.selectedOptionId === exercise.correctOptionId;
   const db = getDatabase();
 
   const scheduled = await db.transaction(async (transaction) => {
@@ -119,6 +127,10 @@ export async function recordExerciseAttempt(input: {
       exerciseId: exercise.id,
       modality: exercise.modality,
       selectedOptionId: input.selectedOptionId,
+      transcript: input.transcript,
+      evidenceProvider: input.evidenceProvider,
+      providerConfidence: input.providerConfidence,
+      assessmentVersion: input.assessmentVersion,
       correct,
       fsrsRating: result.rating,
       scheduledDue: result.card.due,
@@ -130,9 +142,48 @@ export async function recordExerciseAttempt(input: {
 
   return {
     correct,
-    feedback: correct ? exercise.successFeedback : exercise.retryFeedback,
+    feedback,
     nextReviewAt: scheduled.due.toISOString(),
     progress: await loadLessonProgress(input.learnerId),
   };
 }
 
+export async function recordExerciseAttempt(input: PersistedAttemptInput) {
+  const exercise = introductionLesson.find((item) => item.id === input.exerciseId);
+  if (!exercise) throw new Error("Unknown exercise");
+  if (exercise.modality === "production") throw new Error("Speaking task requires transcript evidence");
+
+  const correct = input.selectedOptionId === exercise.correctOptionId;
+  return persistExerciseAttempt(
+    input,
+    exercise,
+    correct,
+    correct ? exercise.successFeedback : exercise.retryFeedback,
+  );
+}
+
+export async function recordSpeakingAttempt(input: {
+  learnerId: string;
+  exerciseId: string;
+  transcript: string;
+  evidenceProvider: string;
+  providerConfidence?: number;
+  now?: Date;
+}) {
+  const exercise = introductionLesson.find((item) => item.id === input.exerciseId);
+  if (!exercise || exercise.modality !== "production" || !exercise.speakingTask) {
+    throw new Error("Unknown speaking exercise");
+  }
+
+  const assessment = assessIntroductionTranscript(input.transcript);
+  return persistExerciseAttempt(
+    {
+      ...input,
+      selectedOptionId: assessment.complete ? "task-complete" : "task-retry",
+      assessmentVersion: assessment.version,
+    },
+    exercise,
+    assessment.complete,
+    assessment.feedback,
+  );
+}

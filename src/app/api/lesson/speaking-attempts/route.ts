@@ -1,0 +1,28 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { recordSpeakingAttempt } from "@/server/review/service";
+
+const speakingAttemptSchema = z.object({
+  learnerId: z.uuid(),
+  exerciseId: z.string().min(1).max(100),
+  transcript: z.string().trim().min(1).max(500),
+  evidenceProvider: z.string().min(1).max(100),
+  providerConfidence: z.number().min(0).max(1).optional(),
+});
+
+export async function POST(request: Request) {
+  const parsed = speakingAttemptSchema.safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json({ error: "The speaking attempt is invalid." }, { status: 400 });
+  }
+
+  try {
+    return NextResponse.json(await recordSpeakingAttempt(parsed.data), { status: 201 });
+  } catch (error) {
+    if (error instanceof Error && error.message === "Unknown speaking exercise") {
+      return NextResponse.json({ error: error.message }, { status: 404 });
+    }
+    console.error("Unable to save speaking attempt", error);
+    return NextResponse.json({ error: "The speaking attempt could not be saved." }, { status: 503 });
+  }
+}

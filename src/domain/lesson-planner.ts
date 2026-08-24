@@ -60,7 +60,7 @@ const coreBlocks: LessonPlanBlock[] = [
     objective: "Recognise a name and place in natural Spain Spanish.",
     estimatedSeconds: 60,
     source: "lesson_scaffold",
-    availability: "provider_pending",
+    availability: "ready",
   },
   {
     id: "speaking-core",
@@ -69,7 +69,7 @@ const coreBlocks: LessonPlanBlock[] = [
     objective: "Give your name and where you are from aloud.",
     estimatedSeconds: 90,
     source: "lesson_scaffold",
-    availability: "provider_pending",
+    availability: "ready",
   },
   {
     id: "recap",
@@ -162,7 +162,7 @@ export function buildLessonPlan(input: LessonPlannerInput): LessonPlan {
     input.weakestSkills.length > 0
       ? `Current lower-confidence area: ${input.weakestSkills.join(", ")}.`
       : "The learner profile is still collecting skill evidence.",
-    "Speaking remains mandatory; provider-pending blocks are not scored yet.",
+    "The core speaking task uses transcript evidence; pronunciation is not scored.",
   ];
 
   return {
@@ -173,4 +173,3 @@ export function buildLessonPlan(input: LessonPlannerInput): LessonPlan {
     blocks,
   };
 }
-

@@ -8,6 +8,10 @@ export type LessonExercise = {
   learningItem: LearningItemDefinition;
   modality: "recognition" | "recall" | "listening" | "production";
   listeningClipId?: string;
+  speakingTask?: {
+    locale: "es-ES";
+    maxDurationMs: number;
+  };
   eyebrow: string;
   prompt: string;
   context: string;
@@ -132,7 +136,7 @@ export const introductionLesson: LessonExercise[] = [
     modality: "recognition",
     eyebrow: "Prepare to speak",
     prompt: "Which answer matches “¿De dónde eres?”",
-    context: "Keep the complete phrase in mind. A speaking turn will be added in the speech slice.",
+    context: "Keep the complete phrase in mind. You will use it aloud in the next step.",
     options: [
       { id: "origin", label: "Soy de Inglaterra." },
       { id: "name", label: "Me llamo Kate." },
@@ -141,6 +145,31 @@ export const introductionLesson: LessonExercise[] = [
     correctOptionId: "origin",
     successFeedback: "Correct. “Soy de…” tells someone where you are from.",
     retryFeedback: "Listen for “de dónde”: it asks about where you are from.",
+  },
+  {
+    id: "speak-introduction",
+    learningItem: {
+      id: "construction:spoken-introduction",
+      kind: "construction",
+      targetText: "Me llamo… Soy de…",
+      supportText: "My name is… I am from…",
+      sourceType: "curated",
+      sourceReference: "internal:mvp-introductions-v1",
+      license: "Project-authored",
+      attribution: "Spanish Coach",
+      qaStatus: "reviewed",
+    },
+    modality: "production",
+    speakingTask: { locale: "es-ES", maxDurationMs: 15_000 },
+    eyebrow: "Speak in Spanish",
+    prompt: "Introduce yourself aloud.",
+    context:
+      "Say your name and where you are from. Use: “Me llamo… Soy de…”\nYour transcript will be checked for task completion, not pronunciation.",
+    options: [],
+    correctOptionId: "task-complete",
+    successFeedback:
+      "Task complete: you included your name and where you are from. Pronunciation was not assessed.",
+    retryFeedback: "Try again with both “Me llamo…” and “Soy de…”.",
   },
 ];
 

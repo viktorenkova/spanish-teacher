@@ -8,6 +8,8 @@ describe("duration-aware lesson planner", () => {
     expect(Math.abs(plan.estimatedMinutes - targetMinutes)).toBeLessThanOrEqual(1);
     expect(plan.blocks.some((block) => block.kind === "speaking")).toBe(true);
     expect(plan.blocks.some((block) => block.kind === "listening")).toBe(true);
+    expect(plan.blocks.find((block) => block.id === "speaking-core")?.availability).toBe("ready");
+    expect(plan.blocks.find((block) => block.id === "listening-core")?.availability).toBe("ready");
     expect(plan.blocks.at(-1)?.kind).toBe("recap");
   });
 
@@ -18,4 +20,3 @@ describe("duration-aware lesson planner", () => {
     expect(plan.blocks.some((block) => block.source === "due_review")).toBe(true);
   });
 });
-

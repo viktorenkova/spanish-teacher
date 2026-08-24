@@ -11,7 +11,9 @@ fixed to A1 and `es-ES`; English B1 is support metadata, not a learning target.
 Vocabulary, grammar, reading, listening, and speaking are stored independently.
 An estimate has an assessment status, confidence, evidence count, and optional
 A1 band. Text questions initially assess vocabulary, grammar, and reading only.
-Listening and speaking are deliberately `unassessed` until audio evidence exists.
+The text diagnostic initially leaves listening and speaking `unassessed`. Lesson
+attempts can now add separate listening and transcript-backed production evidence;
+updating the diagnostic skill estimate from that evidence remains a later step.
 
 ## Diagnostic attempt
 
@@ -32,7 +34,9 @@ and the version is stored with the evidence.
 Learning items are project-authored words, phrases, constructions, or grammar
 patterns with explicit source, license, attribution, and QA metadata. Exercise
 attempts reference the underlying item and record modality, submitted answer,
-correctness, FSRS rating, and the due date produced by the scheduler.
+correctness, FSRS rating, and the due date produced by the scheduler. Speaking
+attempts additionally retain the transcript, evidence provider, optional provider
+confidence, and deterministic assessment version. Raw audio is not retained.
 
 Each learner/item pair has one FSRS card. Recognition, recall, listening, and
 production evidence are accumulated separately without creating four unrelated
@@ -42,6 +46,6 @@ cards for the same language unit.
 
 Each generated lesson plan records its requested and estimated duration,
 planner version, selection rationale, and ordered blocks. Planning uses due FSRS
-state and lower-confidence assessed skills. Speaking and listening remain
-mandatory blocks, but their availability is explicitly `provider_pending` until
-the corresponding evidence-producing integrations exist.
+state and lower-confidence assessed skills. The first core listening and speaking
+blocks are ready. Longer expansion blocks remain `provider_pending` until their
+content and evidence paths are implemented.

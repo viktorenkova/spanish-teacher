@@ -107,7 +107,7 @@ export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
         ))}
       </ol>
       <p className="provider-note">
-        Listening and speaking are included in the plan but remain unscored until their providers are connected.
+        Core listening and speaking are ready. Extended provider-pending blocks are shown but not scored yet.
       </p>
       <div className="form-actions">
         <button className="text-button" onClick={() => setPlan(null)}>Choose another duration</button>
@@ -116,4 +116,3 @@ export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
     </section>
   );
 }
-

@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createEmptyProgress, introductionLesson, type LessonProgress } from "@/domain/lesson";
 import { getListeningClip } from "@/domain/listening";
+import { BrowserSpeechToTextProvider } from "@/stt/browser-provider";
+import type { SttTranscript } from "@/stt/provider";
 import { speakWithBrowser } from "@/tts/browser-provider";
 
 type LessonExperienceProps = {
@@ -25,6 +27,10 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
   const [loadError, setLoadError] = useState<string>();
   const [audioStatus, setAudioStatus] = useState<string>();
   const [playingAudio, setPlayingAudio] = useState(false);
+  const [recognizing, setRecognizing] = useState(false);
+  const [speechResult, setSpeechResult] = useState<SttTranscript>();
+  const [speechError, setSpeechError] = useState<string>();
+  const speechProvider = useRef(new BrowserSpeechToTextProvider());
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
@@ -50,6 +56,11 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
 
     return () => controller.abort();
   }, [learnerId, reloadKey]);
+
+  useEffect(() => {
+    const provider = speechProvider.current;
+    return () => provider.abort();
+  }, []);
 
   const currentProgress = progress ?? createEmptyProgress();
   const exercise = useMemo(
@@ -131,6 +142,59 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
     }
   }
 
+  async function startSpeaking() {
+    if (!exercise?.speakingTask || recognizing) return;
+    setRecognizing(true);
+    setSpeechResult(undefined);
+    setSpeechError(undefined);
+    setFeedback(undefined);
+    setLoadError(undefined);
+    try {
+      setSpeechResult(await speechProvider.current.transcribe(exercise.speakingTask));
+    } catch (error) {
+      setSpeechError(error instanceof Error ? error.message : "Spanish speech could not be transcribed.");
+    } finally {
+      setRecognizing(false);
+    }
+  }
+
+  async function submitSpeakingAttempt() {
+    if (!exercise?.speakingTask || !speechResult || submitting) return;
+    setSubmitting(true);
+    setLoadError(undefined);
+    try {
+      const response = await fetch("/api/lesson/speaking-attempts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          learnerId,
+          exerciseId: exercise.id,
+          transcript: speechResult.text,
+          evidenceProvider: speechResult.providerId,
+          providerConfidence: speechResult.confidence,
+        }),
+      });
+      const payload = (await response.json()) as AttemptResponse & { error?: string };
+      if (!response.ok || !payload.progress) {
+        throw new Error(payload.error ?? "The speaking attempt could not be saved.");
+      }
+
+      setProgress(payload.progress);
+      setNextReviewAt(payload.nextReviewAt);
+      setFeedback({ correct: payload.correct, message: payload.feedback });
+      if (payload.correct) {
+        window.setTimeout(() => {
+          setSpeechResult(undefined);
+          setFeedback(undefined);
+        }, 1600);
+      }
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : "The speaking attempt could not be saved.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   if (loadError && !progress) {
     return (
       <section className="lesson-card loading-card" role="alert">
@@ -155,8 +219,8 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
         <h2 id="lesson-complete">You can make a first introduction.</h2>
         <p>
           You practised <strong>Me llamo…</strong>, <strong>Soy de…</strong>, and{" "}
-          <strong>Encantada</strong>, and listened for a place name. Your answers and FSRS review
-          schedule are saved.
+          <strong>Encantada</strong>, listened for a place name, and completed a spoken
+          introduction. Your transcript, answers, and FSRS review schedule are saved.
         </p>
         <dl className="summary-grid">
           <div><dt>Objectives</dt><dd>{progress.correctAnswers}/{introductionLesson.length}</dd></div>
@@ -195,23 +259,51 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
         </div>
       )}
 
-      <div className="options" role="radiogroup" aria-label="Answer choices">
-        {exercise.options.map((option) => (
+      {exercise.speakingTask ? (
+        <div className="speaking-control">
           <button
-            className={`option ${selectedOption === option.id ? "selected" : ""}`}
-            key={option.id}
-            role="radio"
-            aria-checked={selectedOption === option.id}
+            className="secondary-button microphone-button"
             disabled={submitting}
             onClick={() => {
-              setSelectedOption(option.id);
-              setFeedback(undefined);
+              if (recognizing) speechProvider.current.stop();
+              else void startSpeaking();
             }}
+            type="button"
           >
-            {option.label}
+            {recognizing ? "■ Stop listening" : "● Start microphone"}
           </button>
-        ))}
-      </div>
+          <p className="privacy-note">
+            Audio is not stored by Spanish Coach. Your browser may use its speech service to create
+            the transcript.
+          </p>
+          {speechError && <p className="feedback retry" role="alert">{speechError}</p>}
+          {speechResult && (
+            <div className="transcript" aria-live="polite">
+              <small>Transcript from the browser</small>
+              <p lang="es">{speechResult.text}</p>
+              <span>Check the words before saving; transcription can be wrong.</span>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="options" role="radiogroup" aria-label="Answer choices">
+          {exercise.options.map((option) => (
+            <button
+              className={`option ${selectedOption === option.id ? "selected" : ""}`}
+              key={option.id}
+              role="radio"
+              aria-checked={selectedOption === option.id}
+              disabled={submitting}
+              onClick={() => {
+                setSelectedOption(option.id);
+                setFeedback(undefined);
+              }}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {feedback && (
         <p className={`feedback ${feedback.correct ? "correct" : "retry"}`} aria-live="polite">
@@ -222,10 +314,10 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
 
       <button
         className="primary-button"
-        disabled={!selectedOption || submitting}
-        onClick={submitAnswer}
+        disabled={exercise.speakingTask ? !speechResult || recognizing || submitting : !selectedOption || submitting}
+        onClick={exercise.speakingTask ? submitSpeakingAttempt : submitAnswer}
       >
-        {submitting ? "Saving…" : "Check answer"}
+        {submitting ? "Saving…" : exercise.speakingTask ? "Check spoken answer" : "Check answer"}
       </button>
     </section>
   );

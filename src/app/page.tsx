@@ -21,7 +21,7 @@ export default function Home() {
           <ul className="lesson-meta" aria-label="Lesson details">
             <li>5–30 minutes</li>
             <li>Introductions</li>
-            <li>3 objectives</li>
+            <li>5 guided steps</li>
           </ul>
         </div>
         <aside className="coach-note">

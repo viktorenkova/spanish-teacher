@@ -20,8 +20,10 @@ export async function POST(request: Request) {
     if (error instanceof Error && error.message === "Unknown exercise") {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
+    if (error instanceof Error && error.message === "Speaking task requires transcript evidence") {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     console.error("Unable to save exercise attempt", error);
     return NextResponse.json({ error: "The answer could not be saved." }, { status: 503 });
   }
 }
-
