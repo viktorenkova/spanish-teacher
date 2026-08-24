@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createEmptyProgress, introductionLesson, type LessonProgress } from "@/domain/lesson";
 import { getListeningClip } from "@/domain/listening";
+import type { MistakeMemory } from "@/domain/mistake";
 import { BrowserSpeechToTextProvider } from "@/stt/browser-provider";
 import type { SttTranscript } from "@/stt/provider";
 import type { TeacherFeedback } from "@/teacher/provider";
@@ -18,6 +19,7 @@ type AttemptResponse = {
   nextReviewAt: string;
   progress: LessonProgress;
   teacherFeedback?: TeacherFeedback;
+  mistakeMemory?: MistakeMemory;
 };
 
 function TeacherFeedbackCard({ feedback }: { feedback: TeacherFeedback }) {
@@ -49,6 +51,32 @@ function TeacherFeedbackCard({ feedback }: { feedback: TeacherFeedback }) {
   );
 }
 
+function MistakeMemoryCard({ memory }: { memory: MistakeMemory }) {
+  if (memory.items.length === 0) return null;
+  return (
+    <aside className="mistake-memory" aria-labelledby="mistake-memory-title">
+      <div>
+        <small>Practice memory</small>
+        <h3 id="mistake-memory-title">Patterns the coach will bring back</h3>
+      </div>
+      <ul>
+        {memory.items.map((item) => (
+          <li key={item.code}>
+            <div>
+              <strong lang="es">{item.targetPattern}</strong>
+              <span>{item.explanation}</span>
+            </div>
+            <small className={`memory-status ${item.status}`}>
+              {item.status === "active" ? `seen ${item.occurrenceCount}×` : "improving"}
+            </small>
+          </li>
+        ))}
+      </ul>
+      <p>Two later successful examples are required before a pattern is resolved.</p>
+    </aside>
+  );
+}
+
 export function LessonExperience({ learnerId }: LessonExperienceProps) {
   const [progress, setProgress] = useState<LessonProgress>();
   const [selectedOption, setSelectedOption] = useState<string>();
@@ -62,6 +90,7 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
   const [speechResult, setSpeechResult] = useState<SttTranscript>();
   const [speechError, setSpeechError] = useState<string>();
   const [teacherFeedback, setTeacherFeedback] = useState<TeacherFeedback>();
+  const [mistakeMemory, setMistakeMemory] = useState<MistakeMemory>();
   const speechProvider = useRef(new BrowserSpeechToTextProvider());
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -95,6 +124,19 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
         return payload.teacherFeedback ?? undefined;
       })
       .then(setTeacherFeedback)
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+      });
+
+    fetch(`/api/mistakes?learnerId=${encodeURIComponent(learnerId)}`, {
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) return undefined;
+        const payload = (await response.json()) as { mistakeMemory?: MistakeMemory };
+        return payload.mistakeMemory;
+      })
+      .then(setMistakeMemory)
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === "AbortError") return;
       });
@@ -229,6 +271,7 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
       setNextReviewAt(payload.nextReviewAt);
       setFeedback({ correct: payload.correct, message: payload.feedback });
       setTeacherFeedback(payload.teacherFeedback);
+      setMistakeMemory(payload.mistakeMemory);
       if (payload.correct) {
         window.setTimeout(() => {
           setSpeechResult(undefined);
@@ -278,6 +321,7 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
           <p className="review-note">Latest review scheduled for {new Date(nextReviewAt).toLocaleString()}.</p>
         )}
         {teacherFeedback && <TeacherFeedbackCard feedback={teacherFeedback} />}
+        {mistakeMemory && <MistakeMemoryCard memory={mistakeMemory} />}
       </section>
     );
   }
@@ -359,6 +403,7 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
         </p>
       )}
       {teacherFeedback && <TeacherFeedbackCard feedback={teacherFeedback} />}
+      {mistakeMemory && <MistakeMemoryCard memory={mistakeMemory} />}
       {loadError && <p className="feedback retry" role="alert">{loadError}</p>}
 
       <button

@@ -19,9 +19,10 @@ llamo…` and `Soy <place>`). It does not claim to be a language model, make bro
 grammar judgments, or assess pronunciation. This makes the feedback path useful,
 testable, offline, and free of additional data transfer.
 
-Every generated response is persisted separately from the exercise attempt and
-can be restored after reload. The provider version makes previous output
-auditable when rules change.
+Every correction also carries a stable mistake code and category. Generated
+responses are persisted separately from the exercise attempt and can be restored
+after reload. The provider version makes previous output auditable when rules
+change, while stable codes feed long-term mistake memory.
 
 ## External LLM decision gate
 

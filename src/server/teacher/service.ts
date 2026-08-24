@@ -3,6 +3,7 @@ import { desc, eq } from "drizzle-orm";
 import { introductionLesson } from "@/domain/lesson";
 import { getDatabase } from "@/server/db/client";
 import { teacherFeedback } from "@/server/db/schema";
+import { updateMistakeMemory } from "@/server/mistakes/service";
 import { recordSpeakingAttempt } from "@/server/review/service";
 import { DeterministicTeacherProvider } from "@/teacher/deterministic-provider";
 import type { TeacherFeedback } from "@/teacher/provider";
@@ -44,7 +45,15 @@ export async function submitSpeakingAttemptWithTeacher(input: {
     },
   });
 
-  return { ...attempt, teacherFeedback: generated };
+  const mistakeMemory = await updateMistakeMemory({
+    learnerId: input.learnerId,
+    learningItemId: exercise.learningItem.id,
+    exerciseAttemptId: attempt.attemptId,
+    corrections: generated.corrections,
+    taskComplete: attempt.correct,
+  });
+
+  return { ...attempt, teacherFeedback: generated, mistakeMemory };
 }
 
 export async function loadLatestTeacherFeedback(
@@ -59,7 +68,10 @@ export async function loadLatestTeacherFeedback(
   if (!stored) return null;
 
   return {
-    ...stored.content,
+    summary: stored.content.summary,
+    praise: stored.content.praise,
+    corrections: stored.content.corrections as TeacherFeedback["corrections"],
+    nextStep: stored.content.nextStep,
     providerId: stored.providerId,
     providerVersion: stored.providerVersion,
     generationMode: stored.generationMode as TeacherFeedback["generationMode"],

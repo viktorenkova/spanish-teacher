@@ -50,6 +50,18 @@ structured feedback content, and creation time. The current shape contains a
 summary, praise, focused corrections, and one next step. This lets a future LLM
 provider replace the local provider without turning attempts into opaque AI data.
 
+## Mistake memory
+
+Teacher corrections carry stable codes that update a learner/item mistake
+aggregate. The aggregate retains category, target pattern, explanation,
+occurrence count, successful evidence count, timestamps, and an `active`,
+`improving`, or `resolved` state. A separate immutable event log connects every
+observation or successful evidence point to its exercise attempt.
+
+An observed recurrence resets successful evidence and reopens the pattern. One
+later correct example changes it to `improving`; two are required for
+`resolved`. This deliberately avoids treating one correct answer as mastery.
+
 ## Lesson plans
 
 Each generated lesson plan records its requested and estimated duration,

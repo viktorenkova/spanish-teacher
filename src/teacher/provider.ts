@@ -1,6 +1,12 @@
 import type { SpeakingAssessment } from "@/domain/speaking";
 
 export type TeacherCorrection = {
+  code:
+    | "name_pronoun_mi"
+    | "name_construction_missing"
+    | "origin_preposition_de"
+    | "origin_construction_missing";
+  category: "grammar" | "task_completeness";
   issue: string;
   suggestion: string;
   explanation: string;

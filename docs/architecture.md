@@ -11,6 +11,7 @@ UI components
     -> lesson application service
         -> lesson/content repository
         -> learner progress repository
+        -> mistake memory repository
         -> review scheduler
         -> feedback evaluator
         -> speech / AI / TTS provider ports

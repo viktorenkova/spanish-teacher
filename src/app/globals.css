@@ -123,6 +123,17 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .teacher-feedback li span { color: var(--muted); font-size: .82rem; line-height: 1.45; }
 .teacher-next-step { margin-bottom: 8px; }
 .teacher-provider { color: var(--muted); font-size: .66rem; }
+.mistake-memory { margin-top: 16px; border-radius: 18px; padding: 20px; background: var(--cream); }
+.mistake-memory > div > small { color: var(--coral-dark); font-size: .65rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.mistake-memory h3 { font: 700 1.2rem Georgia, serif; margin: 4px 0 14px; }
+.mistake-memory ul { display: grid; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.mistake-memory li { display: flex; justify-content: space-between; gap: 14px; align-items: center; border-bottom: 1px solid rgba(23, 59, 55, .1); padding: 10px 0; }
+.mistake-memory li > div { display: grid; gap: 3px; }
+.mistake-memory li span { color: var(--muted); font-size: .8rem; line-height: 1.4; }
+.memory-status { flex: 0 0 auto; border-radius: 999px; padding: 5px 8px; font-size: .64rem; font-weight: 800; }
+.memory-status.active { background: #fff0e9; color: #853d30; }
+.memory-status.improving { background: var(--green-soft); }
+.mistake-memory > p { color: var(--muted); font-size: .72rem; line-height: 1.45; margin: 13px 0 0; }
 .completion-card p { color: var(--muted); line-height: 1.7; }
 .review-note { margin-top: 20px; font-size: .82rem; }
 .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 26px 0 4px; }

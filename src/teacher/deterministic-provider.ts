@@ -27,11 +27,15 @@ export class DeterministicTeacherProvider implements TeacherProvider {
       corrections.push(
         /\bmi llamo\b/.test(text)
           ? {
+              code: "name_pronoun_mi",
+              category: "grammar",
               issue: "Use “me”, not “mi”, with llamo.",
               suggestion: "Me llamo…",
               explanation: "This is the natural Spanish phrase for giving your name.",
             }
           : {
+              code: "name_construction_missing",
+              category: "task_completeness",
               issue: "Your name phrase was not clear in the transcript.",
               suggestion: "Me llamo…",
               explanation: "Start with this complete phrase, then add your name.",
@@ -43,11 +47,15 @@ export class DeterministicTeacherProvider implements TeacherProvider {
       corrections.push(
         /\bsoy\b/.test(text) && !/\bsoy de\b/.test(text)
           ? {
+              code: "origin_preposition_de",
+              category: "grammar",
               issue: "The place needs “de” after “soy”.",
               suggestion: "Soy de…",
               explanation: "Use “de” to say where you are from.",
             }
           : {
+              code: "origin_construction_missing",
+              category: "task_completeness",
               issue: "Your origin phrase was not clear in the transcript.",
               suggestion: "Soy de…",
               explanation: "Use this phrase before your country or city.",

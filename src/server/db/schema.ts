@@ -179,7 +179,13 @@ export const teacherFeedback = pgTable(
     content: jsonb("content").$type<{
       summary: string;
       praise: string;
-      corrections: Array<{ issue: string; suggestion: string; explanation: string }>;
+      corrections: Array<{
+        code: string;
+        category: string;
+        issue: string;
+        suggestion: string;
+        explanation: string;
+      }>;
       nextStep: string;
     }>().notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -187,6 +193,53 @@ export const teacherFeedback = pgTable(
   (table) => [
     uniqueIndex("teacher_feedback_attempt_unique").on(table.exerciseAttemptId),
     index("teacher_feedback_learner_created_idx").on(table.learnerId, table.createdAt),
+  ],
+);
+
+export const learnerMistakes = pgTable(
+  "learner_mistakes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    learnerId: uuid("learner_id")
+      .notNull()
+      .references(() => learners.id, { onDelete: "cascade" }),
+    learningItemId: text("learning_item_id")
+      .notNull()
+      .references(() => learningItems.id, { onDelete: "cascade" }),
+    code: text("code").notNull(),
+    category: text("category").notNull(),
+    targetPattern: text("target_pattern").notNull(),
+    explanation: text("explanation").notNull(),
+    status: text("status").notNull(),
+    occurrenceCount: integer("occurrence_count").notNull(),
+    successfulEvidenceCount: integer("successful_evidence_count").notNull(),
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).notNull(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("learner_mistake_unique").on(table.learnerId, table.learningItemId, table.code),
+    index("learner_mistake_status_idx").on(table.learnerId, table.status, table.updatedAt),
+  ],
+);
+
+export const mistakeEvents = pgTable(
+  "mistake_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    mistakeId: uuid("mistake_id")
+      .notNull()
+      .references(() => learnerMistakes.id, { onDelete: "cascade" }),
+    exerciseAttemptId: uuid("exercise_attempt_id")
+      .notNull()
+      .references(() => exerciseAttempts.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("mistake_event_unique").on(table.mistakeId, table.exerciseAttemptId, table.kind),
+    index("mistake_event_mistake_created_idx").on(table.mistakeId, table.createdAt),
   ],
 );
 
