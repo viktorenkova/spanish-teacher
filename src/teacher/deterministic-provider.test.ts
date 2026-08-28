@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assessIntroductionTranscript } from "../domain/speaking";
+import { assessIntroductionTranscript, assessMorningRoutineTranscript } from "../domain/speaking";
 import { DeterministicTeacherProvider } from "./deterministic-provider";
 
 const provider = new DeterministicTeacherProvider();
@@ -32,5 +32,17 @@ describe("deterministic teacher provider", () => {
       "Me llamo…",
       "Soy de…",
     ]);
+  });
+
+  it("gives feedback for the daily-routine speaking objective", async () => {
+    const transcript = "Me levanto a las siete.";
+    const feedback = await provider.generateFeedback({
+      ...request(transcript),
+      objective: "Say when you get up and that you have breakfast.",
+      assessment: assessMorningRoutineTranscript(transcript),
+    });
+
+    expect(feedback.corrections.map(({ code }) => code)).toEqual(["breakfast_action_missing"]);
+    expect(feedback.nextStep).toContain("another answer");
   });
 });

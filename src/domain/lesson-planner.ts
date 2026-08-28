@@ -1,3 +1,5 @@
+import { getLessonDefinition, type LessonKey } from "./lesson";
+
 export const supportedSessionDurations = [5, 10, 15, 20, 30] as const;
 export type SessionDuration = (typeof supportedSessionDurations)[number];
 
@@ -21,7 +23,8 @@ export type LessonPlanBlock = {
 };
 
 export type LessonPlan = {
-  plannerVersion: "duration-aware-v1";
+  plannerVersion: "duration-aware-v1" | "adaptive-duration-v2";
+  lessonKey: LessonKey;
   targetMinutes: SessionDuration;
   estimatedMinutes: number;
   rationale: string[];
@@ -32,9 +35,23 @@ export type LessonPlannerInput = {
   targetMinutes: SessionDuration;
   dueReviewCount: number;
   weakestSkills: string[];
+  lessonKey?: LessonKey;
 };
 
-const coreBlocks: LessonPlanBlock[] = [
+export function chooseCurriculumLesson(input: {
+  completedIntroductionExerciseIds: string[];
+}): LessonKey {
+  const introduction = getLessonDefinition("introductions-v1");
+  const completed = new Set(input.completedIntroductionExerciseIds);
+  return introduction && introduction.exercises.every((exercise) => completed.has(exercise.id))
+    ? "daily-routines-v1"
+    : "introductions-v1";
+}
+
+function createCoreBlocks(lessonKey: LessonKey): LessonPlanBlock[] {
+  const lesson = getLessonDefinition(lessonKey);
+  if (!lesson) throw new Error("Unknown lesson");
+  return [
   {
     id: "warmup",
     kind: "warmup",
@@ -47,8 +64,8 @@ const coreBlocks: LessonPlanBlock[] = [
   {
     id: "introduction-context",
     kind: "context",
-    title: "Meet someone new",
-    objective: "Understand and retrieve a short introduction.",
+    title: lesson.title,
+    objective: lesson.objective,
     estimatedSeconds: 90,
     source: "new_content",
     availability: "ready",
@@ -57,7 +74,9 @@ const coreBlocks: LessonPlanBlock[] = [
     id: "listening-core",
     kind: "listening",
     title: "Listen for key details",
-    objective: "Recognise a name and place in natural Spain Spanish.",
+    objective: lessonKey === "daily-routines-v1"
+      ? "Recognise a time in natural Spain Spanish."
+      : "Recognise a name and place in natural Spain Spanish.",
     estimatedSeconds: 60,
     source: "lesson_scaffold",
     availability: "ready",
@@ -65,8 +84,10 @@ const coreBlocks: LessonPlanBlock[] = [
   {
     id: "speaking-core",
     kind: "speaking",
-    title: "Say your introduction",
-    objective: "Give your name and where you are from aloud.",
+    title: lessonKey === "daily-routines-v1" ? "Describe your morning" : "Say your introduction",
+    objective: lessonKey === "daily-routines-v1"
+      ? "Say when you get up and that you have breakfast."
+      : "Give your name and where you are from aloud.",
     estimatedSeconds: 90,
     source: "lesson_scaffold",
     availability: "ready",
@@ -80,7 +101,8 @@ const coreBlocks: LessonPlanBlock[] = [
     source: "lesson_scaffold",
     availability: "ready",
   },
-];
+  ];
+}
 
 const expansionBlocks: Omit<LessonPlanBlock, "id">[] = [
   {
@@ -126,8 +148,9 @@ const expansionBlocks: Omit<LessonPlanBlock, "id">[] = [
 ];
 
 export function buildLessonPlan(input: LessonPlannerInput): LessonPlan {
+  const lessonKey = input.lessonKey ?? "introductions-v1";
   const targetSeconds = input.targetMinutes * 60;
-  const blocks = coreBlocks.map((block) => ({ ...block }));
+  const blocks = createCoreBlocks(lessonKey).map((block) => ({ ...block }));
   let totalSeconds = blocks.reduce((total, block) => total + block.estimatedSeconds, 0);
   let expansionIndex = 0;
 
@@ -156,6 +179,9 @@ export function buildLessonPlan(input: LessonPlannerInput): LessonPlan {
 
   const rationale = [
     `${input.targetMinutes}-minute session requested.`,
+    lessonKey === "daily-routines-v1"
+      ? "Introductions are complete, so the curriculum advances to daily routines."
+      : "Introductions are the first practical A1 objective.",
     input.dueReviewCount > 0
       ? `${input.dueReviewCount} FSRS item${input.dueReviewCount === 1 ? " is" : "s are"} due.`
       : "No FSRS reviews are due, so the review space introduces useful A1 language.",
@@ -166,7 +192,8 @@ export function buildLessonPlan(input: LessonPlannerInput): LessonPlan {
   ];
 
   return {
-    plannerVersion: "duration-aware-v1",
+    plannerVersion: "adaptive-duration-v2",
+    lessonKey,
     targetMinutes: input.targetMinutes,
     estimatedMinutes: Math.round(totalSeconds / 60),
     rationale,

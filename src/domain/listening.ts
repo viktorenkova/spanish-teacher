@@ -18,6 +18,15 @@ export const listeningClips = {
     license: "Project-authored",
     attribution: "Spanish Coach",
   },
+  "routine-marta": {
+    id: "routine-marta",
+    text: "Por la mañana, me levanto a las siete y desayuno.",
+    locale: "es-ES",
+    rate: 0.9,
+    sourceReference: "internal:mvp-daily-routines-v1",
+    license: "Project-authored",
+    attribution: "Spanish Coach",
+  },
 } as const satisfies Record<string, ListeningClip>;
 
 export type ListeningClipId = keyof typeof listeningClips;

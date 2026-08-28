@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createEmptyProgress, introductionLesson, type LessonProgress } from "@/domain/lesson";
+import {
+  createEmptyProgress,
+  getLessonDefinition,
+  type LessonKey,
+  type LessonProgress,
+} from "@/domain/lesson";
+import type { LearnerProgressSummary } from "@/domain/progress";
 import { getListeningClip } from "@/domain/listening";
 import type { MistakeMemory } from "@/domain/mistake";
 import { BrowserSpeechToTextProvider } from "@/stt/browser-provider";
@@ -11,6 +17,8 @@ import { speakWithBrowser } from "@/tts/browser-provider";
 
 type LessonExperienceProps = {
   learnerId: string;
+  lessonKey: LessonKey;
+  onPlanNextLesson: () => void;
 };
 
 type AttemptResponse = {
@@ -77,8 +85,9 @@ function MistakeMemoryCard({ memory }: { memory: MistakeMemory }) {
   );
 }
 
-export function LessonExperience({ learnerId }: LessonExperienceProps) {
+export function LessonExperience({ learnerId, lessonKey, onPlanNextLesson }: LessonExperienceProps) {
   const [progress, setProgress] = useState<LessonProgress>();
+  const [progressSummary, setProgressSummary] = useState<LearnerProgressSummary>();
   const [selectedOption, setSelectedOption] = useState<string>();
   const [feedback, setFeedback] = useState<{ correct: boolean; message: string }>();
   const [nextReviewAt, setNextReviewAt] = useState<string>();
@@ -93,21 +102,29 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
   const [mistakeMemory, setMistakeMemory] = useState<MistakeMemory>();
   const speechProvider = useRef(new BrowserSpeechToTextProvider());
   const [reloadKey, setReloadKey] = useState(0);
+  const lesson = getLessonDefinition(lessonKey);
+
+  if (!lesson) throw new Error("Unknown lesson");
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(`/api/lesson/progress?learnerId=${encodeURIComponent(learnerId)}`, {
+    fetch(`/api/lesson/progress?learnerId=${encodeURIComponent(learnerId)}&lessonKey=${encodeURIComponent(lessonKey)}`, {
       signal: controller.signal,
     })
       .then(async (response) => {
-        const payload = (await response.json()) as { progress?: LessonProgress; error?: string };
+        const payload = (await response.json()) as {
+          progress?: LessonProgress;
+          summary?: LearnerProgressSummary;
+          error?: string;
+        };
         if (!response.ok || !payload.progress) {
           throw new Error(payload.error ?? "Lesson progress could not be loaded.");
         }
-        return payload.progress;
+        return payload;
       })
-      .then((loadedProgress) => {
-        setProgress(loadedProgress);
+      .then((loaded) => {
+        setProgress(loaded.progress);
+        setProgressSummary(loaded.summary);
         setLoadError(undefined);
       })
       .catch((error: unknown) => {
@@ -115,7 +132,7 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
         setLoadError(error instanceof Error ? error.message : "Lesson progress could not be loaded.");
       });
 
-    fetch(`/api/teacher/feedback?learnerId=${encodeURIComponent(learnerId)}`, {
+    fetch(`/api/teacher/feedback?learnerId=${encodeURIComponent(learnerId)}&lessonKey=${encodeURIComponent(lessonKey)}`, {
       signal: controller.signal,
     })
       .then(async (response) => {
@@ -142,7 +159,7 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
       });
 
     return () => controller.abort();
-  }, [learnerId, reloadKey]);
+  }, [learnerId, lessonKey, reloadKey]);
 
   useEffect(() => {
     const provider = speechProvider.current;
@@ -152,13 +169,13 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
   const currentProgress = progress ?? createEmptyProgress();
   const exercise = useMemo(
     () =>
-      introductionLesson.find(
+      lesson.exercises.find(
         (item) => !currentProgress.completedExerciseIds.includes(item.id),
       ),
-    [currentProgress.completedExerciseIds],
+    [currentProgress.completedExerciseIds, lesson.exercises],
   );
   const percent = Math.round(
-    (currentProgress.completedExerciseIds.length / introductionLesson.length) * 100,
+    (currentProgress.completedExerciseIds.length / lesson.exercises.length) * 100,
   );
 
   async function submitAnswer() {
@@ -169,7 +186,12 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
       const response = await fetch("/api/lesson/attempts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ learnerId, exerciseId: exercise.id, selectedOptionId: selectedOption }),
+        body: JSON.stringify({
+          learnerId,
+          lessonKey,
+          exerciseId: exercise.id,
+          selectedOptionId: selectedOption,
+        }),
       });
       const payload = (await response.json()) as AttemptResponse & { error?: string };
       if (!response.ok || !payload.progress) {
@@ -177,6 +199,7 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
       }
 
       setProgress(payload.progress);
+      void refreshProgressSummary();
       setNextReviewAt(payload.nextReviewAt);
       setFeedback({ correct: payload.correct, message: payload.feedback });
       if (payload.correct) {
@@ -256,6 +279,7 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           learnerId,
+          lessonKey,
           exerciseId: exercise.id,
           transcript: speechResult.text,
           evidenceProvider: speechResult.providerId,
@@ -268,6 +292,7 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
       }
 
       setProgress(payload.progress);
+      void refreshProgressSummary();
       setNextReviewAt(payload.nextReviewAt);
       setFeedback({ correct: payload.correct, message: payload.feedback });
       setTeacherFeedback(payload.teacherFeedback);
@@ -282,6 +307,19 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
       setLoadError(error instanceof Error ? error.message : "The speaking attempt could not be saved.");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function refreshProgressSummary() {
+    try {
+      const response = await fetch(
+        `/api/lesson/progress?learnerId=${encodeURIComponent(learnerId)}&lessonKey=${encodeURIComponent(lessonKey)}`,
+      );
+      if (!response.ok) return;
+      const payload = (await response.json()) as { summary?: LearnerProgressSummary };
+      setProgressSummary(payload.summary);
+    } catch {
+      // The attempt is already saved. A summary can be refreshed on the next visit.
     }
   }
 
@@ -306,22 +344,35 @@ export function LessonExperience({ learnerId }: LessonExperienceProps) {
     return (
       <section className="lesson-card completion-card" aria-labelledby="lesson-complete">
         <span className="eyebrow">Lesson complete</span>
-        <h2 id="lesson-complete">You can make a first introduction.</h2>
-        <p>
-          You practised <strong>Me llamo…</strong>, <strong>Soy de…</strong>, and{" "}
-          <strong>Encantada</strong>, listened for a place name, and completed a spoken
-          introduction. Your transcript, answers, and FSRS review schedule are saved.
-        </p>
+        <h2 id="lesson-complete">{lesson.completionTitle}</h2>
+        <p>{lesson.completionSummary} Your transcript, answers, and FSRS review schedule are saved.</p>
         <dl className="summary-grid">
-          <div><dt>Objectives</dt><dd>{progress.correctAnswers}/{introductionLesson.length}</dd></div>
+          <div><dt>Objectives</dt><dd>{progress.correctAnswers}/{lesson.exercises.length}</dd></div>
           <div><dt>Attempts</dt><dd>{progress.attempts}</dd></div>
-          <div><dt>Spanish</dt><dd>A1</dd></div>
+          <div><dt>Phrases started</dt><dd>{progressSummary?.introducedItemCount ?? "—"}</dd></div>
         </dl>
-        {nextReviewAt && (
+        {progressSummary && (
+          <div className="progress-next-step" aria-label="Your next practice step">
+            <strong>Your next useful step</strong>
+            <p>
+              {progressSummary.dueReviewCount > 0
+                ? `${progressSummary.dueReviewCount} phrase${progressSummary.dueReviewCount === 1 ? " is" : "s are"} ready to review now.`
+                : progressSummary.nextReviewAt
+                  ? `Your next scheduled review is ${new Date(progressSummary.nextReviewAt).toLocaleString()}.`
+                  : "Keep practising the current phrases to build recall."}
+            </p>
+            <small>
+              {progressSummary.reviewedTodayCount} phrase{progressSummary.reviewedTodayCount === 1 ? "" : "s"} practised today
+              {progressSummary.hasCompletedSpeakingTask ? " · speaking task completed" : ""}.
+            </small>
+          </div>
+        )}
+        {!progressSummary && nextReviewAt && (
           <p className="review-note">Latest review scheduled for {new Date(nextReviewAt).toLocaleString()}.</p>
         )}
         {teacherFeedback && <TeacherFeedbackCard feedback={teacherFeedback} />}
         {mistakeMemory && <MistakeMemoryCard memory={mistakeMemory} />}
+        <button className="primary-button" onClick={onPlanNextLesson}>Plan the next lesson</button>
       </section>
     );
   }

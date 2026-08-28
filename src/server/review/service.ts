@@ -1,7 +1,8 @@
 import "server-only";
 import { and, asc, eq } from "drizzle-orm";
-import { introductionLesson } from "@/domain/lesson";
-import { assessIntroductionTranscript } from "@/domain/speaking";
+import { summariseLearnerProgress, type LearnerProgressSummary } from "@/domain/progress";
+import { getLessonDefinition, type LessonExercise, type LessonKey } from "@/domain/lesson";
+import { assessIntroductionTranscript, assessMorningRoutineTranscript } from "@/domain/speaking";
 import { getDatabase } from "@/server/db/client";
 import {
   exerciseAttempts,
@@ -19,7 +20,12 @@ export type PersistedLessonProgress = {
   completedAt?: string;
 };
 
-export async function loadLessonProgress(learnerId: string): Promise<PersistedLessonProgress> {
+export async function loadLessonProgress(
+  learnerId: string,
+  lessonKey: LessonKey = introductionLessonKey,
+): Promise<PersistedLessonProgress> {
+  const lesson = getLessonDefinition(lessonKey);
+  if (!lesson) throw new Error("Unknown lesson");
   const db = getDatabase();
   const attempts = await db
     .select({
@@ -31,7 +37,7 @@ export async function loadLessonProgress(learnerId: string): Promise<PersistedLe
     .where(
       and(
         eq(exerciseAttempts.learnerId, learnerId),
-        eq(exerciseAttempts.lessonKey, introductionLessonKey),
+        eq(exerciseAttempts.lessonKey, lessonKey),
       ),
     )
     .orderBy(asc(exerciseAttempts.occurredAt));
@@ -39,7 +45,7 @@ export async function loadLessonProgress(learnerId: string): Promise<PersistedLe
   const completedExerciseIds = [
     ...new Set(attempts.filter((attempt) => attempt.correct).map((attempt) => attempt.exerciseId)),
   ];
-  const isComplete = completedExerciseIds.length === introductionLesson.length;
+  const isComplete = completedExerciseIds.length === lesson.exercises.length;
 
   return {
     completedExerciseIds,
@@ -49,8 +55,33 @@ export async function loadLessonProgress(learnerId: string): Promise<PersistedLe
   };
 }
 
+export async function loadLearnerProgressSummary(
+  learnerId: string,
+  now = new Date(),
+): Promise<LearnerProgressSummary> {
+  const db = getDatabase();
+  const [itemStates, evidence] = await Promise.all([
+    db
+      .select({ learningItemId: learnerItemStates.learningItemId, due: learnerItemStates.due })
+      .from(learnerItemStates)
+      .where(eq(learnerItemStates.learnerId, learnerId)),
+    db
+      .select({
+        learningItemId: exerciseAttempts.learningItemId,
+        modality: exerciseAttempts.modality,
+        correct: exerciseAttempts.correct,
+        occurredAt: exerciseAttempts.occurredAt,
+      })
+      .from(exerciseAttempts)
+      .where(eq(exerciseAttempts.learnerId, learnerId)),
+  ]);
+
+  return summariseLearnerProgress({ itemStates, evidence, now });
+}
+
 type PersistedAttemptInput = {
   learnerId: string;
+  lessonKey: LessonKey;
   exerciseId: string;
   selectedOptionId: string;
   transcript?: string;
@@ -62,7 +93,7 @@ type PersistedAttemptInput = {
 
 async function persistExerciseAttempt(
   input: PersistedAttemptInput,
-  exercise: (typeof introductionLesson)[number],
+  exercise: LessonExercise,
   correct: boolean,
   feedback: string,
 ) {
@@ -125,7 +156,7 @@ async function persistExerciseAttempt(
       .values({
         learnerId: input.learnerId,
         learningItemId: exercise.learningItem.id,
-        lessonKey: introductionLessonKey,
+        lessonKey: input.lessonKey,
         exerciseId: exercise.id,
         modality: exercise.modality,
         selectedOptionId: input.selectedOptionId,
@@ -148,12 +179,14 @@ async function persistExerciseAttempt(
     feedback,
     attemptId: scheduled.attemptId,
     nextReviewAt: scheduled.due.toISOString(),
-    progress: await loadLessonProgress(input.learnerId),
+    progress: await loadLessonProgress(input.learnerId, input.lessonKey),
   };
 }
 
 export async function recordExerciseAttempt(input: PersistedAttemptInput) {
-  const exercise = introductionLesson.find((item) => item.id === input.exerciseId);
+  const exercise = getLessonDefinition(input.lessonKey)?.exercises.find(
+    (item) => item.id === input.exerciseId,
+  );
   if (!exercise) throw new Error("Unknown exercise");
   if (exercise.modality === "production") throw new Error("Speaking task requires transcript evidence");
 
@@ -168,18 +201,23 @@ export async function recordExerciseAttempt(input: PersistedAttemptInput) {
 
 export async function recordSpeakingAttempt(input: {
   learnerId: string;
+  lessonKey: LessonKey;
   exerciseId: string;
   transcript: string;
   evidenceProvider: string;
   providerConfidence?: number;
   now?: Date;
 }) {
-  const exercise = introductionLesson.find((item) => item.id === input.exerciseId);
+  const exercise = getLessonDefinition(input.lessonKey)?.exercises.find(
+    (item) => item.id === input.exerciseId,
+  );
   if (!exercise || exercise.modality !== "production" || !exercise.speakingTask) {
     throw new Error("Unknown speaking exercise");
   }
 
-  const assessment = assessIntroductionTranscript(input.transcript);
+  const assessment = input.lessonKey === "daily-routines-v1"
+    ? assessMorningRoutineTranscript(input.transcript)
+    : assessIntroductionTranscript(input.transcript);
   const result = await persistExerciseAttempt(
     {
       ...input,

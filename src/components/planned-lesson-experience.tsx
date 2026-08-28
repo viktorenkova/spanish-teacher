@@ -88,7 +88,18 @@ export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
     );
   }
 
-  if (started) return <LessonExperience learnerId={learnerId} />;
+  if (started) {
+    return (
+      <LessonExperience
+        learnerId={learnerId}
+        lessonKey={plan.lessonKey}
+        onPlanNextLesson={() => {
+          setStarted(false);
+          setPlan(null);
+        }}
+      />
+    );
+  }
 
   return (
     <section className="lesson-card planner-card" aria-labelledby="plan-title">

@@ -136,6 +136,10 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .mistake-memory > p { color: var(--muted); font-size: .72rem; line-height: 1.45; margin: 13px 0 0; }
 .completion-card p { color: var(--muted); line-height: 1.7; }
 .review-note { margin-top: 20px; font-size: .82rem; }
+.progress-next-step { margin-top: 20px; padding: 16px 18px; border-radius: 14px; background: var(--green-soft); }
+.progress-next-step strong { font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; }
+.progress-next-step p { margin: 7px 0 6px; color: var(--ink); line-height: 1.5; }
+.progress-next-step small { color: var(--muted); font-size: .75rem; }
 .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 26px 0 4px; }
 .summary-grid div { background: var(--cream); border-radius: 14px; padding: 16px; }
 .summary-grid dt { color: var(--muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; }

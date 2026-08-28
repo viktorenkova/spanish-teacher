@@ -255,6 +255,7 @@ export const lessonPlans = pgTable(
     status: text("status").notNull().default("planned"),
     plannerVersion: text("planner_version").notNull(),
     plan: jsonb("plan").$type<{
+      lessonKey?: "introductions-v1" | "daily-routines-v1";
       rationale: string[];
       blocks: Array<{
         id: string;

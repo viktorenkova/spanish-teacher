@@ -19,8 +19,9 @@ The pilot begins with three practical topics:
 2. Daily routines.
 3. Ordering food and drinks in a cafe.
 
-The initial implementation uses introductions only. Content is deliberately
-small and reviewed before any bulk data import.
+The implementation includes introductions and daily routines. Completing every
+introduction objective advances the next generated plan to daily routines.
+Content remains deliberately small and reviewed before any bulk data import.
 
 ## Ten-minute target flow
 

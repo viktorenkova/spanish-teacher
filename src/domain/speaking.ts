@@ -1,8 +1,8 @@
 export type SpeakingAssessment = {
   complete: boolean;
-  matchedSignals: Array<"name" | "origin">;
+  matchedSignals: Array<"name" | "origin" | "get_up" | "breakfast">;
   feedback: string;
-  version: "introduction-task-v1";
+  version: "introduction-task-v1" | "morning-routine-task-v1";
 };
 
 function normalizeTranscript(transcript: string) {
@@ -13,6 +13,36 @@ function normalizeTranscript(transcript: string) {
     .replace(/[^a-zñ\s]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+export function assessMorningRoutineTranscript(transcript: string): SpeakingAssessment {
+  const normalized = normalizeTranscript(transcript);
+  const hasGetUp = /\b(me levanto|suelo levantarme)\b/.test(normalized);
+  const hasBreakfast = /\b(desayuno|tomo el desayuno)\b/.test(normalized);
+  const matchedSignals: SpeakingAssessment["matchedSignals"] = [];
+  if (hasGetUp) matchedSignals.push("get_up");
+  if (hasBreakfast) matchedSignals.push("breakfast");
+
+  if (hasGetUp && hasBreakfast) {
+    return {
+      complete: true,
+      matchedSignals,
+      feedback:
+        "Task complete: the transcript includes getting up and having breakfast. Pronunciation was not assessed.",
+      version: "morning-routine-task-v1",
+    };
+  }
+
+  const missing = [
+    !hasGetUp ? "getting up with ‘Me levanto…’" : undefined,
+    !hasBreakfast ? "breakfast with ‘desayuno’" : undefined,
+  ].filter(Boolean).join(" and ");
+  return {
+    complete: false,
+    matchedSignals,
+    feedback: `Try once more and include ${missing}. The transcript may also need correction.`,
+    version: "morning-routine-task-v1",
+  };
 }
 
 export function assessIntroductionTranscript(transcript: string): SpeakingAssessment {

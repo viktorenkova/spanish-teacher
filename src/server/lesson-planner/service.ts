@@ -1,12 +1,19 @@
 import "server-only";
 import { and, asc, desc, eq, lte } from "drizzle-orm";
+import type { LessonKey } from "@/domain/lesson";
 import {
   buildLessonPlan,
+  chooseCurriculumLesson,
   type LessonPlan,
   type SessionDuration,
 } from "@/domain/lesson-planner";
 import { getDatabase } from "@/server/db/client";
-import { learnerItemStates, learnerSkillEstimates, lessonPlans } from "@/server/db/schema";
+import {
+  exerciseAttempts,
+  learnerItemStates,
+  learnerSkillEstimates,
+  lessonPlans,
+} from "@/server/db/schema";
 
 export async function createLessonPlan(input: {
   learnerId: string;
@@ -15,7 +22,7 @@ export async function createLessonPlan(input: {
 }) {
   const db = getDatabase();
   const now = input.now ?? new Date();
-  const [dueItems, skillEstimates] = await Promise.all([
+  const [dueItems, skillEstimates, completedIntroductionExercises] = await Promise.all([
     db
       .select({ id: learnerItemStates.id })
       .from(learnerItemStates)
@@ -36,12 +43,29 @@ export async function createLessonPlan(input: {
       )
       .orderBy(asc(learnerSkillEstimates.confidence))
       .limit(2),
+    db
+      .select({ exerciseId: exerciseAttempts.exerciseId })
+      .from(exerciseAttempts)
+      .where(
+        and(
+          eq(exerciseAttempts.learnerId, input.learnerId),
+          eq(exerciseAttempts.lessonKey, "introductions-v1"),
+          eq(exerciseAttempts.correct, true),
+        ),
+      ),
   ]);
+
+  const lessonKey = chooseCurriculumLesson({
+    completedIntroductionExerciseIds: completedIntroductionExercises.map(
+      ({ exerciseId }) => exerciseId,
+    ),
+  });
 
   const plan = buildLessonPlan({
     targetMinutes: input.targetMinutes,
     dueReviewCount: dueItems.length,
     weakestSkills: skillEstimates.map(({ skill }) => skill),
+    lessonKey,
   });
   const [saved] = await db
     .insert(lessonPlans)
@@ -50,7 +74,7 @@ export async function createLessonPlan(input: {
       targetMinutes: plan.targetMinutes,
       estimatedMinutes: plan.estimatedMinutes,
       plannerVersion: plan.plannerVersion,
-      plan: { rationale: plan.rationale, blocks: plan.blocks },
+      plan: { lessonKey: plan.lessonKey, rationale: plan.rationale, blocks: plan.blocks },
       createdAt: now,
     })
     .returning();
@@ -71,6 +95,7 @@ export async function loadLatestLessonPlan(learnerId: string) {
   return {
     id: saved.id,
     plannerVersion: saved.plannerVersion as LessonPlan["plannerVersion"],
+    lessonKey: (saved.plan.lessonKey ?? "introductions-v1") as LessonKey,
     targetMinutes: saved.targetMinutes as SessionDuration,
     estimatedMinutes: saved.estimatedMinutes,
     rationale: saved.plan.rationale,
@@ -78,4 +103,3 @@ export async function loadLatestLessonPlan(learnerId: string) {
     createdAt: saved.createdAt.toISOString(),
   };
 }
-

@@ -21,6 +21,18 @@ export type LessonExercise = {
   retryFeedback: string;
 };
 
+export type LessonKey = "introductions-v1" | "daily-routines-v1";
+
+export type LessonDefinition = {
+  key: LessonKey;
+  topic: "introductions" | "daily-routines";
+  title: string;
+  objective: string;
+  completionTitle: string;
+  completionSummary: string;
+  exercises: LessonExercise[];
+};
+
 export type LearningItemDefinition = {
   id: string;
   kind: "word" | "phrase" | "construction" | "grammar_pattern";
@@ -172,6 +184,165 @@ export const introductionLesson: LessonExercise[] = [
     retryFeedback: "Try again with both “Me llamo…” and “Soy de…”.",
   },
 ];
+
+export const dailyRoutineLesson: LessonExercise[] = [
+  {
+    id: "meaning-me-levanto",
+    learningItem: {
+      id: "construction:me-levanto",
+      kind: "construction",
+      targetText: "Me levanto a las siete.",
+      supportText: "I get up at seven.",
+      sourceType: "curated",
+      sourceReference: "internal:mvp-daily-routines-v1",
+      license: "Project-authored",
+      attribution: "Spanish Coach",
+      qaStatus: "reviewed",
+    },
+    modality: "recognition",
+    eyebrow: "Understand in context",
+    prompt: "What does “Me levanto a las siete” mean?",
+    context: "— ¿A qué hora te levantas?\n— Me levanto a las siete.",
+    options: [
+      { id: "get-up", label: "I get up at seven" },
+      { id: "eat", label: "I eat at seven" },
+      { id: "leave", label: "I leave at seven" },
+    ],
+    correctOptionId: "get-up",
+    successFeedback: "Correct. “Me levanto” is a useful way to say when you get up.",
+    retryFeedback: "Look at the question “¿A qué hora te levantas?” It asks about getting up.",
+  },
+  {
+    id: "retrieve-breakfast",
+    learningItem: {
+      id: "phrase:desayuno-por-la-manana",
+      kind: "phrase",
+      targetText: "Desayuno por la mañana.",
+      supportText: "I have breakfast in the morning.",
+      sourceType: "curated",
+      sourceReference: "internal:mvp-daily-routines-v1",
+      license: "Project-authored",
+      attribution: "Spanish Coach",
+      qaStatus: "reviewed",
+    },
+    modality: "recall",
+    eyebrow: "Retrieve the phrase",
+    prompt: "Choose the natural way to say “I have breakfast in the morning.”",
+    context: "You are describing a normal weekday.",
+    options: [
+      { id: "breakfast", label: "Desayuno por la mañana." },
+      { id: "dinner", label: "Ceno por la mañana." },
+      { id: "sleep", label: "Duermo por la mañana." },
+    ],
+    correctOptionId: "breakfast",
+    successFeedback: "Good. “Desayuno” means “I have breakfast.”",
+    retryFeedback: "Try the verb connected with desayuno: breakfast.",
+  },
+  {
+    id: "listen-marta-routine",
+    learningItem: {
+      id: "listening:routine-marta",
+      kind: "phrase",
+      targetText: "Por la mañana, me levanto a las siete y desayuno.",
+      supportText: "In the morning, I get up at seven and have breakfast.",
+      sourceType: "curated",
+      sourceReference: "internal:mvp-daily-routines-v1",
+      license: "Project-authored",
+      attribution: "Spanish Coach",
+      qaStatus: "reviewed",
+    },
+    modality: "listening",
+    listeningClipId: "routine-marta",
+    eyebrow: "Listen for the time",
+    prompt: "What time does Marta get up?",
+    context: "Play the audio. Listen for the words after “a las”.",
+    options: [
+      { id: "seven", label: "At seven" },
+      { id: "eight", label: "At eight" },
+      { id: "nine", label: "At nine" },
+    ],
+    correctOptionId: "seven",
+    successFeedback: "Correct. You heard “me levanto a las siete.”",
+    retryFeedback: "Listen again for the number after “a las”.",
+  },
+  {
+    id: "prepare-routine",
+    learningItem: {
+      id: "construction:routine-sequence",
+      kind: "construction",
+      targetText: "Me levanto… y desayuno.",
+      supportText: "I get up… and have breakfast.",
+      sourceType: "curated",
+      sourceReference: "internal:mvp-daily-routines-v1",
+      license: "Project-authored",
+      attribution: "Spanish Coach",
+      qaStatus: "reviewed",
+    },
+    modality: "recognition",
+    eyebrow: "Prepare to speak",
+    prompt: "Which answer gives two parts of a morning routine?",
+    context: "Keep the full sentence in mind. You will say your own version next.",
+    options: [
+      { id: "routine", label: "Me levanto a las siete y desayuno." },
+      { id: "name", label: "Me llamo Marta y soy de Madrid." },
+      { id: "cafe", label: "Quiero un café, por favor." },
+    ],
+    correctOptionId: "routine",
+    successFeedback: "Correct. “Y” connects the two routine actions.",
+    retryFeedback: "Choose the answer about getting up and having breakfast.",
+  },
+  {
+    id: "speak-morning-routine",
+    learningItem: {
+      id: "construction:spoken-morning-routine",
+      kind: "construction",
+      targetText: "Me levanto a las… y desayuno.",
+      supportText: "I get up at… and have breakfast.",
+      sourceType: "curated",
+      sourceReference: "internal:mvp-daily-routines-v1",
+      license: "Project-authored",
+      attribution: "Spanish Coach",
+      qaStatus: "reviewed",
+    },
+    modality: "production",
+    speakingTask: { locale: "es-ES", maxDurationMs: 15_000 },
+    eyebrow: "Speak in Spanish",
+    prompt: "Describe your morning aloud.",
+    context:
+      "Say when you get up and that you have breakfast. Use: “Me levanto a las… y desayuno.”\nYour transcript will be checked for task completion, not pronunciation.",
+    options: [],
+    correctOptionId: "task-complete",
+    successFeedback: "Task complete: you included getting up and having breakfast. Pronunciation was not assessed.",
+    retryFeedback: "Try again with both “Me levanto…” and “desayuno”.",
+  },
+];
+
+export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
+  "introductions-v1": {
+    key: "introductions-v1",
+    topic: "introductions",
+    title: "Meet someone new",
+    objective: "Say your name and where you are from.",
+    completionTitle: "You can make a first introduction.",
+    completionSummary:
+      "You practised Me llamo…, Soy de…, and Encantada, listened for a place name, and completed a spoken introduction.",
+    exercises: introductionLesson,
+  },
+  "daily-routines-v1": {
+    key: "daily-routines-v1",
+    topic: "daily-routines",
+    title: "Talk about your morning",
+    objective: "Say when you get up and connect two morning actions.",
+    completionTitle: "You can describe a simple morning routine.",
+    completionSummary:
+      "You practised Me levanto…, a las…, and desayuno, listened for a time, and completed a spoken routine.",
+    exercises: dailyRoutineLesson,
+  },
+};
+
+export function getLessonDefinition(key: string): LessonDefinition | undefined {
+  return lessonCatalog[key as LessonKey];
+}
 
 export function createEmptyProgress(): LessonProgress {
   return { completedExerciseIds: [], correctAnswers: 0, attempts: 0 };

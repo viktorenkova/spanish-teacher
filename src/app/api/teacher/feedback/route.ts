@@ -3,13 +3,18 @@ import { z } from "zod";
 import { loadLatestTeacherFeedback } from "@/server/teacher/service";
 
 export async function GET(request: Request) {
-  const parsed = z.uuid().safeParse(new URL(request.url).searchParams.get("learnerId"));
-  if (!parsed.success) {
-    return NextResponse.json({ error: "A valid learner ID is required." }, { status: 400 });
+  const url = new URL(request.url);
+  const parsed = z.uuid().safeParse(url.searchParams.get("learnerId"));
+  const lessonKey = z.enum(["introductions-v1", "daily-routines-v1"])
+    .safeParse(url.searchParams.get("lessonKey"));
+  if (!parsed.success || !lessonKey.success) {
+    return NextResponse.json({ error: "A valid learner and lesson are required." }, { status: 400 });
   }
 
   try {
-    return NextResponse.json({ teacherFeedback: await loadLatestTeacherFeedback(parsed.data) });
+    return NextResponse.json({
+      teacherFeedback: await loadLatestTeacherFeedback(parsed.data, lessonKey.data),
+    });
   } catch (error) {
     console.error("Unable to load teacher feedback", error);
     return NextResponse.json({ error: "Teacher feedback could not be loaded." }, { status: 503 });

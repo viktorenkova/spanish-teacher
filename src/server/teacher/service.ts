@@ -1,8 +1,8 @@
 import "server-only";
-import { desc, eq } from "drizzle-orm";
-import { introductionLesson } from "@/domain/lesson";
+import { and, desc, eq } from "drizzle-orm";
+import { getLessonDefinition, type LessonKey } from "@/domain/lesson";
 import { getDatabase } from "@/server/db/client";
-import { teacherFeedback } from "@/server/db/schema";
+import { exerciseAttempts, teacherFeedback } from "@/server/db/schema";
 import { updateMistakeMemory } from "@/server/mistakes/service";
 import { recordSpeakingAttempt } from "@/server/review/service";
 import { DeterministicTeacherProvider } from "@/teacher/deterministic-provider";
@@ -12,12 +12,15 @@ const provider = new DeterministicTeacherProvider();
 
 export async function submitSpeakingAttemptWithTeacher(input: {
   learnerId: string;
+  lessonKey: LessonKey;
   exerciseId: string;
   transcript: string;
   evidenceProvider: string;
   providerConfidence?: number;
 }) {
-  const exercise = introductionLesson.find((item) => item.id === input.exerciseId);
+  const exercise = getLessonDefinition(input.lessonKey)?.exercises.find(
+    (item) => item.id === input.exerciseId,
+  );
   if (!exercise?.speakingTask) throw new Error("Unknown speaking exercise");
 
   const attempt = await recordSpeakingAttempt(input);
@@ -58,13 +61,23 @@ export async function submitSpeakingAttemptWithTeacher(input: {
 
 export async function loadLatestTeacherFeedback(
   learnerId: string,
+  lessonKey?: LessonKey,
 ): Promise<TeacherFeedback | null> {
-  const [stored] = await getDatabase()
+  const [joined] = await getDatabase()
     .select()
     .from(teacherFeedback)
-    .where(eq(teacherFeedback.learnerId, learnerId))
+    .innerJoin(exerciseAttempts, eq(teacherFeedback.exerciseAttemptId, exerciseAttempts.id))
+    .where(
+      lessonKey
+        ? and(
+            eq(teacherFeedback.learnerId, learnerId),
+            eq(exerciseAttempts.lessonKey, lessonKey),
+          )
+        : eq(teacherFeedback.learnerId, learnerId),
+    )
     .orderBy(desc(teacherFeedback.createdAt))
     .limit(1);
+  const stored = joined?.teacher_feedback;
   if (!stored) return null;
 
   return {

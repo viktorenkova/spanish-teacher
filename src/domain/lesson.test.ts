@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createEmptyProgress,
+  dailyRoutineLesson,
   introductionLesson,
   recordAnswer,
 } from "./lesson";
@@ -23,5 +24,9 @@ describe("lesson progress", () => {
     expect(repeated.correctAnswers).toBe(1);
     expect(repeated.completedExerciseIds).toEqual([exercise.id]);
   });
-});
 
+  it("keeps listening and speaking in the daily-routines lesson", () => {
+    expect(dailyRoutineLesson.some(({ modality }) => modality === "listening")).toBe(true);
+    expect(dailyRoutineLesson.some(({ modality }) => modality === "production")).toBe(true);
+  });
+});

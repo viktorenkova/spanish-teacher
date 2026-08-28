@@ -5,7 +5,9 @@ export type TeacherCorrection = {
     | "name_pronoun_mi"
     | "name_construction_missing"
     | "origin_preposition_de"
-    | "origin_construction_missing";
+    | "origin_construction_missing"
+    | "get_up_construction_missing"
+    | "breakfast_action_missing";
   category: "grammar" | "task_completeness";
   issue: string;
   suggestion: string;

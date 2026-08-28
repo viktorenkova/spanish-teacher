@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildLessonPlan, supportedSessionDurations } from "./lesson-planner";
+import {
+  buildLessonPlan,
+  chooseCurriculumLesson,
+  supportedSessionDurations,
+} from "./lesson-planner";
+import { introductionLesson } from "./lesson";
 
 describe("duration-aware lesson planner", () => {
   it.each(supportedSessionDurations)("builds a coherent %i-minute plan", (targetMinutes) => {
@@ -18,5 +23,26 @@ describe("duration-aware lesson planner", () => {
 
     expect(plan.rationale.join(" ")).toContain("3 FSRS items");
     expect(plan.blocks.some((block) => block.source === "due_review")).toBe(true);
+  });
+
+  it("advances to daily routines only after every introduction exercise is complete", () => {
+    expect(chooseCurriculumLesson({ completedIntroductionExerciseIds: [introductionLesson[0].id] }))
+      .toBe("introductions-v1");
+    expect(chooseCurriculumLesson({
+      completedIntroductionExerciseIds: introductionLesson.map(({ id }) => id),
+    })).toBe("daily-routines-v1");
+  });
+
+  it("builds the selected curriculum objective into the plan", () => {
+    const plan = buildLessonPlan({
+      targetMinutes: 10,
+      dueReviewCount: 0,
+      weakestSkills: ["speaking"],
+      lessonKey: "daily-routines-v1",
+    });
+
+    expect(plan.lessonKey).toBe("daily-routines-v1");
+    expect(plan.blocks.find(({ id }) => id === "introduction-context")?.title)
+      .toBe("Talk about your morning");
   });
 });

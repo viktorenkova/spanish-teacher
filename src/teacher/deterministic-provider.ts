@@ -23,6 +23,43 @@ export class DeterministicTeacherProvider implements TeacherProvider {
     const text = normalized(request.transcript);
     const corrections: TeacherCorrection[] = [];
 
+    if (request.assessment.version === "morning-routine-task-v1") {
+      if (!request.assessment.matchedSignals.includes("get_up")) {
+        corrections.push({
+          code: "get_up_construction_missing",
+          category: "task_completeness",
+          issue: "The getting-up action was not clear in the transcript.",
+          suggestion: "Me levanto a las…",
+          explanation: "Use this phrase to say what time you get up.",
+        });
+      }
+      if (!request.assessment.matchedSignals.includes("breakfast")) {
+        corrections.push({
+          code: "breakfast_action_missing",
+          category: "task_completeness",
+          issue: "The breakfast action was not clear in the transcript.",
+          suggestion: "Desayuno.",
+          explanation: "This single verb means “I have breakfast.”",
+        });
+      }
+
+      return {
+        summary: request.assessment.complete
+          ? "You completed the morning routine task."
+          : "You made a useful start; add the missing action and try again.",
+        praise: request.assessment.complete
+          ? "You connected two everyday A1 actions in one answer."
+          : "You spoke about your real routine and gave the coach useful evidence.",
+        corrections,
+        nextStep: request.assessment.complete
+          ? "Say the routine once more with a different time."
+          : "Record another answer using the suggested action or actions.",
+        providerId: this.id,
+        providerVersion: "morning-routine-feedback-v1",
+        generationMode: "deterministic",
+      };
+    }
+
     if (!request.assessment.matchedSignals.includes("name")) {
       corrections.push(
         /\bmi llamo\b/.test(text)
