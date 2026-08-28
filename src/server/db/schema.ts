@@ -11,6 +11,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
+import type { LessonExercise } from "@/domain/lesson";
 
 export const a1BandEnum = pgEnum("a1_band", ["early", "mid", "strong"]);
 export const skillEnum = pgEnum("learner_skill", [
@@ -255,8 +256,9 @@ export const lessonPlans = pgTable(
     status: text("status").notNull().default("planned"),
     plannerVersion: text("planner_version").notNull(),
     plan: jsonb("plan").$type<{
-      lessonKey?: "introductions-v1" | "daily-routines-v1";
+      lessonKey?: "introductions-v1" | "daily-routines-v1" | "cafe-ordering-v1";
       rationale: string[];
+      reviewExercises?: LessonExercise[];
       blocks: Array<{
         id: string;
         kind: string;

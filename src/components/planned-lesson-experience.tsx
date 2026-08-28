@@ -92,7 +92,9 @@ export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
     return (
       <LessonExperience
         learnerId={learnerId}
+        planId={plan.id}
         lessonKey={plan.lessonKey}
+        reviewExercises={plan.reviewExercises}
         onPlanNextLesson={() => {
           setStarted(false);
           setPlan(null);
@@ -118,7 +120,9 @@ export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
         ))}
       </ol>
       <p className="provider-note">
-        Core listening and speaking are ready. Extended provider-pending blocks are shown but not scored yet.
+        {plan.reviewExercises.length > 0
+          ? `${plan.reviewExercises.length} personalised review${plan.reviewExercises.length === 1 ? " is" : "s are"} ready before the core listening and speaking practice.`
+          : "Core listening and speaking are ready. Extended provider-pending blocks are shown but not scored yet."}
       </p>
       <div className="form-actions">
         <button className="text-button" onClick={() => setPlan(null)}>Choose another duration</button>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createEmptyProgress,
+  cafeOrderingLesson,
   dailyRoutineLesson,
   introductionLesson,
   recordAnswer,
@@ -28,5 +29,10 @@ describe("lesson progress", () => {
   it("keeps listening and speaking in the daily-routines lesson", () => {
     expect(dailyRoutineLesson.some(({ modality }) => modality === "listening")).toBe(true);
     expect(dailyRoutineLesson.some(({ modality }) => modality === "production")).toBe(true);
+  });
+
+  it("keeps listening and speaking in the cafe-ordering lesson", () => {
+    expect(cafeOrderingLesson.some(({ modality }) => modality === "listening")).toBe(true);
+    expect(cafeOrderingLesson.some(({ modality }) => modality === "production")).toBe(true);
   });
 });

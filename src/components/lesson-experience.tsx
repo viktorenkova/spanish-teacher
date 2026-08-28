@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createEmptyProgress,
   getLessonDefinition,
+  type LessonExercise,
   type LessonKey,
   type LessonProgress,
 } from "@/domain/lesson";
@@ -17,7 +18,9 @@ import { speakWithBrowser } from "@/tts/browser-provider";
 
 type LessonExperienceProps = {
   learnerId: string;
+  planId: string;
   lessonKey: LessonKey;
+  reviewExercises: LessonExercise[];
   onPlanNextLesson: () => void;
 };
 
@@ -85,7 +88,13 @@ function MistakeMemoryCard({ memory }: { memory: MistakeMemory }) {
   );
 }
 
-export function LessonExperience({ learnerId, lessonKey, onPlanNextLesson }: LessonExperienceProps) {
+export function LessonExperience({
+  learnerId,
+  planId,
+  lessonKey,
+  reviewExercises,
+  onPlanNextLesson,
+}: LessonExperienceProps) {
   const [progress, setProgress] = useState<LessonProgress>();
   const [progressSummary, setProgressSummary] = useState<LearnerProgressSummary>();
   const [selectedOption, setSelectedOption] = useState<string>();
@@ -105,6 +114,10 @@ export function LessonExperience({ learnerId, lessonKey, onPlanNextLesson }: Les
   const lesson = getLessonDefinition(lessonKey);
 
   if (!lesson) throw new Error("Unknown lesson");
+  const exercises = useMemo(
+    () => [...reviewExercises, ...lesson.exercises],
+    [lesson.exercises, reviewExercises],
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -169,13 +182,14 @@ export function LessonExperience({ learnerId, lessonKey, onPlanNextLesson }: Les
   const currentProgress = progress ?? createEmptyProgress();
   const exercise = useMemo(
     () =>
-      lesson.exercises.find(
+      exercises.find(
         (item) => !currentProgress.completedExerciseIds.includes(item.id),
       ),
-    [currentProgress.completedExerciseIds, lesson.exercises],
+    [currentProgress.completedExerciseIds, exercises],
   );
   const percent = Math.round(
-    (currentProgress.completedExerciseIds.length / lesson.exercises.length) * 100,
+    (currentProgress.completedExerciseIds.filter((id) => exercises.some((item) => item.id === id)).length
+      / exercises.length) * 100,
   );
 
   async function submitAnswer() {
@@ -188,6 +202,7 @@ export function LessonExperience({ learnerId, lessonKey, onPlanNextLesson }: Les
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           learnerId,
+          planId,
           lessonKey,
           exerciseId: exercise.id,
           selectedOptionId: selectedOption,
@@ -200,6 +215,7 @@ export function LessonExperience({ learnerId, lessonKey, onPlanNextLesson }: Les
 
       setProgress(payload.progress);
       void refreshProgressSummary();
+      if (payload.mistakeMemory) setMistakeMemory(payload.mistakeMemory);
       setNextReviewAt(payload.nextReviewAt);
       setFeedback({ correct: payload.correct, message: payload.feedback });
       if (payload.correct) {
@@ -279,6 +295,7 @@ export function LessonExperience({ learnerId, lessonKey, onPlanNextLesson }: Les
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           learnerId,
+          planId,
           lessonKey,
           exerciseId: exercise.id,
           transcript: speechResult.text,

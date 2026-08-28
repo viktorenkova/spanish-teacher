@@ -12,6 +12,7 @@ const provider = new DeterministicTeacherProvider();
 
 export async function submitSpeakingAttemptWithTeacher(input: {
   learnerId: string;
+  planId: string;
   lessonKey: LessonKey;
   exerciseId: string;
   transcript: string;

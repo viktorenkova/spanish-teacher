@@ -27,6 +27,15 @@ export const listeningClips = {
     license: "Project-authored",
     attribution: "Spanish Coach",
   },
+  "cafe-order-ana": {
+    id: "cafe-order-ana",
+    text: "Quiero un café con leche y agua, por favor.",
+    locale: "es-ES",
+    rate: 0.9,
+    sourceReference: "internal:mvp-cafe-ordering-v1",
+    license: "Project-authored",
+    attribution: "Spanish Coach",
+  },
 } as const satisfies Record<string, ListeningClip>;
 
 export type ListeningClipId = keyof typeof listeningClips;

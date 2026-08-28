@@ -1,6 +1,10 @@
 import "server-only";
-import { and, asc, desc, eq, lte } from "drizzle-orm";
-import type { LessonKey } from "@/domain/lesson";
+import { and, asc, desc, eq, inArray, lte } from "drizzle-orm";
+import {
+  getLearningItemDefinition,
+  type LessonKey,
+  type ReviewCandidate,
+} from "@/domain/lesson";
 import {
   buildLessonPlan,
   chooseCurriculumLesson,
@@ -11,6 +15,7 @@ import { getDatabase } from "@/server/db/client";
 import {
   exerciseAttempts,
   learnerItemStates,
+  learnerMistakes,
   learnerSkillEstimates,
   lessonPlans,
 } from "@/server/db/schema";
@@ -22,16 +27,23 @@ export async function createLessonPlan(input: {
 }) {
   const db = getDatabase();
   const now = input.now ?? new Date();
-  const [dueItems, skillEstimates, completedIntroductionExercises] = await Promise.all([
+  const [
+    dueItems,
+    skillEstimates,
+    completedIntroductionExercises,
+    completedDailyRoutineExercises,
+    activeMistakes,
+  ] = await Promise.all([
     db
-      .select({ id: learnerItemStates.id })
+      .select({ learningItemId: learnerItemStates.learningItemId })
       .from(learnerItemStates)
       .where(
         and(
           eq(learnerItemStates.learnerId, input.learnerId),
           lte(learnerItemStates.due, now),
         ),
-      ),
+      )
+      .orderBy(asc(learnerItemStates.due)),
     db
       .select({ skill: learnerSkillEstimates.skill })
       .from(learnerSkillEstimates)
@@ -53,19 +65,61 @@ export async function createLessonPlan(input: {
           eq(exerciseAttempts.correct, true),
         ),
       ),
+    db
+      .select({ exerciseId: exerciseAttempts.exerciseId })
+      .from(exerciseAttempts)
+      .where(
+        and(
+          eq(exerciseAttempts.learnerId, input.learnerId),
+          eq(exerciseAttempts.lessonKey, "daily-routines-v1"),
+          eq(exerciseAttempts.correct, true),
+        ),
+      ),
+    db
+      .select({ learningItemId: learnerMistakes.learningItemId })
+      .from(learnerMistakes)
+      .where(
+        and(
+          eq(learnerMistakes.learnerId, input.learnerId),
+          inArray(learnerMistakes.status, ["active", "improving"]),
+        ),
+      )
+      .orderBy(desc(learnerMistakes.updatedAt)),
   ]);
 
   const lessonKey = chooseCurriculumLesson({
     completedIntroductionExerciseIds: completedIntroductionExercises.map(
       ({ exerciseId }) => exerciseId,
     ),
+    completedDailyRoutineExerciseIds: completedDailyRoutineExercises.map(
+      ({ exerciseId }) => exerciseId,
+    ),
   });
+
+  const activeItemIds = new Set(activeMistakes.map(({ learningItemId }) => learningItemId));
+  const reviewCandidates: ReviewCandidate[] = [
+    ...activeMistakes.map(({ learningItemId }) => learningItemId),
+    ...dueItems.map(({ learningItemId }) => learningItemId),
+  ]
+    .filter((learningItemId, index, itemIds) => itemIds.indexOf(learningItemId) === index)
+    .map((learningItemId) => {
+      const learningItem = getLearningItemDefinition(learningItemId);
+      if (!learningItem) return undefined;
+      return {
+        learningItem,
+        reason: activeItemIds.has(learningItemId) ? "learner_weakness" as const : "due_review" as const,
+      };
+    })
+    .filter((candidate): candidate is ReviewCandidate => Boolean(candidate));
 
   const plan = buildLessonPlan({
     targetMinutes: input.targetMinutes,
     dueReviewCount: dueItems.length,
     weakestSkills: skillEstimates.map(({ skill }) => skill),
     lessonKey,
+    reviewCandidates,
+    activeMistakeCount: activeMistakes.length,
+    reviewExerciseKey: now.getTime().toString(36),
   });
   const [saved] = await db
     .insert(lessonPlans)
@@ -74,7 +128,12 @@ export async function createLessonPlan(input: {
       targetMinutes: plan.targetMinutes,
       estimatedMinutes: plan.estimatedMinutes,
       plannerVersion: plan.plannerVersion,
-      plan: { lessonKey: plan.lessonKey, rationale: plan.rationale, blocks: plan.blocks },
+      plan: {
+        lessonKey: plan.lessonKey,
+        rationale: plan.rationale,
+        blocks: plan.blocks,
+        reviewExercises: plan.reviewExercises,
+      },
       createdAt: now,
     })
     .returning();
@@ -100,6 +159,7 @@ export async function loadLatestLessonPlan(learnerId: string) {
     estimatedMinutes: saved.estimatedMinutes,
     rationale: saved.plan.rationale,
     blocks: saved.plan.blocks as LessonPlan["blocks"],
+    reviewExercises: saved.plan.reviewExercises ?? [],
     createdAt: saved.createdAt.toISOString(),
   };
 }

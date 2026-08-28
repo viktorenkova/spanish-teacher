@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { assessIntroductionTranscript, assessMorningRoutineTranscript } from "./speaking";
+import {
+  assessCafeOrderTranscript,
+  assessIntroductionTranscript,
+  assessMorningRoutineTranscript,
+} from "./speaking";
 
 describe("introduction speaking assessment", () => {
   it("accepts an introduction with both task signals", () => {
@@ -26,5 +30,23 @@ describe("morning routine speaking assessment", () => {
     expect(result.complete).toBe(true);
     expect(result.matchedSignals).toEqual(["get_up", "breakfast"]);
     expect(result.feedback).toContain("Pronunciation was not assessed");
+  });
+});
+
+describe("cafe-order speaking assessment", () => {
+  it("requires a request and polite ending without scoring pronunciation", () => {
+    const result = assessCafeOrderTranscript("Quiero un café y agua, por favor.");
+
+    expect(result.complete).toBe(true);
+    expect(result.matchedSignals).toEqual(["request", "two_items", "politeness"]);
+    expect(result.feedback).toContain("Pronunciation was not assessed");
+  });
+
+  it("does not complete the task when only one item is ordered", () => {
+    const result = assessCafeOrderTranscript("Quiero un café, por favor.");
+
+    expect(result.complete).toBe(false);
+    expect(result.matchedSignals).toEqual(["request", "politeness"]);
+    expect(result.feedback).toContain("two cafe items");
   });
 });

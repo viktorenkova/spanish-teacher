@@ -19,9 +19,11 @@ The pilot begins with three practical topics:
 2. Daily routines.
 3. Ordering food and drinks in a cafe.
 
-The implementation includes introductions and daily routines. Completing every
-introduction objective advances the next generated plan to daily routines.
-Content remains deliberately small and reviewed before any bulk data import.
+The implementation includes introductions, daily routines, and ordering in a
+cafe. Completing every objective advances the next generated plan through that
+sequence. Longer plans can insert real retrieval exercises from due FSRS items
+and active mistake memory before the new topic. Content remains deliberately
+small and reviewed before any bulk data import.
 
 ## Ten-minute target flow
 

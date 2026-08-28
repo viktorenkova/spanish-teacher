@@ -23,6 +23,52 @@ export class DeterministicTeacherProvider implements TeacherProvider {
     const text = normalized(request.transcript);
     const corrections: TeacherCorrection[] = [];
 
+    if (request.assessment.version === "cafe-order-task-v1") {
+      if (!request.assessment.matchedSignals.includes("request")) {
+        corrections.push({
+          code: "cafe_request_missing",
+          category: "task_completeness",
+          issue: "The request was not clear in the transcript.",
+          suggestion: "Quiero…",
+          explanation: "Start with this phrase, then name what you want.",
+        });
+      }
+      if (!request.assessment.matchedSignals.includes("two_items")) {
+        corrections.push({
+          code: "order_items_missing",
+          category: "task_completeness",
+          issue: "Two cafe items were not clear in the transcript.",
+          suggestion: "Un café y agua.",
+          explanation: "Join two items with “y” to complete this practice task.",
+        });
+      }
+      if (!request.assessment.matchedSignals.includes("politeness")) {
+        corrections.push({
+          code: "politeness_missing",
+          category: "task_completeness",
+          issue: "The polite ending was missing from the transcript.",
+          suggestion: "Por favor.",
+          explanation: "Add this at the end of a short order to say “please.”",
+        });
+      }
+
+      return {
+        summary: request.assessment.complete
+          ? "You completed the cafe order."
+          : "You made a useful start; complete the request and try again.",
+        praise: request.assessment.complete
+          ? "You used a practical request and a polite ending together."
+          : "You spoke as a customer and gave the coach useful language to improve.",
+        corrections,
+        nextStep: request.assessment.complete
+          ? "Make the order once more with two different items."
+          : "Record another order using the suggested phrase or phrases.",
+        providerId: this.id,
+        providerVersion: "cafe-order-feedback-v1",
+        generationMode: "deterministic",
+      };
+    }
+
     if (request.assessment.version === "morning-routine-task-v1") {
       if (!request.assessment.matchedSignals.includes("get_up")) {
         corrections.push({

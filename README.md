@@ -11,11 +11,12 @@ lessons.
 
 ## Current milestone
 
-The repository is implementing MVP-0: a coherent A1 learning loop with the
-first adaptive curriculum transition. The current slice includes persistent
+The repository is implementing MVP-0: a coherent A1 learning loop across the
+three initial curriculum topics. The current slice includes persistent
 profiles, an A1 diagnostic, FSRS review state, listening, a transcript-backed
-spoken introduction and morning routine, persisted provider-based teacher
-feedback, structured long-term mistake memory, and learner-facing progress.
+spoken task in every lesson, persisted provider-based teacher feedback,
+structured long-term mistake memory, executable adaptive reviews, and
+learner-facing progress.
 
 MVP-0 must eventually support:
 
@@ -27,8 +28,9 @@ MVP-0 must eventually support:
 6. FSRS-backed review planning;
 7. a next lesson influenced by previous performance.
 
-See [MVP-0](docs/mvp-0.md) and [architecture](docs/architecture.md) for the
-contracts that guide implementation.
+See [MVP-0](docs/mvp-0.md), [adaptive curriculum](docs/adaptive-curriculum.md),
+and [architecture](docs/architecture.md) for the contracts that guide
+implementation.
 
 ## Learner assumptions
 
@@ -79,7 +81,7 @@ npm run build
 6. Microphone capture and speech transcription. — browser `es-ES` provider implemented
 7. AI teacher behind a provider interface. — structured contract and local teacher implemented
 8. Structured long-term error memory. — aggregate states and event history implemented
-9. Adaptive curriculum. — introductions now advance to a complete daily-routines lesson
+9. Adaptive curriculum. — the three initial topics and executable FSRS/mistake reviews are implemented
 10. Progress and a non-punitive behavioral layer. — first learner-facing progress summary implemented
 
 ## Non-goals for MVP

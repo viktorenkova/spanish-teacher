@@ -7,7 +7,10 @@ export type TeacherCorrection = {
     | "origin_preposition_de"
     | "origin_construction_missing"
     | "get_up_construction_missing"
-    | "breakfast_action_missing";
+    | "breakfast_action_missing"
+    | "cafe_request_missing"
+    | "order_items_missing"
+    | "politeness_missing";
   category: "grammar" | "task_completeness";
   issue: string;
   suggestion: string;

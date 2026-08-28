@@ -5,7 +5,7 @@ import { loadLatestTeacherFeedback } from "@/server/teacher/service";
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const parsed = z.uuid().safeParse(url.searchParams.get("learnerId"));
-  const lessonKey = z.enum(["introductions-v1", "daily-routines-v1"])
+  const lessonKey = z.enum(["introductions-v1", "daily-routines-v1", "cafe-ordering-v1"])
     .safeParse(url.searchParams.get("lessonKey"));
   if (!parsed.success || !lessonKey.success) {
     return NextResponse.json({ error: "A valid learner and lesson are required." }, { status: 400 });

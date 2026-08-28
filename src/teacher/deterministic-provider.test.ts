@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { assessIntroductionTranscript, assessMorningRoutineTranscript } from "../domain/speaking";
+import {
+  assessCafeOrderTranscript,
+  assessIntroductionTranscript,
+  assessMorningRoutineTranscript,
+} from "../domain/speaking";
 import { DeterministicTeacherProvider } from "./deterministic-provider";
 
 const provider = new DeterministicTeacherProvider();
@@ -44,5 +48,19 @@ describe("deterministic teacher provider", () => {
 
     expect(feedback.corrections.map(({ code }) => code)).toEqual(["breakfast_action_missing"]);
     expect(feedback.nextStep).toContain("another answer");
+  });
+
+  it("gives focused feedback for an incomplete cafe order", async () => {
+    const transcript = "Un café y agua.";
+    const feedback = await provider.generateFeedback({
+      ...request(transcript),
+      objective: "Order two things politely.",
+      assessment: assessCafeOrderTranscript(transcript),
+    });
+
+    expect(feedback.corrections.map(({ code }) => code)).toEqual([
+      "cafe_request_missing",
+      "politeness_missing",
+    ]);
   });
 });

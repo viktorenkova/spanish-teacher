@@ -1,8 +1,10 @@
 export type SpeakingAssessment = {
   complete: boolean;
-  matchedSignals: Array<"name" | "origin" | "get_up" | "breakfast">;
+  matchedSignals: Array<
+    "name" | "origin" | "get_up" | "breakfast" | "request" | "two_items" | "politeness"
+  >;
   feedback: string;
-  version: "introduction-task-v1" | "morning-routine-task-v1";
+  version: "introduction-task-v1" | "morning-routine-task-v1" | "cafe-order-task-v1";
 };
 
 function normalizeTranscript(transcript: string) {
@@ -42,6 +44,40 @@ export function assessMorningRoutineTranscript(transcript: string): SpeakingAsse
     matchedSignals,
     feedback: `Try once more and include ${missing}. The transcript may also need correction.`,
     version: "morning-routine-task-v1",
+  };
+}
+
+export function assessCafeOrderTranscript(transcript: string): SpeakingAssessment {
+  const normalized = normalizeTranscript(transcript);
+  const hasRequest = /\b(quiero|quisiera|me pone|para mi)\b/.test(normalized);
+  const orderedItems = normalized.match(/\b(cafe|agua|te|zumo|tostada|bocadillo|croissant)\b/g) ?? [];
+  const hasTwoItems = new Set(orderedItems).size >= 2;
+  const hasPoliteness = /\bpor favor\b/.test(normalized);
+  const matchedSignals: SpeakingAssessment["matchedSignals"] = [];
+  if (hasRequest) matchedSignals.push("request");
+  if (hasTwoItems) matchedSignals.push("two_items");
+  if (hasPoliteness) matchedSignals.push("politeness");
+
+  if (hasRequest && hasTwoItems && hasPoliteness) {
+    return {
+      complete: true,
+      matchedSignals,
+      feedback:
+        "Task complete: the transcript includes a request, two items, and “por favor”. Pronunciation was not assessed.",
+      version: "cafe-order-task-v1",
+    };
+  }
+
+  const missing = [
+    !hasRequest ? "a request with ‘Quiero…’" : undefined,
+    !hasTwoItems ? "two cafe items" : undefined,
+    !hasPoliteness ? "‘por favor’" : undefined,
+  ].filter(Boolean).join(" and ");
+  return {
+    complete: false,
+    matchedSignals,
+    feedback: `Try once more and include ${missing}. The transcript may also need correction.`,
+    version: "cafe-order-task-v1",
   };
 }
 

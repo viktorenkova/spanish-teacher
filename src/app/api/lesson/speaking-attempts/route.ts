@@ -4,7 +4,8 @@ import { submitSpeakingAttemptWithTeacher } from "@/server/teacher/service";
 
 const speakingAttemptSchema = z.object({
   learnerId: z.uuid(),
-  lessonKey: z.enum(["introductions-v1", "daily-routines-v1"]),
+  planId: z.uuid(),
+  lessonKey: z.enum(["introductions-v1", "daily-routines-v1", "cafe-ordering-v1"]),
   exerciseId: z.string().min(1).max(100),
   transcript: z.string().trim().min(1).max(500),
   evidenceProvider: z.string().min(1).max(100),

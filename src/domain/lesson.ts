@@ -21,11 +21,11 @@ export type LessonExercise = {
   retryFeedback: string;
 };
 
-export type LessonKey = "introductions-v1" | "daily-routines-v1";
+export type LessonKey = "introductions-v1" | "daily-routines-v1" | "cafe-ordering-v1";
 
 export type LessonDefinition = {
   key: LessonKey;
-  topic: "introductions" | "daily-routines";
+  topic: "introductions" | "daily-routines" | "cafe-ordering";
   title: string;
   objective: string;
   completionTitle: string;
@@ -317,6 +317,138 @@ export const dailyRoutineLesson: LessonExercise[] = [
   },
 ];
 
+export const cafeOrderingLesson: LessonExercise[] = [
+  {
+    id: "meaning-quiero-cafe",
+    learningItem: {
+      id: "construction:quiero-cafe",
+      kind: "construction",
+      targetText: "Quiero un café.",
+      supportText: "I would like a coffee.",
+      sourceType: "curated",
+      sourceReference: "internal:mvp-cafe-ordering-v1",
+      license: "Project-authored",
+      attribution: "Spanish Coach",
+      qaStatus: "reviewed",
+    },
+    modality: "recognition",
+    eyebrow: "Understand in context",
+    prompt: "What does the customer want?",
+    context: "— Buenos días. ¿Qué quiere?\n— Quiero un café.",
+    options: [
+      { id: "coffee", label: "A coffee" },
+      { id: "tea", label: "A tea" },
+      { id: "sandwich", label: "A sandwich" },
+    ],
+    correctOptionId: "coffee",
+    successFeedback: "Correct. “Quiero…” lets you state what you want.",
+    retryFeedback: "Look at the noun after “Quiero un…”.",
+  },
+  {
+    id: "retrieve-por-favor",
+    learningItem: {
+      id: "phrase:por-favor-cafe",
+      kind: "phrase",
+      targetText: "Un café, por favor.",
+      supportText: "A coffee, please.",
+      sourceType: "curated",
+      sourceReference: "internal:mvp-cafe-ordering-v1",
+      license: "Project-authored",
+      attribution: "Spanish Coach",
+      qaStatus: "reviewed",
+    },
+    modality: "recall",
+    eyebrow: "Retrieve the phrase",
+    prompt: "Choose the polite cafe order.",
+    context: "You are ordering one coffee at the counter.",
+    options: [
+      { id: "polite", label: "Un café, por favor." },
+      { id: "origin", label: "Soy de un café." },
+      { id: "routine", label: "Desayuno un café." },
+    ],
+    correctOptionId: "polite",
+    successFeedback: "Good. “Por favor” makes the short order polite.",
+    retryFeedback: "Choose the answer that names the drink and adds “please”.",
+  },
+  {
+    id: "listen-cafe-order",
+    learningItem: {
+      id: "listening:cafe-order-ana",
+      kind: "phrase",
+      targetText: "Quiero un café con leche y agua, por favor.",
+      supportText: "I would like a coffee with milk and water, please.",
+      sourceType: "curated",
+      sourceReference: "internal:mvp-cafe-ordering-v1",
+      license: "Project-authored",
+      attribution: "Spanish Coach",
+      qaStatus: "reviewed",
+    },
+    modality: "listening",
+    listeningClipId: "cafe-order-ana",
+    eyebrow: "Listen for the order",
+    prompt: "Which two drinks does Ana order?",
+    context: "Play the audio. Listen for the words after “Quiero”.",
+    options: [
+      { id: "coffee-water", label: "Coffee with milk and water" },
+      { id: "tea-water", label: "Tea and water" },
+      { id: "two-coffees", label: "Two coffees" },
+    ],
+    correctOptionId: "coffee-water",
+    successFeedback: "Correct. You heard “un café con leche y agua”.",
+    retryFeedback: "Listen again for “café con leche” and the final drink.",
+  },
+  {
+    id: "prepare-cafe-order",
+    learningItem: {
+      id: "construction:polite-cafe-order",
+      kind: "construction",
+      targetText: "Quiero…, por favor.",
+      supportText: "I would like…, please.",
+      sourceType: "curated",
+      sourceReference: "internal:mvp-cafe-ordering-v1",
+      license: "Project-authored",
+      attribution: "Spanish Coach",
+      qaStatus: "reviewed",
+    },
+    modality: "recognition",
+    eyebrow: "Prepare to speak",
+    prompt: "Which answer is a complete polite order?",
+    context: "Keep the whole construction in mind. You will make your own order next.",
+    options: [
+      { id: "order", label: "Quiero un café y agua, por favor." },
+      { id: "question", label: "¿Quieres un café?" },
+      { id: "introduction", label: "Me llamo Café." },
+    ],
+    correctOptionId: "order",
+    successFeedback: "Correct. The answer includes the request, items, and “por favor”.",
+    retryFeedback: "Choose the sentence a customer can say to order.",
+  },
+  {
+    id: "speak-cafe-order",
+    learningItem: {
+      id: "construction:spoken-cafe-order",
+      kind: "construction",
+      targetText: "Quiero…, por favor.",
+      supportText: "I would like…, please.",
+      sourceType: "curated",
+      sourceReference: "internal:mvp-cafe-ordering-v1",
+      license: "Project-authored",
+      attribution: "Spanish Coach",
+      qaStatus: "reviewed",
+    },
+    modality: "production",
+    speakingTask: { locale: "es-ES", maxDurationMs: 15_000 },
+    eyebrow: "Speak in Spanish",
+    prompt: "Order two things aloud.",
+    context:
+      "Order a drink and one more item. Use: “Quiero… y…, por favor.”\nYour transcript will be checked for task completion, not pronunciation.",
+    options: [],
+    correctOptionId: "task-complete",
+    successFeedback: "Task complete: you requested two items and used “por favor”. Pronunciation was not assessed.",
+    retryFeedback: "Try again with “Quiero…” and “por favor”.",
+  },
+];
+
 export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
   "introductions-v1": {
     key: "introductions-v1",
@@ -338,10 +470,64 @@ export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
       "You practised Me levanto…, a las…, and desayuno, listened for a time, and completed a spoken routine.",
     exercises: dailyRoutineLesson,
   },
+  "cafe-ordering-v1": {
+    key: "cafe-ordering-v1",
+    topic: "cafe-ordering",
+    title: "Order in a cafe",
+    objective: "Order a drink and another item politely.",
+    completionTitle: "You can make a simple cafe order.",
+    completionSummary:
+      "You practised Quiero…, café con leche, and por favor, listened for two drinks, and completed a spoken order.",
+    exercises: cafeOrderingLesson,
+  },
 };
 
 export function getLessonDefinition(key: string): LessonDefinition | undefined {
   return lessonCatalog[key as LessonKey];
+}
+
+export function getLearningItemDefinition(id: string): LearningItemDefinition | undefined {
+  for (const lesson of Object.values(lessonCatalog)) {
+    const item = lesson.exercises.find((exercise) => exercise.learningItem.id === id)?.learningItem;
+    if (item) return item;
+  }
+  return undefined;
+}
+
+export type ReviewCandidate = {
+  learningItem: LearningItemDefinition;
+  reason: "due_review" | "learner_weakness";
+};
+
+export function createReviewExercise(
+  candidate: ReviewCandidate,
+  candidateIndex: number,
+  reviewKey = "preview",
+): LessonExercise {
+  const distractors = Object.values(lessonCatalog)
+    .flatMap((lesson) => lesson.exercises)
+    .map((exercise) => exercise.learningItem)
+    .filter((item) => item.id !== candidate.learningItem.id)
+    .filter((item, index, items) => items.findIndex(({ id }) => id === item.id) === index)
+    .slice(candidateIndex, candidateIndex + 2);
+
+  return {
+    id: `review:${candidate.learningItem.id}:${reviewKey}`,
+    learningItem: candidate.learningItem,
+    modality: "recall",
+    eyebrow: candidate.reason === "learner_weakness" ? "Review a recurring pattern" : "Scheduled review",
+    prompt: `Choose the Spanish for “${candidate.learningItem.supportText}”`,
+    context: candidate.reason === "learner_weakness"
+      ? "This pattern caused difficulty before. One calm retrieval helps make it more reliable."
+      : "FSRS scheduled this phrase for retrieval now.",
+    options: [
+      { id: "review-correct", label: candidate.learningItem.targetText },
+      ...distractors.map((item, index) => ({ id: `review-distractor-${index + 1}`, label: item.targetText })),
+    ],
+    correctOptionId: "review-correct",
+    successFeedback: "Good retrieval. The review schedule has been updated.",
+    retryFeedback: `Not yet. Look for the phrase that means “${candidate.learningItem.supportText}”.`,
+  };
 }
 
 export function createEmptyProgress(): LessonProgress {
