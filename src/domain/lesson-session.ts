@@ -1,4 +1,4 @@
-export type LessonSessionStatus = "active" | "completed";
+export type LessonSessionStatus = "active" | "completed" | "abandoned";
 
 export function deriveLessonSessionStatus(input: {
   expectedExerciseIds: string[];

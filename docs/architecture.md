@@ -32,9 +32,10 @@ Exercise attempts must not become the learning item itself. Multiple modalities
 can provide evidence about one underlying item.
 
 Lesson sessions are also separate from plans and attempts. A plan describes
-what should happen; a session records one active or completed run; attempts are
-the evidence produced inside that run. New attempts reference their session,
-while pre-session historical attempts remain valid with a null session link.
+what should happen; a session records one active, completed, or abandoned run;
+attempts are the evidence produced inside that run. New attempts reference
+their session, while pre-session historical attempts remain valid with a null
+session link.
 
 ## Provider boundaries
 

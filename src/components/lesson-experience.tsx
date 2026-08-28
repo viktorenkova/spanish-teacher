@@ -22,6 +22,7 @@ type LessonExperienceProps = {
   sessionId: string;
   lessonKey: LessonKey;
   reviewExercises: LessonExercise[];
+  onEndLesson: () => Promise<void>;
   onPlanNextLesson: () => void;
 };
 
@@ -95,6 +96,7 @@ export function LessonExperience({
   sessionId,
   lessonKey,
   reviewExercises,
+  onEndLesson,
   onPlanNextLesson,
 }: LessonExperienceProps) {
   const [progress, setProgress] = useState<LessonProgress>();
@@ -113,6 +115,9 @@ export function LessonExperience({
   const [mistakeMemory, setMistakeMemory] = useState<MistakeMemory>();
   const speechProvider = useRef(new BrowserSpeechToTextProvider());
   const [reloadKey, setReloadKey] = useState(0);
+  const [confirmingEnd, setConfirmingEnd] = useState(false);
+  const [endingLesson, setEndingLesson] = useState(false);
+  const [endLessonError, setEndLessonError] = useState<string>();
   const lesson = getLessonDefinition(lessonKey);
 
   if (!lesson) throw new Error("Unknown lesson");
@@ -344,6 +349,21 @@ export function LessonExperience({
     }
   }
 
+  async function endLesson() {
+    if (endingLesson) return;
+    setEndingLesson(true);
+    setEndLessonError(undefined);
+    try {
+      speechProvider.current.abort();
+      await onEndLesson();
+    } catch (error) {
+      setEndLessonError(
+        error instanceof Error ? error.message : "The lesson could not be ended safely.",
+      );
+      setEndingLesson(false);
+    }
+  }
+
   if (loadError && !progress) {
     return (
       <section className="lesson-card loading-card" role="alert">
@@ -404,6 +424,43 @@ export function LessonExperience({
         <div className="progress-copy"><span>Today’s lesson</span><span>{percent}%</span></div>
         <div className="progress-track"><span style={{ width: `${percent}%` }} /></div>
       </div>
+
+      <div className="lesson-session-actions">
+        <button className="text-button" type="button" onClick={() => setConfirmingEnd(true)}>
+          End this lesson
+        </button>
+      </div>
+
+      {confirmingEnd && (
+        <div className="end-lesson-confirmation" role="group" aria-labelledby="end-lesson-title">
+          <div>
+            <strong id="end-lesson-title">End this lesson?</strong>
+            <p>Your saved answers and review progress will stay. This unfinished plan will close.</p>
+          </div>
+          <div className="end-lesson-actions">
+            <button
+              className="text-button"
+              type="button"
+              disabled={endingLesson}
+              onClick={() => {
+                setConfirmingEnd(false);
+                setEndLessonError(undefined);
+              }}
+            >
+              Keep learning
+            </button>
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={endingLesson}
+              onClick={() => void endLesson()}
+            >
+              {endingLesson ? "Ending lesson…" : "End lesson now"}
+            </button>
+          </div>
+          {endLessonError && <p className="feedback retry" role="alert">{endLessonError}</p>}
+        </div>
+      )}
 
       <span className="eyebrow">{exercise.eyebrow}</span>
       <h2 id="exercise-title">{exercise.prompt}</h2>

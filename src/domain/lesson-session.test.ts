@@ -15,4 +15,11 @@ describe("lesson session lifecycle", () => {
       completedExerciseIds: ["core", "review"],
     })).toBe("completed");
   });
+
+  it("does not derive an abandonment from exercise evidence", () => {
+    expect(deriveLessonSessionStatus({
+      expectedExerciseIds: ["review", "core"],
+      completedExerciseIds: [],
+    })).toBe("active");
+  });
 });

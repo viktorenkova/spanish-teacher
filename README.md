@@ -17,7 +17,9 @@ profiles, an A1 diagnostic, FSRS review state, listening, a transcript-backed
 spoken task in every lesson, persisted provider-based teacher feedback,
 structured long-term mistake memory, executable adaptive reviews, and
 learner-facing progress. Active lesson sessions are persisted separately and
-resume at the first incomplete exercise after a reload.
+resume at the first incomplete exercise after a reload. The release-hardening
+slice also supports explicit safe interruption and covers the complete adaptive
+learning loop plus mobile accessibility in Chromium.
 
 MVP-0 must eventually support:
 
@@ -87,6 +89,7 @@ npm run test:e2e
 9. Adaptive curriculum. — the three initial topics and executable FSRS/mistake reviews are implemented
 10. Progress and a non-punitive behavioral layer. — first learner-facing progress summary implemented
 11. Persistent lesson sessions and browser E2E coverage. — implemented for the MVP learning loop
+12. MVP-0 release hardening. — full-loop/adaptive E2E, safe interruption, and mobile accessibility implemented
 
 ## Non-goals for MVP
 

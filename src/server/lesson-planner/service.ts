@@ -150,6 +150,7 @@ export async function loadLatestLessonPlan(learnerId: string) {
       and(
         eq(lessonPlans.learnerId, learnerId),
         ne(lessonPlans.status, "completed"),
+        ne(lessonPlans.status, "abandoned"),
       ),
     )
     .orderBy(desc(lessonPlans.createdAt))

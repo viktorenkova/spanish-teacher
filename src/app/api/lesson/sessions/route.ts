@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
+  abandonLessonSession,
   loadActiveLessonSession,
   startLessonSession,
 } from "@/server/lesson-sessions/service";
@@ -9,6 +10,11 @@ const learnerIdSchema = z.uuid();
 const startSessionSchema = z.object({
   learnerId: learnerIdSchema,
   planId: z.uuid(),
+});
+const updateSessionSchema = z.object({
+  action: z.literal("abandon"),
+  learnerId: learnerIdSchema,
+  sessionId: z.uuid(),
 });
 
 export async function GET(request: Request) {
@@ -42,5 +48,25 @@ export async function POST(request: Request) {
     }
     console.error("Unable to start lesson session", error);
     return NextResponse.json({ error: "The lesson could not be started." }, { status: 503 });
+  }
+}
+
+export async function PATCH(request: Request) {
+  const parsed = updateSessionSchema.safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json({ error: "A valid active lesson is required." }, { status: 400 });
+  }
+
+  try {
+    return NextResponse.json({ session: await abandonLessonSession(parsed.data) });
+  } catch (error) {
+    if (error instanceof Error && error.message === "UNKNOWN_LESSON_SESSION") {
+      return NextResponse.json({ error: "This lesson session was not found." }, { status: 404 });
+    }
+    if (error instanceof Error && error.message === "LESSON_SESSION_NOT_ACTIVE") {
+      return NextResponse.json({ error: "This lesson is no longer active." }, { status: 409 });
+    }
+    console.error("Unable to end lesson session", error);
+    return NextResponse.json({ error: "The lesson could not be ended safely." }, { status: 503 });
   }
 }

@@ -11,7 +11,7 @@ import { LessonExperience } from "./lesson-experience";
 type SavedPlan = LessonPlan & { id: string; createdAt: string };
 type SavedSession = {
   id: string;
-  status: "active" | "completed";
+  status: "active" | "completed" | "abandoned";
   startedAt: string;
   lastActivityAt: string;
   completedAt?: string;
@@ -117,6 +117,26 @@ export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
     }
   }
 
+  async function endLesson() {
+    if (!session) return;
+    const response = await fetch("/api/lesson/sessions", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "abandon",
+        learnerId,
+        sessionId: session.id,
+      }),
+    });
+    const payload = (await response.json()) as { error?: string };
+    if (!response.ok) {
+      throw new Error(payload.error ?? "The lesson could not be ended safely.");
+    }
+    setStarted(false);
+    setSession(null);
+    setPlan(null);
+  }
+
   if (plan === undefined) {
     return <div className="lesson-card loading-card">Checking what is useful today…</div>;
   }
@@ -156,6 +176,7 @@ export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
         sessionId={session.id}
         lessonKey={plan.lessonKey}
         reviewExercises={plan.reviewExercises}
+        onEndLesson={endLesson}
         onPlanNextLesson={() => {
           setStarted(false);
           setSession(null);
