@@ -9,9 +9,18 @@ import {
 import { LessonExperience } from "./lesson-experience";
 
 type SavedPlan = LessonPlan & { id: string; createdAt: string };
+type SavedSession = {
+  id: string;
+  status: "active" | "completed";
+  startedAt: string;
+  lastActivityAt: string;
+  completedAt?: string;
+  plan: SavedPlan;
+};
 
 export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
   const [plan, setPlan] = useState<SavedPlan | null>();
+  const [session, setSession] = useState<SavedSession | null>();
   const [selectedDuration, setSelectedDuration] = useState<SessionDuration>(10);
   const [creating, setCreating] = useState(false);
   const [started, setStarted] = useState(false);
@@ -19,20 +28,46 @@ export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(`/api/lesson/plan?learnerId=${encodeURIComponent(learnerId)}`, {
-      signal: controller.signal,
-    })
-      .then(async (response) => {
-        const payload = (await response.json()) as { plan?: SavedPlan | null; error?: string };
-        if (!response.ok) throw new Error(payload.error ?? "The lesson plan could not be loaded.");
-        return payload.plan ?? null;
-      })
-      .then(setPlan)
-      .catch((loadError: unknown) => {
+    async function loadExperience() {
+      try {
+        const sessionResponse = await fetch(
+          `/api/lesson/sessions?learnerId=${encodeURIComponent(learnerId)}`,
+          { signal: controller.signal },
+        );
+        const sessionPayload = (await sessionResponse.json()) as {
+          session?: SavedSession | null;
+          error?: string;
+        };
+        if (!sessionResponse.ok) {
+          throw new Error(sessionPayload.error ?? "The active lesson could not be loaded.");
+        }
+        if (sessionPayload.session) {
+          setSession(sessionPayload.session);
+          setPlan(sessionPayload.session.plan);
+          setStarted(true);
+          return;
+        }
+
+        const planResponse = await fetch(
+          `/api/lesson/plan?learnerId=${encodeURIComponent(learnerId)}`,
+          { signal: controller.signal },
+        );
+        const planPayload = (await planResponse.json()) as {
+          plan?: SavedPlan | null;
+          error?: string;
+        };
+        if (!planResponse.ok) {
+          throw new Error(planPayload.error ?? "The lesson plan could not be loaded.");
+        }
+        setSession(null);
+        setPlan(planPayload.plan ?? null);
+      } catch (loadError) {
         if (loadError instanceof DOMException && loadError.name === "AbortError") return;
         setError(loadError instanceof Error ? loadError.message : "The lesson plan could not be loaded.");
         setPlan(null);
-      });
+      }
+    }
+    void loadExperience();
     return () => controller.abort();
   }, [learnerId]);
 
@@ -50,8 +85,33 @@ export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
         throw new Error(payload.error ?? "The lesson plan could not be created.");
       }
       setPlan(payload.plan);
+      setSession(null);
     } catch (planError) {
       setError(planError instanceof Error ? planError.message : "The lesson plan could not be created.");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function startLesson() {
+    if (!plan || creating) return;
+    setCreating(true);
+    setError(undefined);
+    try {
+      const response = await fetch("/api/lesson/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ learnerId, planId: plan.id }),
+      });
+      const payload = (await response.json()) as { session?: SavedSession; error?: string };
+      if (!response.ok || !payload.session) {
+        throw new Error(payload.error ?? "The lesson could not be started.");
+      }
+      setSession(payload.session);
+      setPlan(payload.session.plan);
+      setStarted(true);
+    } catch (startError) {
+      setError(startError instanceof Error ? startError.message : "The lesson could not be started.");
     } finally {
       setCreating(false);
     }
@@ -88,15 +148,17 @@ export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
     );
   }
 
-  if (started) {
+  if (started && session) {
     return (
       <LessonExperience
         learnerId={learnerId}
         planId={plan.id}
+        sessionId={session.id}
         lessonKey={plan.lessonKey}
         reviewExercises={plan.reviewExercises}
         onPlanNextLesson={() => {
           setStarted(false);
+          setSession(null);
           setPlan(null);
         }}
       />
@@ -126,7 +188,9 @@ export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
       </p>
       <div className="form-actions">
         <button className="text-button" onClick={() => setPlan(null)}>Choose another duration</button>
-        <button className="primary-button" onClick={() => setStarted(true)}>Start the ready practice</button>
+        <button className="primary-button" disabled={creating} onClick={startLesson}>
+          {creating ? "Starting your lesson…" : "Start the ready practice"}
+        </button>
       </div>
     </section>
   );

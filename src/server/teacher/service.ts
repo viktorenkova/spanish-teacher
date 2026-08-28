@@ -13,6 +13,7 @@ const provider = new DeterministicTeacherProvider();
 export async function submitSpeakingAttemptWithTeacher(input: {
   learnerId: string;
   planId: string;
+  sessionId: string;
   lessonKey: LessonKey;
   exerciseId: string;
   transcript: string;
@@ -63,6 +64,7 @@ export async function submitSpeakingAttemptWithTeacher(input: {
 export async function loadLatestTeacherFeedback(
   learnerId: string,
   lessonKey?: LessonKey,
+  sessionId?: string,
 ): Promise<TeacherFeedback | null> {
   const [joined] = await getDatabase()
     .select()
@@ -73,6 +75,7 @@ export async function loadLatestTeacherFeedback(
         ? and(
             eq(teacherFeedback.learnerId, learnerId),
             eq(exerciseAttempts.lessonKey, lessonKey),
+            sessionId ? eq(exerciseAttempts.lessonSessionId, sessionId) : undefined,
           )
         : eq(teacherFeedback.learnerId, learnerId),
     )

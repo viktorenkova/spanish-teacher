@@ -19,6 +19,7 @@ import { speakWithBrowser } from "@/tts/browser-provider";
 type LessonExperienceProps = {
   learnerId: string;
   planId: string;
+  sessionId: string;
   lessonKey: LessonKey;
   reviewExercises: LessonExercise[];
   onPlanNextLesson: () => void;
@@ -91,6 +92,7 @@ function MistakeMemoryCard({ memory }: { memory: MistakeMemory }) {
 export function LessonExperience({
   learnerId,
   planId,
+  sessionId,
   lessonKey,
   reviewExercises,
   onPlanNextLesson,
@@ -121,7 +123,7 @@ export function LessonExperience({
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(`/api/lesson/progress?learnerId=${encodeURIComponent(learnerId)}&lessonKey=${encodeURIComponent(lessonKey)}`, {
+    fetch(`/api/lesson/progress?learnerId=${encodeURIComponent(learnerId)}&lessonKey=${encodeURIComponent(lessonKey)}&sessionId=${encodeURIComponent(sessionId)}`, {
       signal: controller.signal,
     })
       .then(async (response) => {
@@ -145,7 +147,7 @@ export function LessonExperience({
         setLoadError(error instanceof Error ? error.message : "Lesson progress could not be loaded.");
       });
 
-    fetch(`/api/teacher/feedback?learnerId=${encodeURIComponent(learnerId)}&lessonKey=${encodeURIComponent(lessonKey)}`, {
+    fetch(`/api/teacher/feedback?learnerId=${encodeURIComponent(learnerId)}&lessonKey=${encodeURIComponent(lessonKey)}&sessionId=${encodeURIComponent(sessionId)}`, {
       signal: controller.signal,
     })
       .then(async (response) => {
@@ -172,7 +174,7 @@ export function LessonExperience({
       });
 
     return () => controller.abort();
-  }, [learnerId, lessonKey, reloadKey]);
+  }, [learnerId, lessonKey, sessionId, reloadKey]);
 
   useEffect(() => {
     const provider = speechProvider.current;
@@ -203,6 +205,7 @@ export function LessonExperience({
         body: JSON.stringify({
           learnerId,
           planId,
+          sessionId,
           lessonKey,
           exerciseId: exercise.id,
           selectedOptionId: selectedOption,
@@ -296,6 +299,7 @@ export function LessonExperience({
         body: JSON.stringify({
           learnerId,
           planId,
+          sessionId,
           lessonKey,
           exerciseId: exercise.id,
           transcript: speechResult.text,
@@ -330,7 +334,7 @@ export function LessonExperience({
   async function refreshProgressSummary() {
     try {
       const response = await fetch(
-        `/api/lesson/progress?learnerId=${encodeURIComponent(learnerId)}&lessonKey=${encodeURIComponent(lessonKey)}`,
+        `/api/lesson/progress?learnerId=${encodeURIComponent(learnerId)}&lessonKey=${encodeURIComponent(lessonKey)}&sessionId=${encodeURIComponent(sessionId)}`,
       );
       if (!response.ok) return;
       const payload = (await response.json()) as { summary?: LearnerProgressSummary };

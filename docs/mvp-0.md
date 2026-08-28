@@ -44,6 +44,7 @@ small and reviewed before any bulk data import.
 - The learner can complete the initial introduction lesson without configuring
   a curriculum.
 - Progress survives a page reload.
+- An active lesson resumes at its first incomplete planned exercise.
 - English instructions are understandable at B1 and Spanish content is A1.
 - At least one active retrieval action is required.
 - The UI never claims to assess pronunciation without phoneme-level evidence.

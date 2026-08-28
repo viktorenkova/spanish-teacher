@@ -142,6 +142,9 @@ export const exerciseAttempts = pgTable(
     learnerId: uuid("learner_id")
       .notNull()
       .references(() => learners.id, { onDelete: "cascade" }),
+    lessonSessionId: uuid("lesson_session_id").references(() => lessonSessions.id, {
+      onDelete: "cascade",
+    }),
     learningItemId: text("learning_item_id")
       .notNull()
       .references(() => learningItems.id, { onDelete: "cascade" }),
@@ -160,6 +163,7 @@ export const exerciseAttempts = pgTable(
   },
   (table) => [
     index("exercise_attempt_learner_lesson_idx").on(table.learnerId, table.lessonKey),
+    index("exercise_attempt_session_idx").on(table.lessonSessionId, table.occurredAt),
     index("exercise_attempt_item_idx").on(table.learnerId, table.learningItemId),
   ],
 );
@@ -272,6 +276,28 @@ export const lessonPlans = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index("lesson_plan_learner_created_idx").on(table.learnerId, table.createdAt)],
+);
+
+export const lessonSessions = pgTable(
+  "lesson_sessions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    learnerId: uuid("learner_id")
+      .notNull()
+      .references(() => learners.id, { onDelete: "cascade" }),
+    lessonPlanId: uuid("lesson_plan_id")
+      .notNull()
+      .references(() => lessonPlans.id, { onDelete: "cascade" }),
+    lessonKey: text("lesson_key").notNull(),
+    status: text("status").notNull().default("active"),
+    startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+    lastActivityAt: timestamp("last_activity_at", { withTimezone: true }).notNull().defaultNow(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+  },
+  (table) => [
+    uniqueIndex("lesson_session_plan_unique").on(table.learnerId, table.lessonPlanId),
+    index("lesson_session_active_idx").on(table.learnerId, table.status, table.lastActivityAt),
+  ],
 );
 
 export type Learner = typeof learners.$inferSelect;

@@ -8,12 +8,14 @@ import {
   assessMorningRoutineTranscript,
 } from "@/domain/speaking";
 import { getDatabase } from "@/server/db/client";
+import { updateLessonSessionAfterAttempt } from "@/server/lesson-sessions/service";
 import { updateMistakeMemory } from "@/server/mistakes/service";
 import {
   exerciseAttempts,
   learnerItemStates,
   learningItems,
   lessonPlans,
+  lessonSessions,
 } from "@/server/db/schema";
 import { scheduleReview, storeCard } from "./scheduler";
 
@@ -29,6 +31,7 @@ export type PersistedLessonProgress = {
 export async function loadLessonProgress(
   learnerId: string,
   lessonKey: LessonKey = introductionLessonKey,
+  sessionId?: string,
 ): Promise<PersistedLessonProgress> {
   const lesson = getLessonDefinition(lessonKey);
   if (!lesson) throw new Error("Unknown lesson");
@@ -40,12 +43,11 @@ export async function loadLessonProgress(
       occurredAt: exerciseAttempts.occurredAt,
     })
     .from(exerciseAttempts)
-    .where(
-      and(
-        eq(exerciseAttempts.learnerId, learnerId),
-        eq(exerciseAttempts.lessonKey, lessonKey),
-      ),
-    )
+    .where(and(
+      eq(exerciseAttempts.learnerId, learnerId),
+      eq(exerciseAttempts.lessonKey, lessonKey),
+      sessionId ? eq(exerciseAttempts.lessonSessionId, sessionId) : undefined,
+    ))
     .orderBy(asc(exerciseAttempts.occurredAt));
 
   const completedExerciseIds = [
@@ -90,6 +92,7 @@ export async function loadLearnerProgressSummary(
 type PersistedAttemptInput = {
   learnerId: string;
   planId: string;
+  sessionId: string;
   lessonKey: LessonKey;
   exerciseId: string;
   selectedOptionId: string;
@@ -103,17 +106,19 @@ type PersistedAttemptInput = {
 async function loadOwnedLessonPlan(input: {
   learnerId: string;
   planId: string;
+  sessionId: string;
   lessonKey: LessonKey;
 }) {
   const [savedPlan] = await getDatabase()
     .select({ plan: lessonPlans.plan })
-    .from(lessonPlans)
-    .where(
-      and(
-        eq(lessonPlans.id, input.planId),
-        eq(lessonPlans.learnerId, input.learnerId),
-      ),
-    )
+    .from(lessonSessions)
+    .innerJoin(lessonPlans, eq(lessonSessions.lessonPlanId, lessonPlans.id))
+    .where(and(
+      eq(lessonSessions.id, input.sessionId),
+      eq(lessonSessions.learnerId, input.learnerId),
+      eq(lessonSessions.status, "active"),
+      eq(lessonPlans.id, input.planId),
+    ))
     .limit(1);
   return savedPlan?.plan.lessonKey === input.lessonKey ? savedPlan.plan : undefined;
 }
@@ -182,6 +187,7 @@ async function persistExerciseAttempt(
       .insert(exerciseAttempts)
       .values({
         learnerId: input.learnerId,
+        lessonSessionId: input.sessionId,
         learningItemId: exercise.learningItem.id,
         lessonKey: input.lessonKey,
         exerciseId: exercise.id,
@@ -201,12 +207,18 @@ async function persistExerciseAttempt(
     return { due: result.card.due, rating: result.rating, attemptId: storedAttempt.id };
   });
 
+  const sessionStatus = await updateLessonSessionAfterAttempt({
+    learnerId: input.learnerId,
+    sessionId: input.sessionId,
+    now,
+  });
   return {
     correct,
     feedback,
     attemptId: scheduled.attemptId,
     nextReviewAt: scheduled.due.toISOString(),
-    progress: await loadLessonProgress(input.learnerId, input.lessonKey),
+    sessionStatus,
+    progress: await loadLessonProgress(input.learnerId, input.lessonKey, input.sessionId),
   };
 }
 
@@ -241,6 +253,7 @@ export async function recordExerciseAttempt(input: PersistedAttemptInput) {
 export async function recordSpeakingAttempt(input: {
   learnerId: string;
   planId: string;
+  sessionId: string;
   lessonKey: LessonKey;
   exerciseId: string;
   transcript: string;

@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq, inArray, lte } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, lte, ne } from "drizzle-orm";
 import {
   getLearningItemDefinition,
   type LessonKey,
@@ -146,11 +146,19 @@ export async function loadLatestLessonPlan(learnerId: string) {
   const [saved] = await db
     .select()
     .from(lessonPlans)
-    .where(eq(lessonPlans.learnerId, learnerId))
+    .where(
+      and(
+        eq(lessonPlans.learnerId, learnerId),
+        ne(lessonPlans.status, "completed"),
+      ),
+    )
     .orderBy(desc(lessonPlans.createdAt))
     .limit(1);
 
-  if (!saved) return null;
+  return saved ? mapSavedLessonPlan(saved) : null;
+}
+
+export function mapSavedLessonPlan(saved: typeof lessonPlans.$inferSelect) {
   return {
     id: saved.id,
     plannerVersion: saved.plannerVersion as LessonPlan["plannerVersion"],

@@ -10,14 +10,17 @@ export async function GET(request: Request) {
   const lessonKey = lessonKeySchema.safeParse(
     new URL(request.url).searchParams.get("lessonKey") ?? "introductions-v1",
   );
+  const sessionId = z.uuid().optional().safeParse(
+    new URL(request.url).searchParams.get("sessionId") ?? undefined,
+  );
   const parsed = learnerIdSchema.safeParse(learnerId);
-  if (!parsed.success || !lessonKey.success) {
+  if (!parsed.success || !lessonKey.success || !sessionId.success) {
     return NextResponse.json({ error: "A valid learner and lesson are required." }, { status: 400 });
   }
 
   try {
     const [progress, summary] = await Promise.all([
-      loadLessonProgress(parsed.data, lessonKey.data),
+      loadLessonProgress(parsed.data, lessonKey.data, sessionId.data),
       loadLearnerProgressSummary(parsed.data),
     ]);
     return NextResponse.json({ progress, summary });

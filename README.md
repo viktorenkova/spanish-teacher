@@ -16,7 +16,8 @@ three initial curriculum topics. The current slice includes persistent
 profiles, an A1 diagnostic, FSRS review state, listening, a transcript-backed
 spoken task in every lesson, persisted provider-based teacher feedback,
 structured long-term mistake memory, executable adaptive reviews, and
-learner-facing progress.
+learner-facing progress. Active lesson sessions are persisted separately and
+resume at the first incomplete exercise after a reload.
 
 MVP-0 must eventually support:
 
@@ -29,8 +30,8 @@ MVP-0 must eventually support:
 7. a next lesson influenced by previous performance.
 
 See [MVP-0](docs/mvp-0.md), [adaptive curriculum](docs/adaptive-curriculum.md),
-and [architecture](docs/architecture.md) for the contracts that guide
-implementation.
+[lesson sessions](docs/lesson-sessions.md), and
+[architecture](docs/architecture.md) for the contracts that guide implementation.
 
 ## Learner assumptions
 
@@ -69,6 +70,8 @@ Quality checks:
 npm run lint
 npm run test
 npm run build
+npx playwright install chromium
+npm run test:e2e
 ```
 
 ## Roadmap
@@ -83,6 +86,7 @@ npm run build
 8. Structured long-term error memory. — aggregate states and event history implemented
 9. Adaptive curriculum. — the three initial topics and executable FSRS/mistake reviews are implemented
 10. Progress and a non-punitive behavioral layer. — first learner-facing progress summary implemented
+11. Persistent lesson sessions and browser E2E coverage. — implemented for the MVP learning loop
 
 ## Non-goals for MVP
 

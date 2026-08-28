@@ -5,6 +5,7 @@ import { recordExerciseAttempt } from "@/server/review/service";
 const attemptSchema = z.object({
   learnerId: z.uuid(),
   planId: z.uuid(),
+  sessionId: z.uuid(),
   lessonKey: z.enum(["introductions-v1", "daily-routines-v1", "cafe-ordering-v1"]),
   exerciseId: z.string().min(1).max(100),
   selectedOptionId: z.string().min(1).max(100),
