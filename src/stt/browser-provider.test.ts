@@ -4,12 +4,12 @@ import { BrowserSpeechToTextProvider } from "./browser-provider";
 describe("browser speech-to-text provider", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it("requests es-ES and returns the browser transcript", async () => {
+  it("keeps listening and returns the complete es-ES transcript only after manual stop", async () => {
     const recognitions: FakeRecognition[] = [];
     class FakeRecognition {
       lang = "";
-      continuous = true;
-      interimResults = true;
+      continuous = false;
+      interimResults = false;
       maxAlternatives = 0;
       onresult?: (event: {
         results: Array<{ 0: { transcript: string; confidence: number }; isFinal: boolean }>;
@@ -25,12 +25,18 @@ describe("browser speech-to-text provider", () => {
       start() {
         queueMicrotask(() =>
           this.onresult?.({
-            results: [{ 0: { transcript: "Me llamo Katia", confidence: 0.82 }, isFinal: true }],
+            results: [
+              { 0: { transcript: "Me llamo Katia.", confidence: 0.82 }, isFinal: true },
+              { 0: { transcript: "Soy de Madrid.", confidence: 0.91 }, isFinal: true },
+            ],
           }),
         );
       }
 
-      stop() {}
+      stop() {
+        queueMicrotask(() => this.onend?.());
+      }
+
       abort() {}
     }
 
@@ -41,14 +47,54 @@ describe("browser speech-to-text provider", () => {
     });
 
     const provider = new BrowserSpeechToTextProvider();
-    const result = await provider.transcribe({ locale: "es-ES", maxDurationMs: 1_000 });
+    let resolved = false;
+    const transcript = provider
+      .transcribe({ locale: "es-ES", maxDurationMs: 1_000 })
+      .then((result) => {
+        resolved = true;
+        return result;
+      });
 
+    await new Promise<void>((resolve) => queueMicrotask(resolve));
     expect(recognitions[0]?.lang).toBe("es-ES");
-    expect(recognitions[0]?.continuous).toBe(false);
-    expect(result).toEqual({
-      text: "Me llamo Katia",
+    expect(recognitions[0]?.continuous).toBe(true);
+    expect(recognitions[0]?.interimResults).toBe(true);
+    expect(resolved).toBe(false);
+
+    provider.stop();
+
+    await expect(transcript).resolves.toEqual({
+      text: "Me llamo Katia. Soy de Madrid.",
       providerId: "browser-speech-recognition",
-      confidence: 0.82,
+      confidence: 0.91,
     });
+  });
+
+  it("does not create a transcript when the learner stops before speaking", async () => {
+    class FakeRecognition {
+      lang = "";
+      continuous = false;
+      interimResults = false;
+      maxAlternatives = 0;
+      onresult = null;
+      onerror = null;
+      onnomatch = null;
+      onend: (() => void) | null = null;
+      start() {}
+      stop() { queueMicrotask(() => this.onend?.()); }
+      abort() {}
+    }
+
+    vi.stubGlobal("window", {
+      SpeechRecognition: FakeRecognition,
+      setTimeout,
+      clearTimeout,
+    });
+
+    const provider = new BrowserSpeechToTextProvider();
+    const transcript = provider.transcribe({ locale: "es-ES", maxDurationMs: 1_000 });
+    provider.stop();
+
+    await expect(transcript).rejects.toThrow("Speak before stopping");
   });
 });

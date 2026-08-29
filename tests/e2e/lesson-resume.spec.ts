@@ -14,6 +14,8 @@ test("resumes the active lesson at the first incomplete exercise", async ({ page
     await expect(page.getByRole("heading", { name: /What does Lucía mean/ })).toBeVisible();
     await page.getByRole("radio", { name: "Pleased to meet you" }).click();
     await page.getByRole("button", { name: "Check answer" }).click();
+    await expect(page.getByRole("status")).toBeVisible();
+    await page.getByRole("button", { name: "Continue" }).click();
     await expect(page.getByRole("heading", { name: /Choose the natural answer/ })).toBeVisible();
 
     await page.reload();

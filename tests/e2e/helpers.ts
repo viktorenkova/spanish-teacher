@@ -43,7 +43,7 @@ export async function installMediaMocks(page: Page, transcript: string) {
       }) => void) | null = null;
       onerror = null;
       onnomatch = null;
-      onend = null;
+      onend: (() => void) | null = null;
 
       start() {
         window.setTimeout(() => {
@@ -56,7 +56,9 @@ export async function installMediaMocks(page: Page, transcript: string) {
         }, 10);
       }
 
-      stop() {}
+      stop() {
+        window.setTimeout(() => this.onend?.(), 10);
+      }
       abort() {}
     }
 

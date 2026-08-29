@@ -23,7 +23,7 @@ type LessonExperienceProps = {
   lessonKey: LessonKey;
   reviewExercises: LessonExercise[];
   onEndLesson: () => Promise<void>;
-  onPlanNextLesson: () => void;
+  onFinishLesson: () => void;
 };
 
 type AttemptResponse = {
@@ -97,12 +97,13 @@ export function LessonExperience({
   lessonKey,
   reviewExercises,
   onEndLesson,
-  onPlanNextLesson,
+  onFinishLesson,
 }: LessonExperienceProps) {
   const [progress, setProgress] = useState<LessonProgress>();
   const [progressSummary, setProgressSummary] = useState<LearnerProgressSummary>();
   const [selectedOption, setSelectedOption] = useState<string>();
   const [feedback, setFeedback] = useState<{ correct: boolean; message: string }>();
+  const [pendingProgress, setPendingProgress] = useState<LessonProgress>();
   const [nextReviewAt, setNextReviewAt] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
   const [loadError, setLoadError] = useState<string>();
@@ -198,6 +199,10 @@ export function LessonExperience({
     (currentProgress.completedExerciseIds.filter((id) => exercises.some((item) => item.id === id)).length
       / exercises.length) * 100,
   );
+  const pendingCompletesLesson = Boolean(
+    pendingProgress
+    && exercises.every((item) => pendingProgress.completedExerciseIds.includes(item.id)),
+  );
 
   async function submitAnswer() {
     if (!exercise || !selectedOption || submitting) return;
@@ -226,11 +231,10 @@ export function LessonExperience({
       setNextReviewAt(payload.nextReviewAt);
       setFeedback({ correct: payload.correct, message: payload.feedback });
       if (payload.correct) {
-        await new Promise<void>((resolve) => window.setTimeout(resolve, 1100));
-        setSelectedOption(undefined);
-        setFeedback(undefined);
+        setPendingProgress(payload.progress);
+      } else {
+        setProgress(payload.progress);
       }
-      setProgress(payload.progress);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : "The answer could not be saved.");
     } finally {
@@ -316,23 +320,34 @@ export function LessonExperience({
         throw new Error(payload.error ?? "The speaking attempt could not be saved.");
       }
 
-      setProgress(payload.progress);
       void refreshProgressSummary();
       setNextReviewAt(payload.nextReviewAt);
       setFeedback({ correct: payload.correct, message: payload.feedback });
       setTeacherFeedback(payload.teacherFeedback);
       setMistakeMemory(payload.mistakeMemory);
       if (payload.correct) {
-        window.setTimeout(() => {
-          setSpeechResult(undefined);
-          setFeedback(undefined);
-        }, 1600);
+        setPendingProgress(payload.progress);
+      } else {
+        setProgress(payload.progress);
       }
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : "The speaking attempt could not be saved.");
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function continueAfterFeedback() {
+    if (!pendingProgress) return;
+    const completesLesson = exercises.every((item) =>
+      pendingProgress.completedExerciseIds.includes(item.id));
+    setProgress(pendingProgress);
+    setPendingProgress(undefined);
+    setSelectedOption(undefined);
+    setSpeechResult(undefined);
+    setFeedback(undefined);
+    setSpeechError(undefined);
+    if (!completesLesson) setTeacherFeedback(undefined);
   }
 
   async function refreshProgressSummary() {
@@ -412,7 +427,7 @@ export function LessonExperience({
         )}
         {teacherFeedback && <TeacherFeedbackCard feedback={teacherFeedback} />}
         {mistakeMemory && <MistakeMemoryCard memory={mistakeMemory} />}
-        <button className="primary-button" onClick={onPlanNextLesson}>Plan the next lesson</button>
+        <button className="primary-button" onClick={onFinishLesson}>Finish lesson</button>
       </section>
     );
   }
@@ -483,7 +498,7 @@ export function LessonExperience({
         <div className="speaking-control">
           <button
             className="secondary-button microphone-button"
-            disabled={submitting}
+            disabled={submitting || Boolean(pendingProgress)}
             onClick={() => {
               if (recognizing) speechProvider.current.stop();
               else void startSpeaking();
@@ -492,6 +507,11 @@ export function LessonExperience({
           >
             {recognizing ? "■ Stop listening" : "● Start microphone"}
           </button>
+          <p className="recording-guidance" aria-live="polite">
+            {recognizing
+              ? "Listening… Say the whole answer, then press Stop listening. Transcription starts only after you stop."
+              : "Press Start microphone, say the complete answer, then stop the microphone yourself."}
+          </p>
           <p className="privacy-note">
             Audio is not stored by Spanish Coach. Your browser may use its speech service to create
             the transcript.
@@ -513,7 +533,7 @@ export function LessonExperience({
               key={option.id}
               role="radio"
               aria-checked={selectedOption === option.id}
-              disabled={submitting}
+              disabled={submitting || Boolean(pendingProgress)}
               onClick={() => {
                 setSelectedOption(option.id);
                 setFeedback(undefined);
@@ -526,7 +546,10 @@ export function LessonExperience({
       )}
 
       {feedback && (
-        <p className={`feedback ${feedback.correct ? "correct" : "retry"}`} aria-live="polite">
+        <p
+          className={`feedback ${feedback.correct ? "correct" : "retry"}`}
+          role={feedback.correct ? "status" : "alert"}
+        >
           {feedback.message}
         </p>
       )}
@@ -536,10 +559,22 @@ export function LessonExperience({
 
       <button
         className="primary-button"
-        disabled={exercise.speakingTask ? !speechResult || recognizing || submitting : !selectedOption || submitting}
-        onClick={exercise.speakingTask ? submitSpeakingAttempt : submitAnswer}
+        disabled={pendingProgress
+          ? submitting
+          : exercise.speakingTask
+            ? !speechResult || recognizing || submitting
+            : !selectedOption || submitting}
+        onClick={pendingProgress
+          ? continueAfterFeedback
+          : exercise.speakingTask
+            ? submitSpeakingAttempt
+            : submitAnswer}
       >
-        {submitting ? "Saving…" : exercise.speakingTask ? "Check spoken answer" : "Check answer"}
+        {submitting
+          ? "Saving…"
+          : pendingProgress
+            ? pendingCompletesLesson ? "View lesson summary" : "Continue"
+            : exercise.speakingTask ? "Check spoken answer" : "Check answer"}
       </button>
     </section>
   );

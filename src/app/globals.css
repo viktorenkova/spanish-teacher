@@ -114,6 +114,7 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .speaking-control .secondary-button { justify-self: start; margin: 0; min-width: 190px; }
 .microphone-button { background: var(--ink); }
 .microphone-button:hover:not(:disabled) { background: #0b2e2a; }
+.recording-guidance { margin: 0; padding: 12px 14px; border-radius: 12px; background: var(--cream); color: var(--ink); font-size: .84rem; line-height: 1.55; }
 .privacy-note { color: var(--muted); font-size: .78rem; line-height: 1.5; margin: 0; max-width: 620px; }
 .transcript { border: 1px solid rgba(23, 59, 55, .15); border-radius: 14px; padding: 16px 18px; background: var(--green-soft); }
 .transcript small { color: var(--muted); font-size: .68rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }

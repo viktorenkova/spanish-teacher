@@ -177,7 +177,7 @@ export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
         lessonKey={plan.lessonKey}
         reviewExercises={plan.reviewExercises}
         onEndLesson={endLesson}
-        onPlanNextLesson={() => {
+        onFinishLesson={() => {
           setStarted(false);
           setSession(null);
           setPlan(null);
