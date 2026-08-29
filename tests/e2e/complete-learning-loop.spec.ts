@@ -1,5 +1,10 @@
 import { expect, test, type Page } from "@playwright/test";
-import { cleanupLearner, completeOnboarding, installMediaMocks } from "./helpers";
+import {
+  cleanupLearner,
+  completeOnboarding,
+  installMediaMocks,
+  loadLatestPilotFeedback,
+} from "./helpers";
 
 async function answerChoice(
   page: Page,
@@ -26,6 +31,7 @@ test("completes a lesson with listening and speaking, then adapts the next topic
   try {
     await installMediaMocks(page, "Me llamo Katia. Soy de Madrid.");
     learnerId = await completeOnboarding(page, displayName);
+    if (!learnerId) throw new Error("Onboarding did not persist a learner ID.");
     await page.getByRole("button", { name: "Build my lesson" }).click();
     await page.getByRole("button", { name: "Start the ready practice" }).click();
 
@@ -54,6 +60,23 @@ test("completes a lesson with listening and speaking, then adapts the next topic
 
     await expect(page.getByRole("heading", { name: "You can make a first introduction." })).toBeVisible();
     await expect(page.getByText(/speaking task completed/)).toBeVisible();
+    await page.getByRole("radio", { name: "5" }).check();
+    await page.getByLabel("Lesson pace").selectOption("comfortable");
+    await page.getByLabel("Time to read hints and comments").selectOption("enough");
+    await page.getByLabel("Microphone transcription").selectOption("complete");
+    await page.getByLabel(/What should we improve/).fill("Keep the user-paced controls.");
+    await page.getByRole("button", { name: "Send feedback" }).click();
+    await expect(page.getByRole("heading", { name: /Thank you/ })).toBeVisible();
+
+    const savedFeedback = await loadLatestPilotFeedback(learnerId);
+    expect(savedFeedback).toMatchObject({
+      overall_rating: 5,
+      pacing: "comfortable",
+      reading_time: "enough",
+      microphone_capture: "complete",
+      comment: "Keep the user-paced controls.",
+    });
+
     await page.getByRole("button", { name: "Finish lesson" }).click();
     await page.getByRole("button", { name: "Build my lesson" }).click();
 

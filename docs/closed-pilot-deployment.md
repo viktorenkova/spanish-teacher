@@ -98,6 +98,16 @@ curl --fail http://127.0.0.1:3000/api/health/live
 curl --fail http://127.0.0.1:3000/api/health/ready
 ```
 
+Summarize the saved lesson feedback without changing learner data:
+
+```bash
+npm run pilot:feedback-report
+```
+
+The report shows response count, average rating, common pacing, reading-time,
+and microphone issues, plus the latest optional comments. Feedback is stored
+separately from learning progress and can be updated once per completed lesson.
+
 If an update fails, preserve the database volume, build the last known-good
 source revision as a separate release, and run the smoke test before directing
 pilot traffic back to it. Do not delete volumes as part of an application

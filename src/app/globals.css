@@ -151,6 +151,25 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .summary-grid div { background: var(--cream); border-radius: 14px; padding: 16px; }
 .summary-grid dt { color: var(--muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; }
 .summary-grid dd { margin: 5px 0 0; font: 700 1.35rem Georgia, serif; }
+.pilot-feedback-card { margin-top: 22px; border: 1px solid rgba(23, 59, 55, .14); border-radius: 18px; padding: 20px; background: #fffaf7; }
+.pilot-feedback-card h3 { margin: 8px 0; font: 700 1.25rem Georgia, serif; }
+.pilot-feedback-card.saved { background: var(--green-soft); }
+.pilot-feedback-card.saved .text-button { padding: 4px 0; }
+.pilot-feedback-form { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px 12px; margin-top: 18px; }
+.pilot-feedback-form fieldset { grid-column: 1 / -1; border: 0; padding: 0; margin: 0; }
+.pilot-feedback-form legend, .pilot-feedback-form > label { font-size: .82rem; font-weight: 750; }
+.pilot-feedback-form > label { display: grid; align-content: start; gap: 8px; }
+.pilot-feedback-form > label:last-of-type { grid-column: 1 / -1; }
+.pilot-feedback-form select, .pilot-feedback-form textarea { width: 100%; border: 1px solid rgba(23, 59, 55, .18); border-radius: 11px; background: white; padding: 11px 12px; color: var(--ink); font: inherit; }
+.pilot-feedback-form textarea { resize: vertical; line-height: 1.5; }
+.rating-options { display: flex; gap: 8px; margin: 9px 0 7px; }
+.rating-options label { cursor: pointer; position: relative; display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid rgba(23, 59, 55, .18); border-radius: 11px; background: white; }
+.rating-options input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.rating-options span { pointer-events: none; }
+.rating-options label.chosen { border-color: var(--coral); background: #fff0e9; box-shadow: 0 0 0 2px rgba(223, 114, 93, .12); }
+.rating-options label:has(input:focus-visible) { outline: 3px solid rgba(223, 114, 93, .5); outline-offset: 2px; }
+.pilot-feedback-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
+.pilot-feedback-actions .secondary-button { margin: 0; }
 
 .support-copy { color: var(--muted); line-height: 1.65; max-width: 650px; }
 .profile-form, .diagnostic-form { display: grid; gap: 22px; margin-top: 30px; }
@@ -204,6 +223,8 @@ button:focus-visible, a:focus-visible { outline: 3px solid rgba(223, 114, 93, .5
   .coach-note { display: none; }
   .lesson-card { border-radius: 20px; }
   .summary-grid { grid-template-columns: 1fr; }
+  .pilot-feedback-form { grid-template-columns: 1fr; }
+  .pilot-feedback-form > label, .pilot-feedback-form > label:last-of-type { grid-column: 1; }
   .diagnostic-options { grid-template-columns: 1fr; }
   .form-actions { align-items: stretch; flex-direction: column-reverse; }
   .audio-control { align-items: stretch; flex-direction: column; }

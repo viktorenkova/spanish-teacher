@@ -31,6 +31,30 @@ export async function cleanupLearner(displayName: string, learnerId?: string) {
   }
 }
 
+export async function loadLatestPilotFeedback(learnerId: string) {
+  const databaseUrl = process.env.DATABASE_URL
+    ?? "postgres://spanish_coach:spanish_coach@127.0.0.1:5432/spanish_coach";
+  const sql = postgres(databaseUrl, { max: 1 });
+  try {
+    const [feedback] = await sql<{
+      overall_rating: number;
+      pacing: string;
+      reading_time: string;
+      microphone_capture: string;
+      comment: string | null;
+    }[]>`
+      select overall_rating, pacing, reading_time, microphone_capture, comment
+      from pilot_feedback
+      where learner_id = ${learnerId}
+      order by created_at desc
+      limit 1
+    `;
+    return feedback;
+  } finally {
+    await sql.end();
+  }
+}
+
 export async function installMediaMocks(page: Page, transcript: string) {
   await page.addInitScript((mockTranscript) => {
     class MockSpeechRecognition {

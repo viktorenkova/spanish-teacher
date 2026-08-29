@@ -15,6 +15,7 @@ import { BrowserSpeechToTextProvider } from "@/stt/browser-provider";
 import type { SttTranscript } from "@/stt/provider";
 import type { TeacherFeedback } from "@/teacher/provider";
 import { speakWithBrowser } from "@/tts/browser-provider";
+import { PilotFeedbackForm } from "./pilot-feedback-form";
 
 type LessonExperienceProps = {
   learnerId: string;
@@ -427,6 +428,7 @@ export function LessonExperience({
         )}
         {teacherFeedback && <TeacherFeedbackCard feedback={teacherFeedback} />}
         {mistakeMemory && <MistakeMemoryCard memory={mistakeMemory} />}
+        <PilotFeedbackForm learnerId={learnerId} sessionId={sessionId} />
         <button className="primary-button" onClick={onFinishLesson}>Finish lesson</button>
       </section>
     );

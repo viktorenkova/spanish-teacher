@@ -300,5 +300,31 @@ export const lessonSessions = pgTable(
   ],
 );
 
+export const pilotFeedback = pgTable(
+  "pilot_feedback",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    learnerId: uuid("learner_id")
+      .notNull()
+      .references(() => learners.id, { onDelete: "cascade" }),
+    lessonSessionId: uuid("lesson_session_id")
+      .notNull()
+      .references(() => lessonSessions.id, { onDelete: "cascade" }),
+    overallRating: integer("overall_rating").notNull(),
+    pacing: text("pacing").notNull(),
+    readingTime: text("reading_time").notNull(),
+    microphoneCapture: text("microphone_capture").notNull(),
+    comment: text("comment"),
+    appVersion: text("app_version").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("pilot_feedback_session_unique").on(table.lessonSessionId),
+    index("pilot_feedback_learner_created_idx").on(table.learnerId, table.createdAt),
+  ],
+);
+
 export type Learner = typeof learners.$inferSelect;
 export type NewLearner = typeof learners.$inferInsert;
+export type SavedPilotFeedback = typeof pilotFeedback.$inferSelect;
