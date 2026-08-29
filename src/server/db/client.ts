@@ -1,18 +1,16 @@
 import "server-only";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
+import { getServerEnvironment } from "@/server/config/environment";
 import * as schema from "./schema";
 
 let connection: ReturnType<typeof postgres> | undefined;
 
 export function getDatabase() {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    throw new Error("DATABASE_URL is not configured. Copy .env.example to .env.local.");
-  }
+  const environment = getServerEnvironment();
 
-  connection ??= postgres(databaseUrl, {
-    max: process.env.NODE_ENV === "production" ? 10 : 1,
+  connection ??= postgres(environment.DATABASE_URL, {
+    max: environment.NODE_ENV === "production" ? 10 : 1,
   });
 
   return drizzle(connection, { schema });

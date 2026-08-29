@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { logError } from "@/server/observability/logger";
 import { submitSpeakingAttemptWithTeacher } from "@/server/teacher/service";
 
 const speakingAttemptSchema = z.object({
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
     if (error instanceof Error && error.message === "Unknown speaking exercise") {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
-    console.error("Unable to save speaking attempt", error);
+    logError("speaking_attempt_save_failed", error, { method: "POST", route: "/api/lesson/speaking-attempts" });
     return NextResponse.json({ error: "The speaking attempt could not be saved." }, { status: 503 });
   }
 }

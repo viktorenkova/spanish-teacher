@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { loadMistakeMemory } from "@/server/mistakes/service";
+import { logError } from "@/server/observability/logger";
 
 export async function GET(request: Request) {
   const parsed = z.uuid().safeParse(new URL(request.url).searchParams.get("learnerId"));
@@ -11,7 +12,7 @@ export async function GET(request: Request) {
   try {
     return NextResponse.json({ mistakeMemory: await loadMistakeMemory(parsed.data) });
   } catch (error) {
-    console.error("Unable to load mistake memory", error);
+    logError("mistake_memory_load_failed", error, { method: "GET", route: "/api/mistakes" });
     return NextResponse.json({ error: "Mistake memory could not be loaded." }, { status: 503 });
   }
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getListeningClip } from "@/domain/listening";
+import { logError } from "@/server/observability/logger";
 import { synthesizeServerAudio } from "@/tts/service";
 
 export const runtime = "nodejs";
@@ -29,7 +30,7 @@ export async function GET(_request: Request, context: RouteContext<"/api/tts/[cl
         { status: 503 },
       );
     }
-    console.error("Unable to synthesize listening audio", error);
+    logError("listening_audio_synthesis_failed", error, { method: "GET", route: "/api/tts/[clipId]" });
     return NextResponse.json({ error: "Listening audio could not be generated." }, { status: 503 });
   }
 }

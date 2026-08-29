@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { logError } from "@/server/observability/logger";
 import { loadLatestTeacherFeedback } from "@/server/teacher/service";
 
 export async function GET(request: Request) {
@@ -17,7 +18,7 @@ export async function GET(request: Request) {
       teacherFeedback: await loadLatestTeacherFeedback(parsed.data, lessonKey.data, sessionId.data),
     });
   } catch (error) {
-    console.error("Unable to load teacher feedback", error);
+    logError("teacher_feedback_load_failed", error, { method: "GET", route: "/api/teacher/feedback" });
     return NextResponse.json({ error: "Teacher feedback could not be loaded." }, { status: 503 });
   }
 }

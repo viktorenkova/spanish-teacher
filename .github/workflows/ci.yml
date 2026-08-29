@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: postgres://spanish_coach:spanish_coach@127.0.0.1:5432/spanish_coach
+      APP_VERSION: ${{ github.sha }}
+      DEPLOYMENT_VERSION: ${{ github.sha }}
+      LOG_LEVEL: info
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: spanish_coach
+          POSTGRES_USER: spanish_coach
+          POSTGRES_PASSWORD: spanish_coach
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U spanish_coach -d spanish_coach"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run unit tests
+        run: npm run test
+
+      - name: Apply database migrations
+        run: npm run db:migrate
+
+      - name: Build production application
+        run: npm run build
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser E2E
+        run: npm run test:e2e
+
+      - name: Run production smoke test
+        shell: bash
+        run: |
+          mkdir -p .logs
+          npm run start -- --hostname 127.0.0.1 --port 3100 > .logs/production-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          SMOKE_BASE_URL=http://127.0.0.1:3100 npm run test:smoke
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: failure-diagnostics
+          path: |
+            .logs/
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7

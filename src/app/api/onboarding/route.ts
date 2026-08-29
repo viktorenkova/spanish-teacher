@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { evaluateDiagnostic } from "@/domain/diagnostic";
 import { getDatabase } from "@/server/db/client";
+import { logError } from "@/server/observability/logger";
 import {
   diagnosticAttempts,
   learners,
@@ -86,11 +87,10 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (error) {
-    console.error("Unable to persist onboarding", error);
+    logError("onboarding_persist_failed", error, { method: "POST", route: "/api/onboarding" });
     return NextResponse.json(
       { error: "The learner profile could not be saved. Check the database connection." },
       { status: 503 },
     );
   }
 }
-

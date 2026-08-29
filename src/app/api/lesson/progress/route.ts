@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { logError } from "@/server/observability/logger";
 import { loadLearnerProgressSummary, loadLessonProgress } from "@/server/review/service";
 
 const learnerIdSchema = z.uuid();
@@ -25,7 +26,7 @@ export async function GET(request: Request) {
     ]);
     return NextResponse.json({ progress, summary });
   } catch (error) {
-    console.error("Unable to load lesson progress", error);
+    logError("lesson_progress_load_failed", error, { method: "GET", route: "/api/lesson/progress" });
     return NextResponse.json({ error: "Lesson progress could not be loaded." }, { status: 503 });
   }
 }

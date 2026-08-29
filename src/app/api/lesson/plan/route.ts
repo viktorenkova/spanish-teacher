@@ -5,6 +5,7 @@ import {
   createLessonPlan,
   loadLatestLessonPlan,
 } from "@/server/lesson-planner/service";
+import { logError } from "@/server/observability/logger";
 
 const learnerIdSchema = z.uuid();
 const createPlanSchema = z.object({
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
   try {
     return NextResponse.json({ plan: await loadLatestLessonPlan(parsed.data) });
   } catch (error) {
-    console.error("Unable to load lesson plan", error);
+    logError("lesson_plan_load_failed", error, { method: "GET", route: "/api/lesson/plan" });
     return NextResponse.json({ error: "The lesson plan could not be loaded." }, { status: 503 });
   }
 }
@@ -36,8 +37,7 @@ export async function POST(request: Request) {
   try {
     return NextResponse.json({ plan: await createLessonPlan(parsed.data) }, { status: 201 });
   } catch (error) {
-    console.error("Unable to create lesson plan", error);
+    logError("lesson_plan_create_failed", error, { method: "POST", route: "/api/lesson/plan" });
     return NextResponse.json({ error: "The lesson plan could not be created." }, { status: 503 });
   }
 }
-

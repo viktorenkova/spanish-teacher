@@ -5,6 +5,7 @@ import {
   loadActiveLessonSession,
   startLessonSession,
 } from "@/server/lesson-sessions/service";
+import { logError } from "@/server/observability/logger";
 
 const learnerIdSchema = z.uuid();
 const startSessionSchema = z.object({
@@ -26,7 +27,7 @@ export async function GET(request: Request) {
   try {
     return NextResponse.json({ session: await loadActiveLessonSession(parsed.data) });
   } catch (error) {
-    console.error("Unable to load active lesson session", error);
+    logError("lesson_session_load_failed", error, { method: "GET", route: "/api/lesson/sessions" });
     return NextResponse.json({ error: "The active lesson could not be loaded." }, { status: 503 });
   }
 }
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
     if (error instanceof Error && error.message === "ACTIVE_LESSON_EXISTS") {
       return NextResponse.json({ error: "Resume the active lesson before starting another." }, { status: 409 });
     }
-    console.error("Unable to start lesson session", error);
+    logError("lesson_session_start_failed", error, { method: "POST", route: "/api/lesson/sessions" });
     return NextResponse.json({ error: "The lesson could not be started." }, { status: 503 });
   }
 }
@@ -66,7 +67,7 @@ export async function PATCH(request: Request) {
     if (error instanceof Error && error.message === "LESSON_SESSION_NOT_ACTIVE") {
       return NextResponse.json({ error: "This lesson is no longer active." }, { status: 409 });
     }
-    console.error("Unable to end lesson session", error);
+    logError("lesson_session_abandon_failed", error, { method: "PATCH", route: "/api/lesson/sessions" });
     return NextResponse.json({ error: "The lesson could not be ended safely." }, { status: 503 });
   }
 }

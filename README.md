@@ -34,6 +34,8 @@ MVP-0 must eventually support:
 See [MVP-0](docs/mvp-0.md), [adaptive curriculum](docs/adaptive-curriculum.md),
 [lesson sessions](docs/lesson-sessions.md), and
 [architecture](docs/architecture.md) for the contracts that guide implementation.
+Production checks and runtime contracts are documented in
+[production readiness](docs/production-readiness.md).
 
 ## Learner assumptions
 
@@ -74,6 +76,8 @@ npm run test
 npm run build
 npx playwright install chromium
 npm run test:e2e
+# With the production server running:
+npm run test:smoke
 ```
 
 ## Roadmap
@@ -90,6 +94,7 @@ npm run test:e2e
 10. Progress and a non-punitive behavioral layer. — first learner-facing progress summary implemented
 11. Persistent lesson sessions and browser E2E coverage. — implemented for the MVP learning loop
 12. MVP-0 release hardening. — full-loop/adaptive E2E, safe interruption, and mobile accessibility implemented
+13. Production readiness. — validated runtime configuration, health checks, structured logs, CI, and smoke testing implemented
 
 ## Non-goals for MVP
 

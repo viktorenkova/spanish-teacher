@@ -221,17 +221,16 @@ export function LessonExperience({
         throw new Error(payload.error ?? "The answer could not be saved.");
       }
 
-      setProgress(payload.progress);
       void refreshProgressSummary();
       if (payload.mistakeMemory) setMistakeMemory(payload.mistakeMemory);
       setNextReviewAt(payload.nextReviewAt);
       setFeedback({ correct: payload.correct, message: payload.feedback });
       if (payload.correct) {
-        window.setTimeout(() => {
-          setSelectedOption(undefined);
-          setFeedback(undefined);
-        }, 1100);
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 1100));
+        setSelectedOption(undefined);
+        setFeedback(undefined);
       }
+      setProgress(payload.progress);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : "The answer could not be saved.");
     } finally {
