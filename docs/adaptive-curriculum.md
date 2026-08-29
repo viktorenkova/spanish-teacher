@@ -37,3 +37,10 @@ Longer plans add review work only when their duration budget has room.
   scoring.
 - Plan JSON stores the exact review exercises shown to the learner so attempt
   validation does not trust exercise content sent by the browser.
+
+## Learner return overview
+
+Before a new plan is created, the learner sees progress reconstructed from
+saved attempts, lesson sessions, and FSRS state. The overview shows completed
+lessons and topics, reviews currently due, and the next deterministic topic.
+It is read-only and does not create a plan or advance curriculum state.

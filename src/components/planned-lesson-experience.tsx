@@ -6,6 +6,8 @@ import {
   type LessonPlan,
   type SessionDuration,
 } from "@/domain/lesson-planner";
+import type { LearnerOverview } from "@/domain/learner-overview";
+import { LearnerOverviewCard } from "./learner-overview-card";
 import { LessonExperience } from "./lesson-experience";
 
 type SavedPlan = LessonPlan & { id: string; createdAt: string };
@@ -21,6 +23,8 @@ type SavedSession = {
 export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
   const [plan, setPlan] = useState<SavedPlan | null>();
   const [session, setSession] = useState<SavedSession | null>();
+  const [overview, setOverview] = useState<LearnerOverview | null>();
+  const [overviewRefreshKey, setOverviewRefreshKey] = useState(0);
   const [selectedDuration, setSelectedDuration] = useState<SessionDuration>(10);
   const [creating, setCreating] = useState(false);
   const [started, setStarted] = useState(false);
@@ -70,6 +74,28 @@ export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
     void loadExperience();
     return () => controller.abort();
   }, [learnerId]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(`/api/learner/overview?learnerId=${encodeURIComponent(learnerId)}`, {
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const payload = (await response.json()) as {
+          overview?: LearnerOverview;
+          error?: string;
+        };
+        if (!response.ok || !payload.overview) {
+          throw new Error(payload.error ?? "Saved progress could not be loaded.");
+        }
+        setOverview(payload.overview);
+      })
+      .catch((overviewError: unknown) => {
+        if (overviewError instanceof DOMException && overviewError.name === "AbortError") return;
+        setOverview(null);
+      });
+    return () => controller.abort();
+  }, [learnerId, overviewRefreshKey]);
 
   async function createPlan() {
     setCreating(true);
@@ -149,6 +175,7 @@ export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
         <p className="support-copy">
           The coach will balance due reviews, new A1 language, listening, and mandatory speaking.
         </p>
+        {overview && <LearnerOverviewCard overview={overview} />}
         <div className="duration-options planner-durations" aria-label="Lesson duration">
           {supportedSessionDurations.map((duration) => (
             <button
@@ -181,6 +208,7 @@ export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
           setStarted(false);
           setSession(null);
           setPlan(null);
+          setOverviewRefreshKey((value) => value + 1);
         }}
       />
     );

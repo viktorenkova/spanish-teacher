@@ -102,6 +102,7 @@ npm run test:smoke
 16. Pilot feedback UX hardening. — user-paced feedback, explicit lesson completion, and manual microphone stop implemented
 17. Closed-pilot feedback collection. — per-session usability feedback, saved confirmation, and an operator report implemented
 18. Closed-pilot learning report. — completion, accuracy, speaking, review, mistake, and topic signals implemented
+19. Learner return overview. — saved progress, due reviews, and the next curriculum topic are visible before lesson planning
 
 ## Non-goals for MVP
 

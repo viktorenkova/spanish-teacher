@@ -78,6 +78,8 @@ test("completes a lesson with listening and speaking, then adapts the next topic
     });
 
     await page.getByRole("button", { name: "Finish lesson" }).click();
+    await expect(page.getByRole("heading", { name: "Up next: Talk about your morning" })).toBeVisible();
+    await expect(page.getByText("1/3", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Build my lesson" }).click();
 
     await expect(page.getByRole("heading", { name: "A coherent path, chosen for you." })).toBeVisible();
