@@ -15,6 +15,7 @@
     "test:smoke": "node scripts/smoke-test.mjs",
     "pilot:backup": "node scripts/pilot-backup.mjs",
     "pilot:feedback-report": "node scripts/pilot-feedback-report.mjs",
+    "pilot:learning-report": "node scripts/pilot-learning-report.mjs",
     "pilot:restore": "node scripts/pilot-restore.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",

@@ -101,6 +101,7 @@ npm run test:smoke
 15. Remote closed-pilot operations. — pinned-SSH deploy, exact-version smoke check, encrypted off-host backups, and guarded remote restore implemented
 16. Pilot feedback UX hardening. — user-paced feedback, explicit lesson completion, and manual microphone stop implemented
 17. Closed-pilot feedback collection. — per-session usability feedback, saved confirmation, and an operator report implemented
+18. Closed-pilot learning report. — completion, accuracy, speaking, review, mistake, and topic signals implemented
 
 ## Non-goals for MVP
 

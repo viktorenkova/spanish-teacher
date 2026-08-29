@@ -108,6 +108,18 @@ The report shows response count, average rating, common pacing, reading-time,
 and microphone issues, plus the latest optional comments. Feedback is stored
 separately from learning progress and can be updated once per completed lesson.
 
+Review objective learning and retention signals for the last 30 days:
+
+```bash
+npm run pilot:learning-report
+```
+
+Use `npm run pilot:learning-report -- --days 7` to choose a window from 1 to
+365 days. The report shows closed-session completion, answer accuracy, speaking
+task completion, current due reviews and open mistake patterns, topic coverage,
+and the latest sessions. Accuracy measures saved attempts; it is not a
+pronunciation score.
+
 If an update fails, preserve the database volume, build the last known-good
 source revision as a separate release, and run the smoke test before directing
 pilot traffic back to it. Do not delete volumes as part of an application
