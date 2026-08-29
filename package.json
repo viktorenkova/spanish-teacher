@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "vitest run --exclude tests/e2e/**",
+    "test": "vitest run --exclude \"tests/e2e/**\"",
     "test:e2e": "playwright test",
     "test:smoke": "node scripts/smoke-test.mjs",
     "pilot:backup": "node scripts/pilot-backup.mjs",
