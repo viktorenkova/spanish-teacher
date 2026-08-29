@@ -35,7 +35,9 @@ See [MVP-0](docs/mvp-0.md), [adaptive curriculum](docs/adaptive-curriculum.md),
 [lesson sessions](docs/lesson-sessions.md), and
 [architecture](docs/architecture.md) for the contracts that guide implementation.
 Production checks and runtime contracts are documented in
-[production readiness](docs/production-readiness.md).
+[production readiness](docs/production-readiness.md). The provider-neutral
+container and backup runbook are in
+[closed pilot deployment](docs/closed-pilot-deployment.md).
 
 ## Learner assumptions
 
@@ -95,6 +97,7 @@ npm run test:smoke
 11. Persistent lesson sessions and browser E2E coverage. — implemented for the MVP learning loop
 12. MVP-0 release hardening. — full-loop/adaptive E2E, safe interruption, and mobile accessibility implemented
 13. Production readiness. — validated runtime configuration, health checks, structured logs, CI, and smoke testing implemented
+14. Closed-pilot deployment package. — localhost-only standalone container, migration job, backups, and container smoke implemented
 
 ## Non-goals for MVP
 

@@ -13,6 +13,8 @@
     "test": "vitest run --exclude tests/e2e/**",
     "test:e2e": "playwright test",
     "test:smoke": "node scripts/smoke-test.mjs",
+    "pilot:backup": "node scripts/pilot-backup.mjs",
+    "pilot:restore": "node scripts/pilot-restore.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio"

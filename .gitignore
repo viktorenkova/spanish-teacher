@@ -9,5 +9,7 @@ playwright-report/
 blob-report/
 .env
 .env.local
+.env.pilot
+.backups/
 *.log
 .DS_Store

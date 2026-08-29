@@ -61,3 +61,5 @@ npm.cmd run test:smoke
 
 The actual hosting platform, domain, TLS termination, secret store, backup
 policy, and reverse-proxy/rate-limit configuration remain deployment choices.
+The portable localhost-only deployment package and operator runbook are in
+[closed pilot deployment](closed-pilot-deployment.md).

@@ -11,7 +11,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     env:
       DATABASE_URL: postgres://spanish_coach:spanish_coach@127.0.0.1:5432/spanish_coach
       APP_VERSION: ${{ github.sha }}
@@ -63,13 +63,25 @@ jobs:
       - name: Run browser E2E
         run: npm run test:e2e
 
-      - name: Run production smoke test
+      - name: Validate pilot Compose
+        env:
+          POSTGRES_PASSWORD: ci-pilot-password
+        run: docker compose -f compose.pilot.yaml config --quiet
+
+      - name: Build closed-pilot image
+        run: docker build --target runner --build-arg PILOT_VERSION="$APP_VERSION" --tag spanish-coach:ci .
+
+      - name: Run container smoke test
         shell: bash
         run: |
           mkdir -p .logs
-          npm run start -- --hostname 127.0.0.1 --port 3100 > .logs/production-server.log 2>&1 &
-          server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          docker run --detach --name spanish-coach-ci \
+            --add-host host.docker.internal:host-gateway \
+            --publish 127.0.0.1:3100:3000 \
+            --env DATABASE_URL=postgres://spanish_coach:spanish_coach@host.docker.internal:5432/spanish_coach \
+            --env APP_VERSION="$APP_VERSION" \
+            spanish-coach:ci
+          trap 'docker logs spanish-coach-ci > .logs/pilot-container.log 2>&1; docker rm --force spanish-coach-ci >/dev/null 2>&1 || true' EXIT
           SMOKE_BASE_URL=http://127.0.0.1:3100 npm run test:smoke
 
       - name: Upload failure diagnostics

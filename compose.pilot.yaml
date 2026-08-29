@@ -1,0 +1,73 @@
+name: spanish-coach-pilot
+
+x-logging: &pilot-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: spanish_coach
+      POSTGRES_USER: spanish_coach
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.pilot}
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U spanish_coach -d spanish_coach"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    stop_grace_period: 60s
+    volumes:
+      - pilot-postgres:/var/lib/postgresql/data
+    logging: *pilot-logging
+
+  migrate:
+    build:
+      context: .
+      target: migrator
+    environment:
+      DATABASE_URL: postgresql://spanish_coach:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.pilot}@postgres:5432/spanish_coach
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    logging: *pilot-logging
+
+  app:
+    build:
+      context: .
+      target: runner
+      args:
+        PILOT_VERSION: ${PILOT_VERSION:-pilot-local}
+    restart: unless-stopped
+    init: true
+    environment:
+      DATABASE_URL: postgresql://spanish_coach:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env.pilot}@postgres:5432/spanish_coach
+      APP_VERSION: ${PILOT_VERSION:-pilot-local}
+      DEPLOYMENT_VERSION: ${PILOT_VERSION:-pilot-local}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      TTS_CACHE_DIR: /app/.data/tts-cache
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    stop_grace_period: 30s
+    volumes:
+      - pilot-app-data:/app/.data
+    logging: *pilot-logging
+
+volumes:
+  pilot-postgres:
+  pilot-app-data:
