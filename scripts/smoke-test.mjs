@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 const baseUrl = (process.env.SMOKE_BASE_URL ?? "http://127.0.0.1:3000").replace(/\/$/, "");
+const expectedVersion = process.env.SMOKE_EXPECTED_VERSION;
 
 async function fetchWithRetry(pathname, attempts = 30) {
   let lastError;
@@ -34,6 +35,7 @@ async function run() {
   const ready = await readyResponse.json();
   assert.equal(ready.status, "ready");
   assert.equal(ready.checks.database.status, "ok");
+  if (expectedVersion) assert.equal(ready.version, expectedVersion);
 
   console.info(JSON.stringify({
     level: "info",

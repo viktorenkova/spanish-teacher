@@ -98,6 +98,7 @@ npm run test:smoke
 12. MVP-0 release hardening. — full-loop/adaptive E2E, safe interruption, and mobile accessibility implemented
 13. Production readiness. — validated runtime configuration, health checks, structured logs, CI, and smoke testing implemented
 14. Closed-pilot deployment package. — localhost-only standalone container, migration job, backups, and container smoke implemented
+15. Remote closed-pilot operations. — pinned-SSH deploy, exact-version smoke check, encrypted off-host backups, and guarded remote restore implemented
 
 ## Non-goals for MVP
 

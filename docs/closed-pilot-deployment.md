@@ -103,9 +103,89 @@ source revision as a separate release, and run the smoke test before directing
 pilot traffic back to it. Do not delete volumes as part of an application
 rollback.
 
-## Still requires a hosting decision
+## Remote closed-pilot delivery
 
-The package does not create billable infrastructure. Before public or broader
-pilot use, select the host and access gateway, configure TLS and DNS, schedule
-off-host encrypted backups, define retention and restore objectives, and add a
-remote post-deploy smoke step using the platform's secret store.
+The `Deploy closed pilot` workflow packages an immutable Git revision, sends it
+to one Linux host over pinned SSH, writes the runtime environment with mode
+`0600`, takes a pre-deploy database backup, activates the Compose release, and
+checks the exact deployed version through an SSH tunnel. It deliberately keeps
+the web port on host loopback; TLS and application authentication are therefore
+not required for this SSH-only pilot boundary.
+
+Prepare an unprivileged operator account on the host. It must be able to run
+Docker and own the deployment root, but it must not have a shared password:
+
+```bash
+sudo install -d -o pilot -g pilot -m 0750 /opt/spanish-coach
+```
+
+Create a protected GitHub environment named `pilot-deploy` and require reviewer
+approval for deployments. Create a separate `pilot-backup` environment without
+a reviewer gate so scheduled backups can run unattended. Configure these shared
+secrets in both environments:
+
+- `PILOT_HOST`: DNS name or IPv4 address of the host;
+- `PILOT_USER`: the dedicated SSH user (`pilot` in the example);
+- `PILOT_SSH_PRIVATE_KEY`: its private deployment key;
+- `PILOT_HOST_KEY`: a previously verified `known_hosts` line, not an unchecked
+  value collected inside the workflow.
+
+Set `POSTGRES_PASSWORD` (at least 32 URL-safe characters) only in
+`pilot-deploy`. Set `PILOT_BACKUP_AGE_RECIPIENT` only in `pilot-backup`; it is
+the public `age1...` recipient whose private key is stored outside GitHub and
+outside the pilot host.
+
+Optional GitHub configuration variables are `PILOT_DEPLOY_ROOT` (default
+`/opt/spanish-coach`), `PILOT_APP_PORT` (default `3000`), and
+`PILOT_BACKUPS_ENABLED`. If the deployment root is changed, set it identically
+in both environments. Configure the enable switch as a repository variable
+because it gates the scheduled job before the environment starts. Set it to
+`true` only after a manual backup and restore drill succeeds. The scheduled
+workflow then streams a PostgreSQL custom archive away from the host, validates
+it, encrypts it with `age`, and retains only the encrypted artifact for 14 days.
+
+Trigger `Deploy closed pilot` manually and select an audited Git ref. A failed
+readiness check does not move the `current` symlink. Inspect the job diagnostics
+before retrying; schema-changing rollbacks require an explicit restore decision.
+
+Learners connect through an individually assigned SSH account or an
+operator-managed tunnel:
+
+```bash
+ssh -N -L 3000:127.0.0.1:3000 learner@pilot-host
+```
+
+Do not grant learners Docker access or access to the deployment account.
+
+## Restore an encrypted off-host backup
+
+Download the workflow artifact to an operator machine, verify its checksum, and
+decrypt it with the separately held age identity:
+
+```bash
+sha256sum --check spanish-coach-TIMESTAMP.dump.age.sha256
+age --decrypt --identity /secure/path/pilot-backup.agekey \
+  --output spanish-coach-TIMESTAMP.dump spanish-coach-TIMESTAMP.dump.age
+scp spanish-coach-TIMESTAMP.dump pilot@pilot-host:/opt/spanish-coach/restore.dump
+```
+
+On the host, inspect the archive with `pg_restore --list`, take the pilot out of
+use, and invoke the guarded restore. The script creates a second safety backup,
+stops the app, restores the database, reapplies current migrations, and starts
+the app only after success:
+
+```bash
+sh /opt/spanish-coach/current/scripts/pilot-remote-restore.sh \
+  /opt/spanish-coach /opt/spanish-coach/restore.dump --confirm-replace
+curl --fail http://127.0.0.1:3000/api/health/ready
+```
+
+Delete the decrypted local and remote dumps after the drill. Keep the age
+identity offline and test restore at least once before inviting learners.
+
+## Before broader or public access
+
+The automation does not create billable infrastructure or expose the app to the
+internet. Broader access still requires an explicit choice of host and access
+gateway, TLS and DNS, request limits, access logs, backup retention objectives,
+and an application-authentication product decision.

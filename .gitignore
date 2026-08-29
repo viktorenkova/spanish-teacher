@@ -11,5 +11,9 @@ blob-report/
 .env.local
 .env.pilot
 .backups/
+*.dump
+*.dump.age
+*.dump.age.sha256
+source.tar.gz
 *.log
 .DS_Store

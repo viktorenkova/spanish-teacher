@@ -82,7 +82,7 @@ jobs:
             --env APP_VERSION="$APP_VERSION" \
             spanish-coach:ci
           trap 'docker logs spanish-coach-ci > .logs/pilot-container.log 2>&1; docker rm --force spanish-coach-ci >/dev/null 2>&1 || true' EXIT
-          SMOKE_BASE_URL=http://127.0.0.1:3100 npm run test:smoke
+          SMOKE_BASE_URL=http://127.0.0.1:3100 SMOKE_EXPECTED_VERSION="$APP_VERSION" npm run test:smoke
 
       - name: Upload failure diagnostics
         if: failure()

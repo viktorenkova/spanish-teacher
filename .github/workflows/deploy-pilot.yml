@@ -1,0 +1,123 @@
+name: Deploy closed pilot
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_ref:
+        description: Git ref to deploy
+        required: true
+        default: master
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: closed-pilot-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: pilot-deploy
+    env:
+      PILOT_HOST: ${{ secrets.PILOT_HOST }}
+      PILOT_USER: ${{ secrets.PILOT_USER }}
+      PILOT_SSH_PRIVATE_KEY: ${{ secrets.PILOT_SSH_PRIVATE_KEY }}
+      PILOT_HOST_KEY: ${{ secrets.PILOT_HOST_KEY }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      PILOT_DEPLOY_ROOT: ${{ vars.PILOT_DEPLOY_ROOT || '/opt/spanish-coach' }}
+      PILOT_APP_PORT: ${{ vars.PILOT_APP_PORT || '3000' }}
+
+    steps:
+      - name: Check out requested release
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.release_ref }}
+
+      - name: Resolve and validate release configuration
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_sha=$(git rev-parse HEAD)
+          [[ "$release_sha" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$PILOT_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
+          [[ "$PILOT_USER" =~ ^[a-z_][a-z0-9_-]*$ ]]
+          [[ "$PILOT_DEPLOY_ROOT" =~ ^/[A-Za-z0-9._/-]+$ ]]
+          [[ "$PILOT_DEPLOY_ROOT" != *..* ]]
+          [[ "$PILOT_APP_PORT" =~ ^[0-9]{2,5}$ ]]
+          (( PILOT_APP_PORT <= 65535 ))
+          [[ "$POSTGRES_PASSWORD" =~ ^[A-Za-z0-9._~-]{32,}$ ]]
+          test -n "$PILOT_SSH_PRIVATE_KEY"
+          test -n "$PILOT_HOST_KEY"
+          echo "sha=$release_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Configure pinned SSH host identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$PILOT_SSH_PRIVATE_KEY" > ~/.ssh/id_pilot
+          printf '%s\n' "$PILOT_HOST_KEY" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_pilot ~/.ssh/known_hosts
+
+      - name: Upload immutable release bundle
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote="$PILOT_USER@$PILOT_HOST"
+          release_dir="$PILOT_DEPLOY_ROOT/releases/$RELEASE_SHA"
+          git archive --format=tar.gz --output=source.tar.gz "$RELEASE_SHA"
+          ssh -i ~/.ssh/id_pilot -o IdentitiesOnly=yes "$remote" \
+            "install -d -m 0750 '$release_dir'"
+          scp -i ~/.ssh/id_pilot -o IdentitiesOnly=yes source.tar.gz \
+            "$remote:$release_dir/source.tar.gz"
+          ssh -i ~/.ssh/id_pilot -o IdentitiesOnly=yes "$remote" \
+            "cd '$release_dir' && tar -xzf source.tar.gz"
+          {
+            printf 'POSTGRES_PASSWORD=%s\n' "$POSTGRES_PASSWORD"
+            printf 'APP_PORT=%s\n' "$PILOT_APP_PORT"
+            printf 'PILOT_VERSION=%s\n' "$RELEASE_SHA"
+            printf 'LOG_LEVEL=info\n'
+          } | ssh -i ~/.ssh/id_pilot -o IdentitiesOnly=yes "$remote" \
+            "umask 077 && cat > '$release_dir/.env.pilot'"
+
+      - name: Activate release
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote="$PILOT_USER@$PILOT_HOST"
+          release_dir="$PILOT_DEPLOY_ROOT/releases/$RELEASE_SHA"
+          ssh -i ~/.ssh/id_pilot -o IdentitiesOnly=yes "$remote" \
+            "sh '$release_dir/scripts/pilot-activate-release.sh' '$PILOT_DEPLOY_ROOT' '$RELEASE_SHA' '$PILOT_APP_PORT'"
+
+      - name: Verify exact release through an SSH tunnel
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote="$PILOT_USER@$PILOT_HOST"
+          ssh -i ~/.ssh/id_pilot -o IdentitiesOnly=yes -o ExitOnForwardFailure=yes \
+            -N -L "3100:127.0.0.1:$PILOT_APP_PORT" "$remote" &
+          tunnel_pid=$!
+          trap 'kill "$tunnel_pid" 2>/dev/null || true' EXIT
+          SMOKE_BASE_URL=http://127.0.0.1:3100 \
+            SMOKE_EXPECTED_VERSION="$RELEASE_SHA" node scripts/smoke-test.mjs
+
+      - name: Show remote diagnostics on failure
+        if: failure()
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        shell: bash
+        run: |
+          remote="$PILOT_USER@$PILOT_HOST"
+          release_dir="$PILOT_DEPLOY_ROOT/releases/$RELEASE_SHA"
+          ssh -i ~/.ssh/id_pilot -o IdentitiesOnly=yes "$remote" \
+            "cd '$release_dir' && docker compose --env-file .env.pilot -f compose.pilot.yaml ps && docker compose --env-file .env.pilot -f compose.pilot.yaml logs --tail 200 app migrate" || true
