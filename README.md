@@ -105,6 +105,7 @@ npm run test:smoke
 19. Learner return overview. — saved progress, due reviews, and the next curriculum topic are visible before lesson planning
 20. Learning experience design refresh. — a calmer visual language and hydration-safe onboarding are implemented
 21. Local learner recovery. — the active learner is identified and stale browser profiles return safely to setup
+22. Local profile switching. — multiple learners can safely continue separate progress in one browser
 
 ## Non-goals for MVP
 

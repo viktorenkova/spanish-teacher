@@ -7,6 +7,7 @@ import {
   type SessionDuration,
 } from "@/domain/lesson-planner";
 import type { LearnerOverview } from "@/domain/learner-overview";
+import type { LocalLearnerProfile } from "@/browser/local-learner-profiles";
 import { LearnerOverviewCard } from "./learner-overview-card";
 import { LessonExperience } from "./lesson-experience";
 
@@ -22,9 +23,13 @@ type SavedSession = {
 
 export function PlannedLessonExperience({
   learnerId,
+  onChangeLearner,
+  onLearnerAvailable,
   onLearnerUnavailable,
 }: {
   learnerId: string;
+  onChangeLearner: () => void;
+  onLearnerAvailable: (profile: LocalLearnerProfile) => void;
   onLearnerUnavailable: () => void;
 }) {
   const [plan, setPlan] = useState<SavedPlan | null>();
@@ -99,13 +104,17 @@ export function PlannedLessonExperience({
           throw new Error(payload.error ?? "Saved progress could not be loaded.");
         }
         setOverview(payload.overview);
+        onLearnerAvailable({
+          learnerId,
+          displayName: payload.overview.learner.displayName,
+        });
       })
       .catch((overviewError: unknown) => {
         if (overviewError instanceof DOMException && overviewError.name === "AbortError") return;
         setOverview(null);
       });
     return () => controller.abort();
-  }, [learnerId, onLearnerUnavailable, overviewRefreshKey]);
+  }, [learnerId, onLearnerAvailable, onLearnerUnavailable, overviewRefreshKey]);
 
   async function createPlan() {
     setCreating(true);
@@ -185,7 +194,12 @@ export function PlannedLessonExperience({
         <p className="support-copy">
           The coach will balance due reviews, new A1 language, listening, and mandatory speaking.
         </p>
-        {overview && <LearnerOverviewCard overview={overview} />}
+        {overview && (
+          <LearnerOverviewCard
+            overview={overview}
+            onChangeLearner={onChangeLearner}
+          />
+        )}
         <div className="duration-options planner-durations" aria-label="Lesson duration">
           {supportedSessionDurations.map((duration) => (
             <button
@@ -247,6 +261,7 @@ export function PlannedLessonExperience({
       </p>
       <div className="form-actions">
         <button className="text-button" onClick={() => setPlan(null)}>Choose another duration</button>
+        <button className="text-button" onClick={onChangeLearner}>Change learner</button>
         <button className="primary-button" disabled={creating} onClick={startLesson}>
           {creating ? "Starting your lesson…" : "Start the ready practice"}
         </button>

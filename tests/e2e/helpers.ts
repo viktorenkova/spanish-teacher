@@ -1,8 +1,12 @@
 import type { Page } from "@playwright/test";
 import postgres from "postgres";
 
-export async function completeOnboarding(page: Page, displayName: string) {
-  await page.goto("/");
+export async function completeOnboarding(
+  page: Page,
+  displayName: string,
+  options: { navigate?: boolean } = {},
+) {
+  if (options.navigate !== false) await page.goto("/");
   await page.getByLabel("What should the coach call you?").fill(displayName);
   await page.getByRole("button", { name: "Continue to a short check" }).click();
 

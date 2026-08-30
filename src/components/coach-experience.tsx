@@ -1,45 +1,72 @@
 "use client";
 
-import { useCallback, useState, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import {
+  activateLocalLearner,
+  clearActiveLocalLearner,
+  forgetLocalLearnerProfile,
+  getActiveLearnerSnapshot,
+  getLocalLearnerProfilesSnapshot,
+  parseLocalLearnerProfiles,
+  rememberLocalLearnerProfile,
+  subscribeToLocalLearners,
+  type LocalLearnerProfile,
+} from "@/browser/local-learner-profiles";
+import { LocalProfileChooser } from "./local-profile-chooser";
 import { OnboardingExperience } from "./onboarding-experience";
 import { PlannedLessonExperience } from "./planned-lesson-experience";
 
-const learnerKey = "spanish-coach:learner-id:v1";
-const learnerEvent = "spanish-coach:learner-changed";
-
-function subscribe(onStoreChange: () => void) {
-  window.addEventListener("storage", onStoreChange);
-  window.addEventListener(learnerEvent, onStoreChange);
-  return () => {
-    window.removeEventListener("storage", onStoreChange);
-    window.removeEventListener(learnerEvent, onStoreChange);
-  };
-}
-
-function getLearnerId() {
-  return window.localStorage.getItem(learnerKey) ?? "";
-}
-
 export function CoachExperience() {
-  const learnerId = useSyncExternalStore(subscribe, getLearnerId, () => "");
+  const learnerId = useSyncExternalStore(subscribeToLocalLearners, getActiveLearnerSnapshot, () => "");
+  const profilesSnapshot = useSyncExternalStore(
+    subscribeToLocalLearners,
+    getLocalLearnerProfilesSnapshot,
+    () => "[]",
+  );
+  const profiles = useMemo(
+    () => parseLocalLearnerProfiles(profilesSnapshot),
+    [profilesSnapshot],
+  );
   const [recoveryNotice, setRecoveryNotice] = useState<string>();
+  const [creatingProfile, setCreatingProfile] = useState(false);
 
-  const recoverMissingLearner = useCallback(() => {
-    window.localStorage.removeItem(learnerKey);
+  const recoverMissingLearner = useCallback((missingLearnerId: string) => {
+    forgetLocalLearnerProfile(missingLearnerId);
     setRecoveryNotice(
-      "The saved profile could not be found. Create a new local profile to continue.",
+      "That saved profile could not be found. Choose another learner or create a new local profile.",
     );
-    window.dispatchEvent(new Event(learnerEvent));
+  }, []);
+
+  const rememberAvailableLearner = useCallback((profile: LocalLearnerProfile) => {
+    rememberLocalLearnerProfile(profile);
   }, []);
 
   if (!learnerId) {
+    if (profiles.length > 0 && !creatingProfile) {
+      return (
+        <LocalProfileChooser
+          notice={recoveryNotice}
+          profiles={profiles}
+          onCreateProfile={() => {
+            setRecoveryNotice(undefined);
+            setCreatingProfile(true);
+          }}
+          onSelectProfile={(selectedLearnerId) => {
+            setRecoveryNotice(undefined);
+            activateLocalLearner(selectedLearnerId);
+          }}
+        />
+      );
+    }
+
     return (
       <OnboardingExperience
         notice={recoveryNotice}
-        onComplete={(id) => {
-          window.localStorage.setItem(learnerKey, id);
+        onCancel={profiles.length > 0 ? () => setCreatingProfile(false) : undefined}
+        onComplete={(profile) => {
+          rememberLocalLearnerProfile(profile);
           setRecoveryNotice(undefined);
-          window.dispatchEvent(new Event(learnerEvent));
+          setCreatingProfile(false);
         }}
       />
     );
@@ -48,7 +75,12 @@ export function CoachExperience() {
   return (
     <PlannedLessonExperience
       learnerId={learnerId}
-      onLearnerUnavailable={recoverMissingLearner}
+      onChangeLearner={() => {
+        setRecoveryNotice(undefined);
+        clearActiveLocalLearner();
+      }}
+      onLearnerAvailable={rememberAvailableLearner}
+      onLearnerUnavailable={() => recoverMissingLearner(learnerId)}
     />
   );
 }

@@ -179,6 +179,15 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 
 .support-copy { color: var(--muted); line-height: 1.65; max-width: 650px; }
 .profile-recovery-notice { margin: 18px 0 0; padding: 14px 16px; border-radius: 14px; background: var(--blue-soft); color: #31537a; font-size: .88rem; line-height: 1.55; }
+.onboarding-cancel { margin: 10px 0 -12px; padding-left: 0; }
+.local-profile-list { display: grid; gap: 10px; margin: 28px 0 8px; }
+.local-profile-button { cursor: pointer; display: grid; grid-template-columns: 46px 1fr; gap: 2px 14px; align-items: center; text-align: left; width: 100%; padding: 14px 16px; border: 1px solid #e4deef; border-radius: 16px; background: white; }
+.local-profile-button:hover { border-color: var(--coral); background: var(--lavender-soft); }
+.local-profile-button > span { grid-row: 1 / 3; display: grid; place-items: center; width: 46px; height: 46px; border-radius: 16px; background: linear-gradient(135deg, var(--coral), var(--pink)); color: white; font-weight: 800; }
+.local-profile-button strong { align-self: end; }
+.local-profile-button small { align-self: start; color: var(--muted); }
+.local-profile-chooser > .secondary-button { margin-top: 14px; }
+.local-profile-note { margin: 16px 0 0; color: var(--muted); font-size: .75rem; line-height: 1.5; }
 .profile-form, .diagnostic-form { display: grid; gap: 22px; margin-top: 30px; }
 .profile-form > label { display: grid; gap: 8px; font-size: .84rem; font-weight: 750; }
 .profile-form input[type="text"], .profile-form input:not([type]), .profile-form select {
@@ -220,6 +229,7 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .learner-overview dt { color: var(--muted); font-size: .62rem; line-height: 1.3; text-transform: uppercase; letter-spacing: .05em; }
 .learner-overview dd { margin: 5px 0 0; font: 700 1.18rem Georgia, serif; }
 .learner-overview > small { grid-column: 1 / -1; color: var(--muted); font-size: .72rem; }
+.learner-change-button { grid-column: 1 / -1; justify-self: start; margin: -8px 0 0; padding: 4px 0; }
 .plan-blocks { list-style: none; display: grid; gap: 8px; padding: 0; margin: 28px 0; }
 .plan-blocks li { display: grid; grid-template-columns: 92px 1fr auto; gap: 14px; align-items: center; border-bottom: 1px solid rgba(23, 59, 55, .1); padding: 13px 0; }
 .plan-blocks strong { font-size: .9rem; }

@@ -1,6 +1,12 @@
 import type { LearnerOverview } from "@/domain/learner-overview";
 
-export function LearnerOverviewCard({ overview }: { overview: LearnerOverview }) {
+export function LearnerOverviewCard({
+  overview,
+  onChangeLearner,
+}: {
+  overview: LearnerOverview;
+  onChangeLearner: () => void;
+}) {
   return (
     <section className="learner-overview" aria-labelledby="next-lesson-title">
       <div>
@@ -19,6 +25,9 @@ export function LearnerOverviewCard({ overview }: { overview: LearnerOverview })
         {overview.learner.overallLevel} · {overview.learner.a1Band} A1 · {overview.introducedItemCount} phrase{overview.introducedItemCount === 1 ? "" : "s"} started
         {overview.hasCompletedSpeakingTask ? " · speaking practice saved" : " · speaking is included in every lesson"}
       </small>
+      <button className="text-button learner-change-button" type="button" onClick={onChangeLearner}>
+        Change learner
+      </button>
     </section>
   );
 }

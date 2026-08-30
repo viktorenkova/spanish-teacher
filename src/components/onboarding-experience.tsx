@@ -2,10 +2,12 @@
 
 import { FormEvent, useState, useSyncExternalStore } from "react";
 import { diagnosticQuestions } from "@/domain/diagnostic";
+import type { LocalLearnerProfile } from "@/browser/local-learner-profiles";
 
 type OnboardingExperienceProps = {
   notice?: string;
-  onComplete: (learnerId: string) => void;
+  onCancel?: () => void;
+  onComplete: (profile: LocalLearnerProfile) => void;
 };
 
 function subscribeToHydration() {
@@ -20,7 +22,7 @@ function getServerSnapshot() {
   return false;
 }
 
-export function OnboardingExperience({ notice, onComplete }: OnboardingExperienceProps) {
+export function OnboardingExperience({ notice, onCancel, onComplete }: OnboardingExperienceProps) {
   const hydrated = useSyncExternalStore(
     subscribeToHydration,
     getHydratedSnapshot,
@@ -58,12 +60,15 @@ export function OnboardingExperience({ notice, onComplete }: OnboardingExperienc
       });
       const payload = (await response.json()) as {
         error?: string;
-        learner?: { id: string };
+        learner?: { id: string; displayName: string };
       };
       if (!response.ok || !payload.learner) {
         throw new Error(payload.error ?? "The profile could not be saved.");
       }
-      onComplete(payload.learner.id);
+      onComplete({
+        learnerId: payload.learner.id,
+        displayName: payload.learner.displayName,
+      });
     } catch (submissionError) {
       setError(
         submissionError instanceof Error ? submissionError.message : "The profile could not be saved.",
@@ -82,6 +87,11 @@ export function OnboardingExperience({ notice, onComplete }: OnboardingExperienc
           Your Spanish starts at A1. English B1 is used only for clear support and explanations.
         </p>
         {notice && <p className="profile-recovery-notice" role="status">{notice}</p>}
+        {onCancel && (
+          <button className="text-button onboarding-cancel" type="button" onClick={onCancel}>
+            Back to saved profiles
+          </button>
+        )}
         <form
           className="profile-form"
           onSubmit={(event) => {

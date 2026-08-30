@@ -11,7 +11,7 @@ test("recovers when the browser points to a missing learner", async ({ page }) =
   await page.goto("/");
 
   await expect(page.getByRole("status")).toContainText(
-    "The saved profile could not be found.",
+    "That saved profile could not be found.",
   );
   await expect(page.getByRole("heading", { name: "Let the coach plan for you." })).toBeVisible();
   await expect(page.getByLabel("What should the coach call you?")).toBeEnabled();
