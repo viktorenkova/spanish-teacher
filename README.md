@@ -110,6 +110,7 @@ npm run test:smoke
 24. Editable learning preferences. — the learner goal and default lesson duration persist and shape the next plan
 25. Goal-aware lesson planning. — each new plan applies and explains a deterministic practice lens for the learner goal
 26. Learner-facing adaptation explanation. — topic, review, mistake, and skill decisions are explained in clear English
+27. Lesson history. — recent topics, results, speaking evidence, and changes between completed lessons are visible before planning
 
 ## Non-goals for MVP
 

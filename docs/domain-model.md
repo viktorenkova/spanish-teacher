@@ -74,3 +74,11 @@ applies, using clear B1 English without scheduler terminology.
 The first core listening and speaking
 blocks are ready. Longer expansion blocks remain `provider_pending` until their
 content and evidence paths are implemented.
+
+## Lesson history
+
+Lesson history is a read-only projection over completed lesson sessions and
+their exercise attempts. Each entry keeps the topic, completion time, elapsed
+minutes, answer accuracy, and speaking evidence. A deterministic comparison with
+the previous completed lesson explains topic progression, accuracy movement, or
+steady practice without changing the underlying attempt or session records.

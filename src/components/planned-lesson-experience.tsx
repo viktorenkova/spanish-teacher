@@ -7,12 +7,14 @@ import {
   type SessionDuration,
 } from "@/domain/lesson-planner";
 import type { LearnerOverview } from "@/domain/learner-overview";
+import type { LessonHistoryEntry } from "@/domain/lesson-history";
 import type { LocalLearnerProfile } from "@/browser/local-learner-profiles";
 import {
   learnerPrimaryGoalLabels,
   type LearnerPrimaryGoal,
 } from "@/domain/learner-profile";
 import { LearnerOverviewCard } from "./learner-overview-card";
+import { LessonHistoryCard } from "./lesson-history-card";
 import { LessonExperience } from "./lesson-experience";
 
 type SavedPlan = LessonPlan & { id: string; createdAt: string };
@@ -41,6 +43,10 @@ export function PlannedLessonExperience({
   const [plan, setPlan] = useState<SavedPlan | null>();
   const [session, setSession] = useState<SavedSession | null>();
   const [overview, setOverview] = useState<LearnerOverview | null>();
+  const [historyResult, setHistoryResult] = useState<{
+    learnerId: string;
+    entries: LessonHistoryEntry[];
+  }>();
   const [overviewRefreshKey, setOverviewRefreshKey] = useState(0);
   const [selectedDuration, setSelectedDuration] = useState<SessionDuration>(10);
   const [creating, setCreating] = useState(false);
@@ -122,6 +128,32 @@ export function PlannedLessonExperience({
       });
     return () => controller.abort();
   }, [learnerId, onLearnerAvailable, onLearnerUnavailable, overviewRefreshKey]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(`/api/learner/history?learnerId=${encodeURIComponent(learnerId)}`, {
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const payload = (await response.json()) as {
+          history?: LessonHistoryEntry[];
+          error?: string;
+        };
+        if (!response.ok || !payload.history) {
+          throw new Error(payload.error ?? "Lesson history could not be loaded.");
+        }
+        setHistoryResult({ learnerId, entries: payload.history });
+      })
+      .catch((historyError: unknown) => {
+        if (historyError instanceof DOMException && historyError.name === "AbortError") return;
+        setHistoryResult({ learnerId, entries: [] });
+      });
+    return () => controller.abort();
+  }, [learnerId, overviewRefreshKey]);
+
+  const history = historyResult?.learnerId === learnerId
+    ? historyResult.entries
+    : undefined;
 
   async function createPlan() {
     setCreating(true);
@@ -277,6 +309,7 @@ export function PlannedLessonExperience({
             onUpdatePreferences={updateLearnerPreferences}
           />
         )}
+        {history && history.length > 0 && <LessonHistoryCard history={history} />}
         <div className="duration-options planner-durations" aria-label="Lesson duration">
           {supportedSessionDurations.map((duration) => (
             <button

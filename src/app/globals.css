@@ -255,6 +255,22 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .danger-button:hover:not(:disabled) { background: #84283a; }
 .danger-button:disabled { cursor: not-allowed; opacity: .42; }
 .profile-management-message { margin: 0; color: #245d43; font-size: .82rem; font-weight: 700; }
+.lesson-history { margin: 18px 0 4px; padding: 20px; border: 1px solid rgba(118, 85, 232, .12); border-radius: 20px; background: #fff; }
+.lesson-history h3 { margin: 6px 0 16px; font-size: 1.25rem; }
+.lesson-history ol { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.lesson-history-entry { padding: 14px 15px; border-radius: 15px; background: var(--lavender-soft); }
+.lesson-history-heading { display: flex; justify-content: space-between; gap: 14px; align-items: center; }
+.lesson-history-heading > div { display: grid; gap: 2px; }
+.lesson-history-heading time { color: var(--muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .05em; }
+.lesson-history-heading > span { flex: 0 0 auto; color: var(--coral-dark); font-weight: 850; }
+.lesson-history dl { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 12px 0 9px; }
+.lesson-history dl div { display: flex; gap: 4px; }
+.lesson-history dt { color: var(--muted); font-size: .7rem; }
+.lesson-history dd { margin: 0; font-size: .7rem; font-weight: 800; }
+.lesson-history-entry > p { margin: 0; color: #575168; font-size: .78rem; line-height: 1.45; }
+.lesson-history details { margin-top: 12px; }
+.lesson-history summary { cursor: pointer; color: var(--coral-dark); font-size: .78rem; font-weight: 750; }
+.lesson-history details ol { margin-top: 10px; }
 .plan-blocks { list-style: none; display: grid; gap: 8px; padding: 0; margin: 28px 0; }
 .goal-focus-note { margin: 24px 0 4px; padding: 15px 17px; border-left: 3px solid var(--coral); border-radius: 0 14px 14px 0; background: var(--lavender-soft); }
 .goal-focus-note span { color: var(--coral-dark); font-size: .68rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
