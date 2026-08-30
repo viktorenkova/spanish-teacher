@@ -65,12 +65,16 @@ describe("duration-aware lesson planner", () => {
       primaryGoal: "travel",
     });
 
-    expect(plan.plannerVersion).toBe("goal-aware-v4");
+    expect(plan.plannerVersion).toBe("explainable-v5");
     expect(plan.primaryGoal).toBe("travel");
     expect(plan.goalFocus).toContain("travel interactions");
     expect(plan.rationale.join(" ")).toContain("Learner goal:");
     expect(plan.blocks.find(({ id }) => id === "introduction-context")?.objective)
       .toContain("while travelling");
+    expect(plan.adaptationReasons).toEqual(expect.arrayContaining([
+      expect.stringContaining("travel interactions"),
+      expect.stringContaining("first practical A1 topic"),
+    ]));
   });
 
   it("turns a scheduled review block into an executable exercise", () => {
@@ -89,5 +93,19 @@ describe("duration-aware lesson planner", () => {
     expect(plan.reviewExercises[0].id).toContain("test-plan");
     expect(plan.reviewExercises[0].modality).toBe("recall");
     expect(plan.blocks.find(({ kind }) => kind === "review")?.source).toBe("learner_weakness");
+    expect(plan.adaptationReasons.join(" ")).toContain("recurring mistake");
+  });
+
+  it("explains when a short plan leaves due reviews for a longer lesson", () => {
+    const plan = buildLessonPlan({
+      targetMinutes: 5,
+      dueReviewCount: 2,
+      weakestSkills: ["grammar"],
+    });
+
+    expect(plan.reviewExercises).toHaveLength(0);
+    expect(plan.adaptationReasons.join(" ")).toContain("pending reviews stay ready");
+    expect(plan.adaptationReasons.join(" ")).toContain("extra attention to grammar");
+    expect(plan.blocks.at(-1)?.objective).toContain("grammar");
   });
 });

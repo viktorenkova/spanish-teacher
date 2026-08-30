@@ -259,6 +259,11 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .goal-focus-note { margin: 24px 0 4px; padding: 15px 17px; border-left: 3px solid var(--coral); border-radius: 0 14px 14px 0; background: var(--lavender-soft); }
 .goal-focus-note span { color: var(--coral-dark); font-size: .68rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
 .goal-focus-note p { margin: 6px 0 0; color: var(--ink); font-size: .86rem; line-height: 1.5; }
+.plan-explanation { margin: 14px 0 4px; padding: 17px 18px; border: 1px solid rgba(118, 85, 232, .12); border-radius: 16px; background: #fff; }
+.plan-explanation h3 { margin: 0 0 11px; font-size: 1rem; letter-spacing: -.02em; }
+.plan-explanation ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.plan-explanation li { position: relative; padding-left: 18px; color: var(--muted); font-size: .82rem; line-height: 1.5; }
+.plan-explanation li::before { content: "✓"; position: absolute; left: 0; color: var(--coral); font-weight: 800; }
 .plan-blocks li { display: grid; grid-template-columns: 92px 1fr auto; gap: 14px; align-items: center; border-bottom: 1px solid rgba(23, 59, 55, .1); padding: 13px 0; }
 .plan-blocks strong { font-size: .9rem; }
 .plan-blocks p { color: var(--muted); font-size: .78rem; line-height: 1.45; margin: 4px 0 0; }

@@ -68,6 +68,9 @@ Each generated lesson plan records its requested and estimated duration,
 planner version, learner goal, goal focus, selection rationale, and ordered blocks.
 Planning uses the learner's goal, due FSRS state, and lower-confidence assessed skills.
 The goal adds a visible practice lens without bypassing the prerequisite topic order.
+The plan also stores learner-facing adaptation reasons separately from technical
+rationale. These reasons describe only decisions that the generated plan actually
+applies, using clear B1 English without scheduler terminology.
 The first core listening and speaking
 blocks are ready. Longer expansion blocks remain `provider_pending` until their
 content and evidence paths are implemented.

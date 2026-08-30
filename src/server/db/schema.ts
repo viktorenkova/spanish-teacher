@@ -264,6 +264,7 @@ export const lessonPlans = pgTable(
       lessonKey?: "introductions-v1" | "daily-routines-v1" | "cafe-ordering-v1";
       primaryGoal?: LearnerPrimaryGoal;
       goalFocus?: string;
+      adaptationReasons?: string[];
       rationale: string[];
       reviewExercises?: LessonExercise[];
       blocks: Array<{

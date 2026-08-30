@@ -328,6 +328,12 @@ export function PlannedLessonExperience({
         </span>
         <p>{plan.goalFocus}</p>
       </aside>
+      <section className="plan-explanation" aria-labelledby="plan-explanation-title">
+        <h3 id="plan-explanation-title">Why this plan fits today</h3>
+        <ul>
+          {plan.adaptationReasons.map((reason) => <li key={reason}>{reason}</li>)}
+        </ul>
+      </section>
       <ol className="plan-blocks">
         {plan.blocks.map((block) => (
           <li key={block.id}>

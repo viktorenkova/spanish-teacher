@@ -147,6 +147,7 @@ export async function createLessonPlan(input: {
         lessonKey: plan.lessonKey,
         primaryGoal: plan.primaryGoal,
         goalFocus: plan.goalFocus,
+        adaptationReasons: plan.adaptationReasons,
         rationale: plan.rationale,
         blocks: plan.blocks,
         reviewExercises: plan.reviewExercises,
@@ -187,6 +188,8 @@ export function mapSavedLessonPlan(saved: typeof lessonPlans.$inferSelect) {
     primaryGoal,
     goalFocus: saved.plan.goalFocus
       ?? "Balance practical A1 conversation, review, listening, and speaking.",
+    adaptationReasons: saved.plan.adaptationReasons
+      ?? ["This saved plan balances practical A1 practice with your available time."],
     targetMinutes: saved.targetMinutes as SessionDuration,
     estimatedMinutes: saved.estimatedMinutes,
     rationale: saved.plan.rationale,

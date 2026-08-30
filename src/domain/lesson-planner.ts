@@ -33,10 +33,11 @@ export type LessonPlanBlock = {
 };
 
 export type LessonPlan = {
-  plannerVersion: "duration-aware-v1" | "adaptive-duration-v2" | "adaptive-review-v3" | "goal-aware-v4";
+  plannerVersion: "duration-aware-v1" | "adaptive-duration-v2" | "adaptive-review-v3" | "goal-aware-v4" | "explainable-v5";
   lessonKey: LessonKey;
   primaryGoal?: LearnerPrimaryGoal;
   goalFocus: string;
+  adaptationReasons: string[];
   targetMinutes: SessionDuration;
   estimatedMinutes: number;
   rationale: string[];
@@ -228,6 +229,37 @@ export function buildLessonPlan(input: LessonPlannerInput): LessonPlan {
     }
   });
 
+  const focusSkill = input.weakestSkills[0];
+  if (focusSkill) {
+    const recapBlock = blocks.find((block) => block.kind === "recap");
+    if (recapBlock) {
+      recapBlock.objective = `${recapBlock.objective} Give extra attention to ${focusSkill}.`;
+    }
+  }
+
+  const scheduledReviewCandidates = reviewCandidates.slice(0, reviewBlocks.length);
+  const recurringPatternReviewCount = scheduledReviewCandidates.filter(
+    ({ reason }) => reason === "learner_weakness",
+  ).length;
+  const curriculumReason = lessonKey === "daily-routines-v1"
+    ? "Introductions are complete, so your next topic is daily routines."
+    : lessonKey === "cafe-ordering-v1"
+      ? "Daily routines are complete, so your next topic is ordering in a cafe."
+      : "Introductions are the first practical A1 topic in your path.";
+  const reviewReason = scheduledReviewCandidates.length > 0
+    ? recurringPatternReviewCount > 0
+      ? `${scheduledReviewCandidates.length} review${scheduledReviewCandidates.length === 1 ? " is" : "s are"} included, with ${recurringPatternReviewCount} focused on a recurring mistake.`
+      : `${scheduledReviewCandidates.length} due review${scheduledReviewCandidates.length === 1 ? " is" : "s are"} included before new practice.`
+    : input.dueReviewCount > 0 || (input.activeMistakeCount ?? 0) > 0
+      ? "This short plan keeps listening and speaking first; pending reviews stay ready for a longer lesson."
+      : "No review is due now, so this plan can focus on useful new A1 language.";
+  const adaptationReasons = [
+    goalFocus,
+    curriculumReason,
+    reviewReason,
+    ...(focusSkill ? [`Recent evidence suggests giving extra attention to ${focusSkill}.`] : []),
+  ];
+
   const rationale = [
     `${input.targetMinutes}-minute session requested.`,
     `Learner goal: ${goalFocus}`,
@@ -249,16 +281,16 @@ export function buildLessonPlan(input: LessonPlannerInput): LessonPlan {
   ];
 
   return {
-    plannerVersion: "goal-aware-v4",
+    plannerVersion: "explainable-v5",
     lessonKey,
     primaryGoal,
     goalFocus,
+    adaptationReasons,
     targetMinutes: input.targetMinutes,
     estimatedMinutes: Math.round(totalSeconds / 60),
     rationale,
     blocks,
-    reviewExercises: reviewCandidates
-      .slice(0, reviewBlocks.length)
+    reviewExercises: scheduledReviewCandidates
       .map((candidate, index) => createReviewExercise(
         candidate,
         index,

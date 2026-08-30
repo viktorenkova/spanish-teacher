@@ -50,6 +50,11 @@ test("persists learning preferences and uses the default lesson duration", async
     await expect(page.getByLabel("Learning goal alignment")).toContainText(
       "simple travel interactions",
     );
+    await expect(page.getByRole("heading", { name: "Why this plan fits today" })).toBeVisible();
+    await expect(page.locator(".plan-explanation")).toContainText(
+      "Introductions are the first practical A1 topic",
+    );
+    await expect(page.locator(".plan-explanation")).not.toContainText("FSRS");
     await expect(page.getByText(/Connect it to a situation you could meet while travelling/))
       .toBeVisible();
   } finally {

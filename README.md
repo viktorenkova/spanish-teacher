@@ -109,6 +109,7 @@ npm run test:smoke
 23. Learner profile management. — names can be updated and exact-name confirmation protects permanent profile deletion
 24. Editable learning preferences. — the learner goal and default lesson duration persist and shape the next plan
 25. Goal-aware lesson planning. — each new plan applies and explains a deterministic practice lens for the learner goal
+26. Learner-facing adaptation explanation. — topic, review, mistake, and skill decisions are explained in clear English
 
 ## Non-goals for MVP
 
