@@ -20,7 +20,13 @@ type SavedSession = {
   plan: SavedPlan;
 };
 
-export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
+export function PlannedLessonExperience({
+  learnerId,
+  onLearnerUnavailable,
+}: {
+  learnerId: string;
+  onLearnerUnavailable: () => void;
+}) {
   const [plan, setPlan] = useState<SavedPlan | null>();
   const [session, setSession] = useState<SavedSession | null>();
   const [overview, setOverview] = useState<LearnerOverview | null>();
@@ -85,6 +91,10 @@ export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
           overview?: LearnerOverview;
           error?: string;
         };
+        if (response.status === 400 || response.status === 404) {
+          onLearnerUnavailable();
+          return;
+        }
         if (!response.ok || !payload.overview) {
           throw new Error(payload.error ?? "Saved progress could not be loaded.");
         }
@@ -95,7 +105,7 @@ export function PlannedLessonExperience({ learnerId }: { learnerId: string }) {
         setOverview(null);
       });
     return () => controller.abort();
-  }, [learnerId, overviewRefreshKey]);
+  }, [learnerId, onLearnerUnavailable, overviewRefreshKey]);
 
   async function createPlan() {
     setCreating(true);

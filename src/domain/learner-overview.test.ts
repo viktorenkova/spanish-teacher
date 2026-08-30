@@ -9,9 +9,16 @@ const progress = {
   hasCompletedSpeakingTask: true,
 };
 
+const learner = {
+  displayName: "Kate",
+  overallLevel: "A1",
+  a1Band: "mid" as const,
+};
+
 describe("learner overview", () => {
   it("shows the first topic before learning evidence exists", () => {
     const overview = buildLearnerOverview({
+      learner,
       progress: { ...progress, introducedItemCount: 0, dueReviewCount: 0 },
       completedLessonCount: 0,
       completedExerciseIds: {},
@@ -20,10 +27,12 @@ describe("learner overview", () => {
     expect(overview.completedTopicCount).toBe(0);
     expect(overview.curriculumComplete).toBe(false);
     expect(overview.nextLesson.key).toBe("introductions-v1");
+    expect(overview.learner).toEqual(learner);
   });
 
   it("shows cafe ordering after introductions and routines are complete", () => {
     const overview = buildLearnerOverview({
+      learner,
       progress,
       completedLessonCount: 2,
       completedExerciseIds: {

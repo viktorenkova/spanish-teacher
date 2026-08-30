@@ -103,6 +103,8 @@ npm run test:smoke
 17. Closed-pilot feedback collection. — per-session usability feedback, saved confirmation, and an operator report implemented
 18. Closed-pilot learning report. — completion, accuracy, speaking, review, mistake, and topic signals implemented
 19. Learner return overview. — saved progress, due reviews, and the next curriculum topic are visible before lesson planning
+20. Learning experience design refresh. — a calmer visual language and hydration-safe onboarding are implemented
+21. Local learner recovery. — the active learner is identified and stale browser profiles return safely to setup
 
 ## Non-goals for MVP
 

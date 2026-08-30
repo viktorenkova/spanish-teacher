@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useCallback, useState, useSyncExternalStore } from "react";
 import { OnboardingExperience } from "./onboarding-experience";
 import { PlannedLessonExperience } from "./planned-lesson-experience";
 
@@ -22,17 +22,33 @@ function getLearnerId() {
 
 export function CoachExperience() {
   const learnerId = useSyncExternalStore(subscribe, getLearnerId, () => "");
+  const [recoveryNotice, setRecoveryNotice] = useState<string>();
+
+  const recoverMissingLearner = useCallback(() => {
+    window.localStorage.removeItem(learnerKey);
+    setRecoveryNotice(
+      "The saved profile could not be found. Create a new local profile to continue.",
+    );
+    window.dispatchEvent(new Event(learnerEvent));
+  }, []);
 
   if (!learnerId) {
     return (
       <OnboardingExperience
+        notice={recoveryNotice}
         onComplete={(id) => {
           window.localStorage.setItem(learnerKey, id);
+          setRecoveryNotice(undefined);
           window.dispatchEvent(new Event(learnerEvent));
         }}
       />
     );
   }
 
-  return <PlannedLessonExperience learnerId={learnerId} />;
+  return (
+    <PlannedLessonExperience
+      learnerId={learnerId}
+      onLearnerUnavailable={recoverMissingLearner}
+    />
+  );
 }

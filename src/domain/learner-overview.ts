@@ -3,6 +3,11 @@ import { chooseCurriculumLesson } from "./lesson-planner";
 import type { LearnerProgressSummary } from "./progress";
 
 export type LearnerOverview = LearnerProgressSummary & {
+  learner: {
+    displayName: string;
+    overallLevel: string;
+    a1Band: "early" | "mid" | "strong";
+  };
   completedLessonCount: number;
   completedTopicCount: number;
   totalTopicCount: number;
@@ -22,6 +27,7 @@ function lessonIsComplete(lessonKey: LessonKey, evidence: CurriculumEvidence) {
 }
 
 export function buildLearnerOverview(input: {
+  learner: LearnerOverview["learner"];
   progress: LearnerProgressSummary;
   completedLessonCount: number;
   completedExerciseIds: CurriculumEvidence;
@@ -39,6 +45,7 @@ export function buildLearnerOverview(input: {
   )).length;
 
   return {
+    learner: input.learner,
     ...input.progress,
     completedLessonCount: input.completedLessonCount,
     completedTopicCount,

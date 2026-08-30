@@ -4,6 +4,7 @@ import { FormEvent, useState, useSyncExternalStore } from "react";
 import { diagnosticQuestions } from "@/domain/diagnostic";
 
 type OnboardingExperienceProps = {
+  notice?: string;
   onComplete: (learnerId: string) => void;
 };
 
@@ -19,7 +20,7 @@ function getServerSnapshot() {
   return false;
 }
 
-export function OnboardingExperience({ onComplete }: OnboardingExperienceProps) {
+export function OnboardingExperience({ notice, onComplete }: OnboardingExperienceProps) {
   const hydrated = useSyncExternalStore(
     subscribeToHydration,
     getHydratedSnapshot,
@@ -80,6 +81,7 @@ export function OnboardingExperience({ onComplete }: OnboardingExperienceProps) 
         <p className="support-copy">
           Your Spanish starts at A1. English B1 is used only for clear support and explanations.
         </p>
+        {notice && <p className="profile-recovery-notice" role="status">{notice}</p>}
         <form
           className="profile-form"
           onSubmit={(event) => {
