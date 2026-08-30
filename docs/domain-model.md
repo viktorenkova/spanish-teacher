@@ -65,7 +65,9 @@ later correct example changes it to `improving`; two are required for
 ## Lesson plans
 
 Each generated lesson plan records its requested and estimated duration,
-planner version, selection rationale, and ordered blocks. Planning uses due FSRS
-state and lower-confidence assessed skills. The first core listening and speaking
+planner version, learner goal, goal focus, selection rationale, and ordered blocks.
+Planning uses the learner's goal, due FSRS state, and lower-confidence assessed skills.
+The goal adds a visible practice lens without bypassing the prerequisite topic order.
+The first core listening and speaking
 blocks are ready. Longer expansion blocks remain `provider_pending` until their
 content and evidence paths are implemented.

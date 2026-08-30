@@ -8,7 +8,10 @@ import {
 } from "@/domain/lesson-planner";
 import type { LearnerOverview } from "@/domain/learner-overview";
 import type { LocalLearnerProfile } from "@/browser/local-learner-profiles";
-import type { LearnerPrimaryGoal } from "@/domain/learner-profile";
+import {
+  learnerPrimaryGoalLabels,
+  type LearnerPrimaryGoal,
+} from "@/domain/learner-profile";
 import { LearnerOverviewCard } from "./learner-overview-card";
 import { LessonExperience } from "./lesson-experience";
 
@@ -317,6 +320,14 @@ export function PlannedLessonExperience({
     <section className="lesson-card planner-card" aria-labelledby="plan-title">
       <span className="eyebrow">Today’s adaptive plan · {plan.estimatedMinutes} min</span>
       <h2 id="plan-title">A coherent path, chosen for you.</h2>
+      <aside className="goal-focus-note" aria-label="Learning goal alignment">
+        <span>
+          {plan.primaryGoal
+            ? `Your goal · ${learnerPrimaryGoalLabels[plan.primaryGoal]}`
+            : "Personal learning focus"}
+        </span>
+        <p>{plan.goalFocus}</p>
+      </aside>
       <ol className="plan-blocks">
         {plan.blocks.map((block) => (
           <li key={block.id}>

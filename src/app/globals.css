@@ -256,6 +256,9 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .danger-button:disabled { cursor: not-allowed; opacity: .42; }
 .profile-management-message { margin: 0; color: #245d43; font-size: .82rem; font-weight: 700; }
 .plan-blocks { list-style: none; display: grid; gap: 8px; padding: 0; margin: 28px 0; }
+.goal-focus-note { margin: 24px 0 4px; padding: 15px 17px; border-left: 3px solid var(--coral); border-radius: 0 14px 14px 0; background: var(--lavender-soft); }
+.goal-focus-note span { color: var(--coral-dark); font-size: .68rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.goal-focus-note p { margin: 6px 0 0; color: var(--ink); font-size: .86rem; line-height: 1.5; }
 .plan-blocks li { display: grid; grid-template-columns: 92px 1fr auto; gap: 14px; align-items: center; border-bottom: 1px solid rgba(23, 59, 55, .1); padding: 13px 0; }
 .plan-blocks strong { font-size: .9rem; }
 .plan-blocks p { color: var(--muted); font-size: .78rem; line-height: 1.45; margin: 4px 0 0; }

@@ -57,6 +57,22 @@ describe("duration-aware lesson planner", () => {
       .toBe("Talk about your morning");
   });
 
+  it("aligns the plan explanation and context with the learner goal", () => {
+    const plan = buildLessonPlan({
+      targetMinutes: 10,
+      dueReviewCount: 0,
+      weakestSkills: [],
+      primaryGoal: "travel",
+    });
+
+    expect(plan.plannerVersion).toBe("goal-aware-v4");
+    expect(plan.primaryGoal).toBe("travel");
+    expect(plan.goalFocus).toContain("travel interactions");
+    expect(plan.rationale.join(" ")).toContain("Learner goal:");
+    expect(plan.blocks.find(({ id }) => id === "introduction-context")?.objective)
+      .toContain("while travelling");
+  });
+
   it("turns a scheduled review block into an executable exercise", () => {
     const plan = buildLessonPlan({
       targetMinutes: 10,

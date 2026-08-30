@@ -108,6 +108,7 @@ npm run test:smoke
 22. Local profile switching. — multiple learners can safely continue separate progress in one browser
 23. Learner profile management. — names can be updated and exact-name confirmation protects permanent profile deletion
 24. Editable learning preferences. — the learner goal and default lesson duration persist and shape the next plan
+25. Goal-aware lesson planning. — each new plan applies and explains a deterministic practice lens for the learner goal
 
 ## Non-goals for MVP
 

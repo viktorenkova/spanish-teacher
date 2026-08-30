@@ -11,12 +11,14 @@ import {
   type LessonPlan,
   type SessionDuration,
 } from "@/domain/lesson-planner";
+import { isLearnerPrimaryGoal } from "@/domain/learner-profile";
 import { getDatabase } from "@/server/db/client";
 import {
   exerciseAttempts,
   learnerItemStates,
   learnerMistakes,
   learnerSkillEstimates,
+  learners,
   lessonPlans,
 } from "@/server/db/schema";
 
@@ -33,6 +35,7 @@ export async function createLessonPlan(input: {
     completedIntroductionExercises,
     completedDailyRoutineExercises,
     activeMistakes,
+    learnerProfile,
   ] = await Promise.all([
     db
       .select({ learningItemId: learnerItemStates.learningItemId })
@@ -85,7 +88,18 @@ export async function createLessonPlan(input: {
         ),
       )
       .orderBy(desc(learnerMistakes.updatedAt)),
+    db
+      .select({ primaryGoal: learners.primaryGoal })
+      .from(learners)
+      .where(eq(learners.id, input.learnerId))
+      .limit(1)
+      .then((rows) => rows[0]),
   ]);
+
+  if (!learnerProfile) throw new Error("Learner profile not found");
+  const primaryGoal = isLearnerPrimaryGoal(learnerProfile.primaryGoal)
+    ? learnerProfile.primaryGoal
+    : "conversation";
 
   const lessonKey = chooseCurriculumLesson({
     completedIntroductionExerciseIds: completedIntroductionExercises.map(
@@ -113,6 +127,7 @@ export async function createLessonPlan(input: {
     .filter((candidate): candidate is ReviewCandidate => Boolean(candidate));
 
   const plan = buildLessonPlan({
+    primaryGoal,
     targetMinutes: input.targetMinutes,
     dueReviewCount: dueItems.length,
     weakestSkills: skillEstimates.map(({ skill }) => skill),
@@ -130,6 +145,8 @@ export async function createLessonPlan(input: {
       plannerVersion: plan.plannerVersion,
       plan: {
         lessonKey: plan.lessonKey,
+        primaryGoal: plan.primaryGoal,
+        goalFocus: plan.goalFocus,
         rationale: plan.rationale,
         blocks: plan.blocks,
         reviewExercises: plan.reviewExercises,
@@ -160,10 +177,16 @@ export async function loadLatestLessonPlan(learnerId: string) {
 }
 
 export function mapSavedLessonPlan(saved: typeof lessonPlans.$inferSelect) {
+  const primaryGoal = saved.plan.primaryGoal && isLearnerPrimaryGoal(saved.plan.primaryGoal)
+    ? saved.plan.primaryGoal
+    : undefined;
   return {
     id: saved.id,
     plannerVersion: saved.plannerVersion as LessonPlan["plannerVersion"],
     lessonKey: (saved.plan.lessonKey ?? "introductions-v1") as LessonKey,
+    primaryGoal,
+    goalFocus: saved.plan.goalFocus
+      ?? "Balance practical A1 conversation, review, listening, and speaking.",
     targetMinutes: saved.targetMinutes as SessionDuration,
     estimatedMinutes: saved.estimatedMinutes,
     rationale: saved.plan.rationale,

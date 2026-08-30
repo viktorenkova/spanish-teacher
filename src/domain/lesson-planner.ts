@@ -5,6 +5,10 @@ import {
   type LessonKey,
   type ReviewCandidate,
 } from "./lesson";
+import {
+  learnerPrimaryGoalPlanFocus,
+  type LearnerPrimaryGoal,
+} from "./learner-profile";
 
 export const supportedSessionDurations = [5, 10, 15, 20, 30] as const;
 export type SessionDuration = (typeof supportedSessionDurations)[number];
@@ -29,8 +33,10 @@ export type LessonPlanBlock = {
 };
 
 export type LessonPlan = {
-  plannerVersion: "duration-aware-v1" | "adaptive-duration-v2" | "adaptive-review-v3";
+  plannerVersion: "duration-aware-v1" | "adaptive-duration-v2" | "adaptive-review-v3" | "goal-aware-v4";
   lessonKey: LessonKey;
+  primaryGoal?: LearnerPrimaryGoal;
+  goalFocus: string;
   targetMinutes: SessionDuration;
   estimatedMinutes: number;
   rationale: string[];
@@ -39,6 +45,7 @@ export type LessonPlan = {
 };
 
 export type LessonPlannerInput = {
+  primaryGoal?: LearnerPrimaryGoal;
   targetMinutes: SessionDuration;
   dueReviewCount: number;
   weakestSkills: string[];
@@ -65,9 +72,17 @@ export function chooseCurriculumLesson(input: {
     : "daily-routines-v1";
 }
 
-function createCoreBlocks(lessonKey: LessonKey): LessonPlanBlock[] {
+function createCoreBlocks(
+  lessonKey: LessonKey,
+  primaryGoal: LearnerPrimaryGoal,
+): LessonPlanBlock[] {
   const lesson = getLessonDefinition(lessonKey);
   if (!lesson) throw new Error("Unknown lesson");
+  const contextLens: Record<LearnerPrimaryGoal, string> = {
+    conversation: "Practise it as a natural two-person exchange.",
+    travel: "Connect it to a situation you could meet while travelling.",
+    "daily-life": "Keep it small enough to repeat in everyday practice.",
+  };
   return [
   {
     id: "warmup",
@@ -82,7 +97,7 @@ function createCoreBlocks(lessonKey: LessonKey): LessonPlanBlock[] {
     id: "introduction-context",
     kind: "context",
     title: lesson.title,
-    objective: lesson.objective,
+    objective: `${lesson.objective} ${contextLens[primaryGoal]}`,
     estimatedSeconds: 90,
     source: "new_content",
     availability: "ready",
@@ -174,8 +189,10 @@ const expansionBlocks: Omit<LessonPlanBlock, "id">[] = [
 
 export function buildLessonPlan(input: LessonPlannerInput): LessonPlan {
   const lessonKey = input.lessonKey ?? "introductions-v1";
+  const primaryGoal = input.primaryGoal ?? "conversation";
+  const goalFocus = learnerPrimaryGoalPlanFocus[primaryGoal];
   const targetSeconds = input.targetMinutes * 60;
-  const blocks = createCoreBlocks(lessonKey).map((block) => ({ ...block }));
+  const blocks = createCoreBlocks(lessonKey, primaryGoal).map((block) => ({ ...block }));
   let totalSeconds = blocks.reduce((total, block) => total + block.estimatedSeconds, 0);
   let expansionIndex = 0;
 
@@ -213,6 +230,7 @@ export function buildLessonPlan(input: LessonPlannerInput): LessonPlan {
 
   const rationale = [
     `${input.targetMinutes}-minute session requested.`,
+    `Learner goal: ${goalFocus}`,
     lessonKey === "daily-routines-v1"
       ? "Introductions are complete, so the curriculum advances to daily routines."
       : lessonKey === "cafe-ordering-v1"
@@ -231,8 +249,10 @@ export function buildLessonPlan(input: LessonPlannerInput): LessonPlan {
   ];
 
   return {
-    plannerVersion: "adaptive-review-v3",
+    plannerVersion: "goal-aware-v4",
     lessonKey,
+    primaryGoal,
+    goalFocus,
     targetMinutes: input.targetMinutes,
     estimatedMinutes: Math.round(totalSeconds / 60),
     rationale,

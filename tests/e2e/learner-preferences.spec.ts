@@ -41,7 +41,17 @@ test("persists learning preferences and uses the default lesson duration", async
     const defaultDuration = page.getByRole("button", { name: "20 min" });
     await expect(defaultDuration).toHaveAttribute("aria-pressed", "true");
     await page.getByRole("button", { name: "Build my lesson" }).click();
+    await expect(page.getByRole("heading", { name: "A coherent path, chosen for you." }))
+      .toBeVisible();
     expect(await loadLatestPlanTargetMinutes(learnerId)).toBe(20);
+    await expect(page.getByLabel("Learning goal alignment")).toContainText(
+      "Use Spanish while travelling",
+    );
+    await expect(page.getByLabel("Learning goal alignment")).toContainText(
+      "simple travel interactions",
+    );
+    await expect(page.getByText(/Connect it to a situation you could meet while travelling/))
+      .toBeVisible();
   } finally {
     await cleanupLearner(displayName, learnerId);
   }

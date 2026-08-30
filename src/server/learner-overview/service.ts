@@ -2,10 +2,7 @@ import "server-only";
 import { and, eq } from "drizzle-orm";
 import { buildLearnerOverview } from "@/domain/learner-overview";
 import type { LessonKey } from "@/domain/lesson";
-import {
-  learnerPrimaryGoals,
-  type LearnerPrimaryGoal,
-} from "@/domain/learner-profile";
+import { isLearnerPrimaryGoal } from "@/domain/learner-profile";
 import {
   supportedSessionDurations,
   type SessionDuration,
@@ -58,8 +55,8 @@ export async function loadLearnerOverview(learnerId: string) {
 
   if (!learner) throw new LearnerOverviewNotFoundError();
 
-  const primaryGoal = learnerPrimaryGoals.includes(learner.primaryGoal as LearnerPrimaryGoal)
-    ? learner.primaryGoal as LearnerPrimaryGoal
+  const primaryGoal = isLearnerPrimaryGoal(learner.primaryGoal)
+    ? learner.primaryGoal
     : "conversation";
   const preferredSessionMinutes = supportedSessionDurations.includes(
     learner.preferredSessionMinutes as SessionDuration,
