@@ -82,3 +82,12 @@ their exercise attempts. Each entry keeps the topic, completion time, elapsed
 minutes, answer accuracy, and speaking evidence. A deterministic comparison with
 the previous completed lesson explains topic progression, accuracy movement, or
 steady practice without changing the underlying attempt or session records.
+
+## Practice rhythm
+
+Practice rhythm is a read-only projection over completed lesson dates. The
+browser supplies its current timezone offset so the server can count unique
+local practice days in the last 7 and 30 days. The current rhythm includes
+consecutive days ending today or yesterday; an older last lesson starts a new
+rhythm instead of showing a lost streak. Multiple lessons on one local day
+still count as one active day.

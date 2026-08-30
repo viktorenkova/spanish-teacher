@@ -8,6 +8,7 @@ import {
 } from "@/domain/lesson-planner";
 import type { LearnerOverview } from "@/domain/learner-overview";
 import type { LessonHistoryEntry } from "@/domain/lesson-history";
+import type { PracticeRhythm } from "@/domain/practice-rhythm";
 import type { LocalLearnerProfile } from "@/browser/local-learner-profiles";
 import {
   learnerPrimaryGoalLabels,
@@ -16,6 +17,7 @@ import {
 import { LearnerOverviewCard } from "./learner-overview-card";
 import { LessonHistoryCard } from "./lesson-history-card";
 import { LessonExperience } from "./lesson-experience";
+import { PracticeRhythmCard } from "./practice-rhythm-card";
 
 type SavedPlan = LessonPlan & { id: string; createdAt: string };
 type SavedSession = {
@@ -46,6 +48,10 @@ export function PlannedLessonExperience({
   const [historyResult, setHistoryResult] = useState<{
     learnerId: string;
     entries: LessonHistoryEntry[];
+  }>();
+  const [rhythmResult, setRhythmResult] = useState<{
+    learnerId: string;
+    rhythm: PracticeRhythm;
   }>();
   const [overviewRefreshKey, setOverviewRefreshKey] = useState(0);
   const [selectedDuration, setSelectedDuration] = useState<SessionDuration>(10);
@@ -153,6 +159,33 @@ export function PlannedLessonExperience({
 
   const history = historyResult?.learnerId === learnerId
     ? historyResult.entries
+    : undefined;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timezoneOffsetMinutes = new Date().getTimezoneOffset();
+    fetch(
+      `/api/learner/rhythm?learnerId=${encodeURIComponent(learnerId)}&timezoneOffsetMinutes=${timezoneOffsetMinutes}`,
+      { signal: controller.signal },
+    )
+      .then(async (response) => {
+        const payload = (await response.json()) as {
+          rhythm?: PracticeRhythm;
+          error?: string;
+        };
+        if (!response.ok || !payload.rhythm) {
+          throw new Error(payload.error ?? "Practice rhythm could not be loaded.");
+        }
+        setRhythmResult({ learnerId, rhythm: payload.rhythm });
+      })
+      .catch((rhythmError: unknown) => {
+        if (rhythmError instanceof DOMException && rhythmError.name === "AbortError") return;
+      });
+    return () => controller.abort();
+  }, [learnerId, overviewRefreshKey]);
+
+  const rhythm = rhythmResult?.learnerId === learnerId
+    ? rhythmResult.rhythm
     : undefined;
 
   async function createPlan() {
@@ -309,6 +342,7 @@ export function PlannedLessonExperience({
             onUpdatePreferences={updateLearnerPreferences}
           />
         )}
+        {rhythm && <PracticeRhythmCard rhythm={rhythm} />}
         {history && history.length > 0 && <LessonHistoryCard history={history} />}
         <div className="duration-options planner-durations" aria-label="Lesson duration">
           {supportedSessionDurations.map((duration) => (

@@ -79,6 +79,15 @@ test("completes a lesson with listening and speaking, then adapts the next topic
 
     await page.getByRole("button", { name: "Finish lesson" }).click();
     await expect(page.getByRole("heading", { name: "Up next: Talk about your morning" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your practice rhythm" })).toBeVisible();
+    const practiceRhythm = page.locator(".practice-rhythm");
+    await expect(practiceRhythm).toContainText("You have practised today");
+    await expect(
+      practiceRhythm.locator("dl div").filter({ hasText: "Active days · 7" }),
+    ).toContainText("1");
+    await expect(
+      practiceRhythm.locator("dl div").filter({ hasText: "Current rhythm" }),
+    ).toContainText("1 day");
     await expect(page.getByRole("heading", { name: "Recent lessons" })).toBeVisible();
     const recentLesson = page.locator(".lesson-history-entry");
     await expect(recentLesson).toContainText("Meet someone new");

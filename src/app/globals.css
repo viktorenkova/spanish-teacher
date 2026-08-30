@@ -255,6 +255,14 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .danger-button:hover:not(:disabled) { background: #84283a; }
 .danger-button:disabled { cursor: not-allowed; opacity: .42; }
 .profile-management-message { margin: 0; color: #245d43; font-size: .82rem; font-weight: 700; }
+.practice-rhythm { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px 24px; align-items: center; margin: 18px 0 4px; padding: 20px; border: 1px solid rgba(69, 150, 111, .16); border-radius: 20px; background: linear-gradient(135deg, #e7f8ef, #edf7ff); }
+.practice-rhythm h3 { margin: 6px 0 7px; font-size: 1.25rem; }
+.practice-rhythm p { max-width: 520px; margin: 0; color: #4f5e63; font-size: .82rem; line-height: 1.5; }
+.practice-rhythm dl { display: grid; grid-template-columns: repeat(3, minmax(86px, 1fr)); gap: 8px; margin: 0; }
+.practice-rhythm dl div { min-width: 86px; padding: 11px 12px; border-radius: 14px; background: rgba(255,255,255,.76); }
+.practice-rhythm dt { color: var(--muted); font-size: .65rem; line-height: 1.3; }
+.practice-rhythm dd { margin: 5px 0 0; color: var(--ink); font-size: 1rem; font-weight: 850; }
+.practice-rhythm > small { grid-column: 1 / -1; color: var(--muted); font-size: .68rem; line-height: 1.45; }
 .lesson-history { margin: 18px 0 4px; padding: 20px; border: 1px solid rgba(118, 85, 232, .12); border-radius: 20px; background: #fff; }
 .lesson-history h3 { margin: 6px 0 16px; font-size: 1.25rem; }
 .lesson-history ol { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
@@ -367,6 +375,9 @@ h1 { max-width: 700px; font-size: clamp(2.7rem, 6vw, 4.75rem); line-height: 1; m
   .learner-overview { grid-template-columns: 1fr; }
   .learner-overview dl { grid-template-columns: repeat(3, 1fr); }
   .learner-overview > small { grid-column: 1; }
+  .practice-rhythm { grid-template-columns: 1fr; }
+  .practice-rhythm dl { grid-template-columns: repeat(3, 1fr); }
+  .practice-rhythm > small { grid-column: 1; }
   .learner-name-form { grid-template-columns: 1fr; }
   .learner-name-form .secondary-button, .learner-preferences-form > .secondary-button { justify-self: stretch; width: 100%; }
   .profile-delete-confirmation > div { align-items: stretch; flex-direction: column-reverse; }
