@@ -52,6 +52,44 @@ export async function loadLearnerDisplayName(learnerId: string) {
   }
 }
 
+export async function loadLearnerPreferences(learnerId: string) {
+  const databaseUrl = process.env.DATABASE_URL
+    ?? "postgres://spanish_coach:spanish_coach@127.0.0.1:5432/spanish_coach";
+  const sql = postgres(databaseUrl, { max: 1 });
+  try {
+    const [learner] = await sql<{
+      primary_goal: string;
+      preferred_session_minutes: number;
+    }[]>`
+      select primary_goal, preferred_session_minutes
+      from learners
+      where id = ${learnerId}
+      limit 1
+    `;
+    return learner;
+  } finally {
+    await sql.end();
+  }
+}
+
+export async function loadLatestPlanTargetMinutes(learnerId: string) {
+  const databaseUrl = process.env.DATABASE_URL
+    ?? "postgres://spanish_coach:spanish_coach@127.0.0.1:5432/spanish_coach";
+  const sql = postgres(databaseUrl, { max: 1 });
+  try {
+    const [plan] = await sql<{ target_minutes: number }[]>`
+      select target_minutes
+      from lesson_plans
+      where learner_id = ${learnerId}
+      order by created_at desc
+      limit 1
+    `;
+    return plan?.target_minutes;
+  } finally {
+    await sql.end();
+  }
+}
+
 export async function loadLatestPilotFeedback(learnerId: string) {
   const databaseUrl = process.env.DATABASE_URL
     ?? "postgres://spanish_coach:spanish_coach@127.0.0.1:5432/spanish_coach";

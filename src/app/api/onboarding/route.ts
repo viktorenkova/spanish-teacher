@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { evaluateDiagnostic } from "@/domain/diagnostic";
+import { learnerPrimaryGoals } from "@/domain/learner-profile";
+import { supportedSessionDurations } from "@/domain/lesson-planner";
 import { getDatabase } from "@/server/db/client";
 import { logError } from "@/server/observability/logger";
 import {
@@ -11,15 +13,11 @@ import {
 
 const onboardingSchema = z.object({
   displayName: z.string().trim().min(1).max(80),
-  primaryGoal: z.enum(["conversation", "travel", "daily-life"]),
+  primaryGoal: z.enum(learnerPrimaryGoals),
   priorExperience: z.enum(["new", "some-basics", "returning"]),
-  preferredSessionMinutes: z.union([
-    z.literal(5),
-    z.literal(10),
-    z.literal(15),
-    z.literal(20),
-    z.literal(30),
-  ]),
+  preferredSessionMinutes: z.union(
+    supportedSessionDurations.map((duration) => z.literal(duration)),
+  ),
   answers: z.record(z.string(), z.string()),
 });
 

@@ -232,10 +232,19 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .learner-profile-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 16px; margin-top: -8px; }
 .learner-profile-actions .text-button { padding: 4px 0; }
 .learner-profile-management { grid-column: 1 / -1; display: grid; gap: 16px; padding-top: 18px; border-top: 1px solid rgba(49, 83, 122, .14); }
-.learner-profile-management > form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+.learner-name-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }
 .learner-profile-management label { display: grid; gap: 7px; color: var(--ink); font-size: .82rem; font-weight: 750; }
-.learner-profile-management input { width: 100%; border: 1px solid #d9dfe8; border-radius: 12px; background: white; padding: 11px 12px; color: var(--ink); font: inherit; }
+.learner-profile-management input, .learner-profile-management select { width: 100%; border: 1px solid #d9dfe8; border-radius: 12px; background: white; padding: 11px 12px; color: var(--ink); font: inherit; }
 .learner-profile-management .secondary-button { min-height: 44px; margin: 0; padding-block: 10px; }
+.learner-preferences-form { display: grid; gap: 16px; padding: 18px 0; border-top: 1px solid rgba(49, 83, 122, .12); border-bottom: 1px solid rgba(49, 83, 122, .12); }
+.learner-preferences-form fieldset { border: 0; padding: 0; margin: 0; }
+.learner-preferences-form legend { margin-bottom: 9px; color: var(--ink); font-size: .82rem; font-weight: 750; }
+.learner-preferences-form > .secondary-button { justify-self: end; }
+.profile-duration-options { display: flex; flex-wrap: wrap; gap: 7px; }
+.profile-duration-options label { cursor: pointer; position: relative; display: block; border: 1px solid #d9dfe8; border-radius: 12px; background: white; padding: 9px 11px; font-size: .78rem; }
+.profile-duration-options label.chosen { border-color: var(--coral); background: var(--lavender-soft); box-shadow: 0 0 0 2px rgba(118, 85, 232, .08); }
+.profile-duration-options input { cursor: pointer; position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; }
+.profile-duration-options label:has(input:focus-visible) { outline: 3px solid rgba(118, 85, 232, .45); outline-offset: 2px; }
 .danger-text-button { justify-self: start; padding: 4px 0; color: #9b3345; }
 .danger-text-button:hover { color: #761f31; }
 .profile-delete-confirmation { display: grid; gap: 12px; padding: 16px; border: 1px solid #f0c6cf; border-radius: 16px; background: #fff8f9; }
@@ -334,8 +343,8 @@ h1 { max-width: 700px; font-size: clamp(2.7rem, 6vw, 4.75rem); line-height: 1; m
   .learner-overview { grid-template-columns: 1fr; }
   .learner-overview dl { grid-template-columns: repeat(3, 1fr); }
   .learner-overview > small { grid-column: 1; }
-  .learner-profile-management > form { grid-template-columns: 1fr; }
-  .learner-profile-management > form .secondary-button { width: 100%; }
+  .learner-name-form { grid-template-columns: 1fr; }
+  .learner-name-form .secondary-button, .learner-preferences-form > .secondary-button { justify-self: stretch; width: 100%; }
   .profile-delete-confirmation > div { align-items: stretch; flex-direction: column-reverse; }
   .profile-delete-confirmation button { width: 100%; }
   .diagnostic-options { grid-template-columns: 1fr; }

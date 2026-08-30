@@ -2,21 +2,39 @@
 
 import { FormEvent, useState } from "react";
 import type { LearnerOverview } from "@/domain/learner-overview";
+import {
+  learnerPrimaryGoalLabels,
+  learnerPrimaryGoals,
+  type LearnerPrimaryGoal,
+} from "@/domain/learner-profile";
+import {
+  supportedSessionDurations,
+  type SessionDuration,
+} from "@/domain/lesson-planner";
 
 export function LearnerOverviewCard({
   overview,
   onChangeLearner,
   onDeleteLearner,
   onRenameLearner,
+  onUpdatePreferences,
 }: {
   overview: LearnerOverview;
   onChangeLearner: () => void;
   onDeleteLearner: (confirmationDisplayName: string) => Promise<void>;
   onRenameLearner: (displayName: string) => Promise<void>;
+  onUpdatePreferences: (preferences: {
+    primaryGoal: LearnerPrimaryGoal;
+    preferredSessionMinutes: SessionDuration;
+  }) => Promise<void>;
 }) {
   const [managing, setManaging] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [displayName, setDisplayName] = useState(overview.learner.displayName);
+  const [primaryGoal, setPrimaryGoal] = useState(overview.learner.primaryGoal);
+  const [preferredSessionMinutes, setPreferredSessionMinutes] = useState(
+    overview.learner.preferredSessionMinutes,
+  );
   const [confirmationName, setConfirmationName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string>();
@@ -45,6 +63,23 @@ export function LearnerOverviewCard({
       await onDeleteLearner(confirmationName);
     } catch (deleteError) {
       setError(deleteError instanceof Error ? deleteError.message : "The learner profile could not be deleted.");
+      setSubmitting(false);
+    }
+  }
+
+  async function updatePreferences(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmitting(true);
+    setError(undefined);
+    setMessage(undefined);
+    try {
+      await onUpdatePreferences({ primaryGoal, preferredSessionMinutes });
+      setMessage("Learning preferences updated.");
+    } catch (preferenceError) {
+      setError(preferenceError instanceof Error
+        ? preferenceError.message
+        : "Learning preferences could not be updated.");
+    } finally {
       setSubmitting(false);
     }
   }
@@ -79,6 +114,8 @@ export function LearnerOverviewCard({
           onClick={() => {
             setManaging((value) => !value);
             setDisplayName(overview.learner.displayName);
+            setPrimaryGoal(overview.learner.primaryGoal);
+            setPreferredSessionMinutes(overview.learner.preferredSessionMinutes);
             setConfirmationName("");
             setConfirmingDelete(false);
             setError(undefined);
@@ -91,7 +128,7 @@ export function LearnerOverviewCard({
 
       {managing && (
         <div className="learner-profile-management" id="learner-profile-management">
-          <form onSubmit={renameLearner}>
+          <form className="learner-name-form" onSubmit={renameLearner}>
             <label>
               Learner name
               <input
@@ -107,6 +144,49 @@ export function LearnerOverviewCard({
               disabled={submitting || !displayName.trim() || displayName.trim() === overview.learner.displayName}
             >
               {submitting ? "Saving…" : "Save name"}
+            </button>
+          </form>
+
+          <form className="learner-preferences-form" onSubmit={updatePreferences}>
+            <label>
+              Main learning goal
+              <select
+                value={primaryGoal}
+                onChange={(event) => setPrimaryGoal(event.target.value as LearnerPrimaryGoal)}
+              >
+                {learnerPrimaryGoals.map((goal) => (
+                  <option key={goal} value={goal}>{learnerPrimaryGoalLabels[goal]}</option>
+                ))}
+              </select>
+            </label>
+            <fieldset>
+              <legend>Preferred lesson length</legend>
+              <div className="profile-duration-options">
+                {supportedSessionDurations.map((minutes) => (
+                  <label key={minutes} className={preferredSessionMinutes === minutes ? "chosen" : ""}>
+                    <input
+                      type="radio"
+                      name="profile-duration"
+                      checked={preferredSessionMinutes === minutes}
+                      onChange={() => setPreferredSessionMinutes(minutes)}
+                    />
+                    {minutes} min
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <button
+              className="secondary-button"
+              type="submit"
+              disabled={
+                submitting
+                || (
+                  primaryGoal === overview.learner.primaryGoal
+                  && preferredSessionMinutes === overview.learner.preferredSessionMinutes
+                )
+              }
+            >
+              {submitting ? "Saving…" : "Save learning preferences"}
             </button>
           </form>
 

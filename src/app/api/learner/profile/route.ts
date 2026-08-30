@@ -1,14 +1,26 @@
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { learnerPrimaryGoals } from "@/domain/learner-profile";
+import { supportedSessionDurations } from "@/domain/lesson-planner";
 import { getDatabase } from "@/server/db/client";
 import { learners } from "@/server/db/schema";
 import { logError } from "@/server/observability/logger";
 
-const renameProfileSchema = z.object({
+const updateProfileSchema = z.object({
   learnerId: z.uuid(),
-  displayName: z.string().trim().min(1).max(80),
-});
+  displayName: z.string().trim().min(1).max(80).optional(),
+  primaryGoal: z.enum(learnerPrimaryGoals).optional(),
+  preferredSessionMinutes: z.union(
+    supportedSessionDurations.map((duration) => z.literal(duration)),
+  ).optional(),
+}).refine(
+  ({ displayName, primaryGoal, preferredSessionMinutes }) => (
+    displayName !== undefined
+    || primaryGoal !== undefined
+    || preferredSessionMinutes !== undefined
+  ),
+);
 
 const deleteProfileSchema = z.object({
   learnerId: z.uuid(),
@@ -16,17 +28,29 @@ const deleteProfileSchema = z.object({
 });
 
 export async function PATCH(request: Request) {
-  const parsed = renameProfileSchema.safeParse(await request.json());
+  const parsed = updateProfileSchema.safeParse(await request.json());
   if (!parsed.success) {
-    return NextResponse.json({ error: "A valid learner ID and name are required." }, { status: 400 });
+    return NextResponse.json({ error: "Valid learner profile changes are required." }, { status: 400 });
   }
 
   try {
     const [learner] = await getDatabase()
       .update(learners)
-      .set({ displayName: parsed.data.displayName, updatedAt: new Date() })
+      .set({
+        updatedAt: new Date(),
+        ...(parsed.data.displayName === undefined ? {} : { displayName: parsed.data.displayName }),
+        ...(parsed.data.primaryGoal === undefined ? {} : { primaryGoal: parsed.data.primaryGoal }),
+        ...(parsed.data.preferredSessionMinutes === undefined
+          ? {}
+          : { preferredSessionMinutes: parsed.data.preferredSessionMinutes }),
+      })
       .where(eq(learners.id, parsed.data.learnerId))
-      .returning({ id: learners.id, displayName: learners.displayName });
+      .returning({
+        id: learners.id,
+        displayName: learners.displayName,
+        primaryGoal: learners.primaryGoal,
+        preferredSessionMinutes: learners.preferredSessionMinutes,
+      });
 
     if (!learner) {
       return NextResponse.json({ error: "The learner profile was not found." }, { status: 404 });
@@ -34,11 +58,11 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ learner });
   } catch (error) {
-    logError("learner_profile_rename_failed", error, {
+    logError("learner_profile_update_failed", error, {
       method: "PATCH",
       route: "/api/learner/profile",
     });
-    return NextResponse.json({ error: "The learner name could not be updated." }, { status: 503 });
+    return NextResponse.json({ error: "The learner profile could not be updated." }, { status: 503 });
   }
 }
 

@@ -13,6 +13,8 @@ const learner = {
   displayName: "Kate",
   overallLevel: "A1",
   a1Band: "mid" as const,
+  primaryGoal: "conversation" as const,
+  preferredSessionMinutes: 10 as const,
 };
 
 describe("learner overview", () => {

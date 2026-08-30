@@ -8,6 +8,7 @@ import {
 } from "@/domain/lesson-planner";
 import type { LearnerOverview } from "@/domain/learner-overview";
 import type { LocalLearnerProfile } from "@/browser/local-learner-profiles";
+import type { LearnerPrimaryGoal } from "@/domain/learner-profile";
 import { LearnerOverviewCard } from "./learner-overview-card";
 import { LessonExperience } from "./lesson-experience";
 
@@ -106,6 +107,7 @@ export function PlannedLessonExperience({
           throw new Error(payload.error ?? "Saved progress could not be loaded.");
         }
         setOverview(payload.overview);
+        setSelectedDuration(payload.overview.learner.preferredSessionMinutes);
         onLearnerAvailable({
           learnerId,
           displayName: payload.overview.learner.displayName,
@@ -175,6 +177,38 @@ export function PlannedLessonExperience({
     onLearnerDeleted();
   }
 
+  async function updateLearnerPreferences(preferences: {
+    primaryGoal: LearnerPrimaryGoal;
+    preferredSessionMinutes: SessionDuration;
+  }) {
+    const response = await fetch("/api/learner/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ learnerId, ...preferences }),
+    });
+    const payload = (await response.json()) as {
+      learner?: {
+        primaryGoal: LearnerPrimaryGoal;
+        preferredSessionMinutes: SessionDuration;
+      };
+      error?: string;
+    };
+    if (!response.ok || !payload.learner) {
+      throw new Error(payload.error ?? "Learning preferences could not be updated.");
+    }
+    const learner = payload.learner;
+
+    setOverview((current) => current ? {
+      ...current,
+      learner: {
+        ...current.learner,
+        primaryGoal: learner.primaryGoal,
+        preferredSessionMinutes: learner.preferredSessionMinutes,
+      },
+    } : current);
+    setSelectedDuration(learner.preferredSessionMinutes);
+  }
+
   async function startLesson() {
     if (!plan || creating) return;
     setCreating(true);
@@ -237,6 +271,7 @@ export function PlannedLessonExperience({
             onChangeLearner={onChangeLearner}
             onDeleteLearner={deleteLearner}
             onRenameLearner={renameLearner}
+            onUpdatePreferences={updateLearnerPreferences}
           />
         )}
         <div className="duration-options planner-durations" aria-label="Lesson duration">
@@ -244,6 +279,7 @@ export function PlannedLessonExperience({
             <button
               key={duration}
               className={selectedDuration === duration ? "chosen" : ""}
+              aria-pressed={selectedDuration === duration}
               onClick={() => setSelectedDuration(duration)}
             >
               {duration} min

@@ -1,5 +1,6 @@
 import { getLessonDefinition, lessonCatalog, type LessonKey } from "./lesson";
-import { chooseCurriculumLesson } from "./lesson-planner";
+import { chooseCurriculumLesson, type SessionDuration } from "./lesson-planner";
+import type { LearnerPrimaryGoal } from "./learner-profile";
 import type { LearnerProgressSummary } from "./progress";
 
 export type LearnerOverview = LearnerProgressSummary & {
@@ -7,6 +8,8 @@ export type LearnerOverview = LearnerProgressSummary & {
     displayName: string;
     overallLevel: string;
     a1Band: "early" | "mid" | "strong";
+    primaryGoal: LearnerPrimaryGoal;
+    preferredSessionMinutes: SessionDuration;
   };
   completedLessonCount: number;
   completedTopicCount: number;

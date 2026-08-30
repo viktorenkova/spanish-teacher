@@ -3,6 +3,12 @@
 import { FormEvent, useState, useSyncExternalStore } from "react";
 import { diagnosticQuestions } from "@/domain/diagnostic";
 import type { LocalLearnerProfile } from "@/browser/local-learner-profiles";
+import {
+  learnerPrimaryGoalLabels,
+  learnerPrimaryGoals,
+  type LearnerPrimaryGoal,
+} from "@/domain/learner-profile";
+import { supportedSessionDurations } from "@/domain/lesson-planner";
 
 type OnboardingExperienceProps = {
   notice?: string;
@@ -30,7 +36,7 @@ export function OnboardingExperience({ notice, onCancel, onComplete }: Onboardin
   );
   const [step, setStep] = useState<"profile" | "diagnostic">("profile");
   const [displayName, setDisplayName] = useState("");
-  const [primaryGoal, setPrimaryGoal] = useState("conversation");
+  const [primaryGoal, setPrimaryGoal] = useState<LearnerPrimaryGoal>("conversation");
   const [priorExperience, setPriorExperience] = useState("some-basics");
   const [preferredSessionMinutes, setPreferredSessionMinutes] = useState(10);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -112,10 +118,14 @@ export function OnboardingExperience({ notice, onCancel, onComplete }: Onboardin
           </label>
           <label>
             Your main goal
-            <select disabled={!hydrated} value={primaryGoal} onChange={(event) => setPrimaryGoal(event.target.value)}>
-              <option value="conversation">Speak in everyday conversations</option>
-              <option value="travel">Use Spanish while travelling</option>
-              <option value="daily-life">Build a steady daily habit</option>
+            <select
+              disabled={!hydrated}
+              value={primaryGoal}
+              onChange={(event) => setPrimaryGoal(event.target.value as LearnerPrimaryGoal)}
+            >
+              {learnerPrimaryGoals.map((goal) => (
+                <option key={goal} value={goal}>{learnerPrimaryGoalLabels[goal]}</option>
+              ))}
             </select>
           </label>
           <label>
@@ -129,7 +139,7 @@ export function OnboardingExperience({ notice, onCancel, onComplete }: Onboardin
           <fieldset>
             <legend>Preferred lesson length</legend>
             <div className="duration-options">
-              {[5, 10, 15, 20, 30].map((minutes) => (
+              {supportedSessionDurations.map((minutes) => (
                 <label key={minutes} className={preferredSessionMinutes === minutes ? "chosen" : ""}>
                   <input
                     type="radio"

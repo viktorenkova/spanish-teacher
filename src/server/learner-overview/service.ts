@@ -2,6 +2,14 @@ import "server-only";
 import { and, eq } from "drizzle-orm";
 import { buildLearnerOverview } from "@/domain/learner-overview";
 import type { LessonKey } from "@/domain/lesson";
+import {
+  learnerPrimaryGoals,
+  type LearnerPrimaryGoal,
+} from "@/domain/learner-profile";
+import {
+  supportedSessionDurations,
+  type SessionDuration,
+} from "@/domain/lesson-planner";
 import { getDatabase } from "@/server/db/client";
 import { exerciseAttempts, learners, lessonSessions } from "@/server/db/schema";
 import { loadLearnerProgressSummary } from "@/server/review/service";
@@ -21,6 +29,8 @@ export async function loadLearnerOverview(learnerId: string) {
         displayName: learners.displayName,
         overallLevel: learners.overallLevel,
         a1Band: learners.a1Band,
+        primaryGoal: learners.primaryGoal,
+        preferredSessionMinutes: learners.preferredSessionMinutes,
       })
       .from(learners)
       .where(eq(learners.id, learnerId))
@@ -48,6 +58,15 @@ export async function loadLearnerOverview(learnerId: string) {
 
   if (!learner) throw new LearnerOverviewNotFoundError();
 
+  const primaryGoal = learnerPrimaryGoals.includes(learner.primaryGoal as LearnerPrimaryGoal)
+    ? learner.primaryGoal as LearnerPrimaryGoal
+    : "conversation";
+  const preferredSessionMinutes = supportedSessionDurations.includes(
+    learner.preferredSessionMinutes as SessionDuration,
+  )
+    ? learner.preferredSessionMinutes as SessionDuration
+    : 10;
+
   const completedExerciseIds = correctAttempts.reduce<Partial<Record<LessonKey, string[]>>>(
     (byLesson, attempt) => {
       const lessonKey = attempt.lessonKey as LessonKey;
@@ -60,7 +79,7 @@ export async function loadLearnerOverview(learnerId: string) {
   );
 
   return buildLearnerOverview({
-    learner,
+    learner: { ...learner, primaryGoal, preferredSessionMinutes },
     progress,
     completedLessonCount: completedLessons.length,
     completedExerciseIds,
