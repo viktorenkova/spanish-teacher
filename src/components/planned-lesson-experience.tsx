@@ -24,11 +24,13 @@ type SavedSession = {
 export function PlannedLessonExperience({
   learnerId,
   onChangeLearner,
+  onLearnerDeleted,
   onLearnerAvailable,
   onLearnerUnavailable,
 }: {
   learnerId: string;
   onChangeLearner: () => void;
+  onLearnerDeleted: () => void;
   onLearnerAvailable: (profile: LocalLearnerProfile) => void;
   onLearnerUnavailable: () => void;
 }) {
@@ -138,6 +140,41 @@ export function PlannedLessonExperience({
     }
   }
 
+  async function renameLearner(displayName: string) {
+    const response = await fetch("/api/learner/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ learnerId, displayName }),
+    });
+    const payload = (await response.json()) as {
+      learner?: { id: string; displayName: string };
+      error?: string;
+    };
+    if (!response.ok || !payload.learner) {
+      throw new Error(payload.error ?? "The learner name could not be updated.");
+    }
+    const learner = payload.learner;
+
+    setOverview((current) => current ? {
+      ...current,
+      learner: { ...current.learner, displayName: learner.displayName },
+    } : current);
+    onLearnerAvailable({ learnerId, displayName: learner.displayName });
+  }
+
+  async function deleteLearner(confirmationDisplayName: string) {
+    const response = await fetch("/api/learner/profile", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ learnerId, confirmationDisplayName }),
+    });
+    const payload = (await response.json()) as { deleted?: boolean; error?: string };
+    if (!response.ok || !payload.deleted) {
+      throw new Error(payload.error ?? "The learner profile could not be deleted.");
+    }
+    onLearnerDeleted();
+  }
+
   async function startLesson() {
     if (!plan || creating) return;
     setCreating(true);
@@ -198,6 +235,8 @@ export function PlannedLessonExperience({
           <LearnerOverviewCard
             overview={overview}
             onChangeLearner={onChangeLearner}
+            onDeleteLearner={deleteLearner}
+            onRenameLearner={renameLearner}
           />
         )}
         <div className="duration-options planner-durations" aria-label="Lesson duration">

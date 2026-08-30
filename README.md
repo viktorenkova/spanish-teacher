@@ -106,6 +106,7 @@ npm run test:smoke
 20. Learning experience design refresh. — a calmer visual language and hydration-safe onboarding are implemented
 21. Local learner recovery. — the active learner is identified and stale browser profiles return safely to setup
 22. Local profile switching. — multiple learners can safely continue separate progress in one browser
+23. Learner profile management. — names can be updated and exact-name confirmation protects permanent profile deletion
 
 ## Non-goals for MVP
 

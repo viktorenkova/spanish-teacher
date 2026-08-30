@@ -79,6 +79,7 @@ export function CoachExperience() {
         setRecoveryNotice(undefined);
         clearActiveLocalLearner();
       }}
+      onLearnerDeleted={() => forgetLocalLearnerProfile(learnerId)}
       onLearnerAvailable={rememberAvailableLearner}
       onLearnerUnavailable={() => recoverMissingLearner(learnerId)}
     />

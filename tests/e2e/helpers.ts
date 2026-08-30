@@ -35,6 +35,23 @@ export async function cleanupLearner(displayName: string, learnerId?: string) {
   }
 }
 
+export async function loadLearnerDisplayName(learnerId: string) {
+  const databaseUrl = process.env.DATABASE_URL
+    ?? "postgres://spanish_coach:spanish_coach@127.0.0.1:5432/spanish_coach";
+  const sql = postgres(databaseUrl, { max: 1 });
+  try {
+    const [learner] = await sql<{ display_name: string }[]>`
+      select display_name
+      from learners
+      where id = ${learnerId}
+      limit 1
+    `;
+    return learner?.display_name;
+  } finally {
+    await sql.end();
+  }
+}
+
 export async function loadLatestPilotFeedback(learnerId: string) {
   const databaseUrl = process.env.DATABASE_URL
     ?? "postgres://spanish_coach:spanish_coach@127.0.0.1:5432/spanish_coach";

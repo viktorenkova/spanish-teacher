@@ -26,5 +26,9 @@ describe("local learner profiles", () => {
     };
 
     expect(mergeLocalLearnerProfile([kate, ana], ana)).toEqual([ana, kate]);
+    expect(mergeLocalLearnerProfile([kate, ana], { ...kate, displayName: "Katia" })).toEqual([
+      { ...kate, displayName: "Katia" },
+      ana,
+    ]);
   });
 });
