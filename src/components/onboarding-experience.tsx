@@ -1,13 +1,30 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useSyncExternalStore } from "react";
 import { diagnosticQuestions } from "@/domain/diagnostic";
 
 type OnboardingExperienceProps = {
   onComplete: (learnerId: string) => void;
 };
 
+function subscribeToHydration() {
+  return () => undefined;
+}
+
+function getHydratedSnapshot() {
+  return true;
+}
+
+function getServerSnapshot() {
+  return false;
+}
+
 export function OnboardingExperience({ onComplete }: OnboardingExperienceProps) {
+  const hydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getHydratedSnapshot,
+    getServerSnapshot,
+  );
   const [step, setStep] = useState<"profile" | "diagnostic">("profile");
   const [displayName, setDisplayName] = useState("");
   const [primaryGoal, setPrimaryGoal] = useState("conversation");
@@ -74,6 +91,7 @@ export function OnboardingExperience({ onComplete }: OnboardingExperienceProps) 
             What should the coach call you?
             <input
               required
+              disabled={!hydrated}
               maxLength={80}
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
@@ -82,7 +100,7 @@ export function OnboardingExperience({ onComplete }: OnboardingExperienceProps) 
           </label>
           <label>
             Your main goal
-            <select value={primaryGoal} onChange={(event) => setPrimaryGoal(event.target.value)}>
+            <select disabled={!hydrated} value={primaryGoal} onChange={(event) => setPrimaryGoal(event.target.value)}>
               <option value="conversation">Speak in everyday conversations</option>
               <option value="travel">Use Spanish while travelling</option>
               <option value="daily-life">Build a steady daily habit</option>
@@ -90,7 +108,7 @@ export function OnboardingExperience({ onComplete }: OnboardingExperienceProps) 
           </label>
           <label>
             Previous Spanish experience
-            <select value={priorExperience} onChange={(event) => setPriorExperience(event.target.value)}>
+            <select disabled={!hydrated} value={priorExperience} onChange={(event) => setPriorExperience(event.target.value)}>
               <option value="new">Almost completely new</option>
               <option value="some-basics">I know some basic Spanish</option>
               <option value="returning">I am returning after a break</option>
@@ -104,6 +122,7 @@ export function OnboardingExperience({ onComplete }: OnboardingExperienceProps) 
                   <input
                     type="radio"
                     name="duration"
+                    disabled={!hydrated}
                     checked={preferredSessionMinutes === minutes}
                     onChange={() => setPreferredSessionMinutes(minutes)}
                   />
@@ -112,7 +131,7 @@ export function OnboardingExperience({ onComplete }: OnboardingExperienceProps) 
               ))}
             </div>
           </fieldset>
-          <button className="primary-button" type="submit">Continue to a short check</button>
+          <button className="primary-button" type="submit" disabled={!hydrated}>Continue to a short check</button>
         </form>
       </section>
     );
@@ -155,4 +174,3 @@ export function OnboardingExperience({ onComplete }: OnboardingExperienceProps) 
     </section>
   );
 }
-

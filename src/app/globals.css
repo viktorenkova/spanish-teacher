@@ -1,15 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #173b37;
-  --muted: #62716d;
-  --paper: #fffdf8;
-  --cream: #f3eee3;
-  --cream-deep: #e8dfcf;
-  --coral: #df725d;
-  --coral-dark: #bd5543;
-  --green-soft: #dce9df;
-  --shadow: 0 24px 80px rgba(31, 55, 48, 0.12);
+  --ink: #28233d;
+  --muted: #716d82;
+  --paper: #ffffff;
+  --cream: #fcfaf8;
+  --cream-deep: #eee9f4;
+  --coral: #7655e8;
+  --coral-dark: #5e40c3;
+  --green-soft: #e3f6ec;
+  --shadow: 0 18px 55px rgba(56, 42, 92, .08);
+  --pink: #f28bc5;
+  --peach: #ffb36b;
+  --blue-soft: #eaf3ff;
+  --lavender-soft: #f1edff;
 }
 
 * { box-sizing: border-box; }
@@ -20,14 +24,16 @@ body {
   margin: 0;
   color: var(--ink);
   background:
-    radial-gradient(circle at 84% 8%, rgba(223, 114, 93, 0.13), transparent 24rem),
-    linear-gradient(180deg, #f8f4eb 0%, var(--cream) 100%);
-  font-family: Arial, Helvetica, sans-serif;
+    radial-gradient(circle at 92% 4%, rgba(242, 139, 197, .16), transparent 23rem),
+    radial-gradient(circle at 7% 38%, rgba(169, 201, 245, .15), transparent 27rem),
+    var(--cream);
+  font-family: Inter, ui-rounded, "Nunito Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   min-height: 100vh;
 }
 
 button, a { font: inherit; }
 button { color: inherit; }
+input:disabled, select:disabled { cursor: wait; opacity: .7; }
 
 main { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding-bottom: 80px; }
 
@@ -222,7 +228,72 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .plan-kind.provider_pending { background: var(--cream-deep); color: var(--muted); }
 .provider-note { color: var(--muted); font-size: .78rem; line-height: 1.5; }
 
-button:focus-visible, a:focus-visible { outline: 3px solid rgba(223, 114, 93, .5); outline-offset: 3px; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid rgba(118, 85, 232, .45); outline-offset: 3px; }
+
+/* Visual language: soft, clear, and encouraging. */
+.site-header { border-bottom: 0; min-height: 86px; }
+.brand { grid-template-columns: 32px auto; grid-template-rows: 23px 14px; column-gap: 8px; align-items: center; }
+.brand > span:not(.brand-mark) { grid-column: 2; }
+.brand small { grid-column: 2; color: var(--muted); font-size: .62rem; letter-spacing: .13em; }
+.brand-mark { grid-row: 1 / 3; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 11px; background: linear-gradient(135deg, #8d6df0, var(--pink)); color: white; font-size: 1.25rem; font-weight: 800; }
+.brand-name { color: var(--ink); font-size: 1.3rem; font-weight: 800; letter-spacing: -.06em; }
+.brand-name span { color: var(--coral); }
+.level-chip { border: 0; background: rgba(255,255,255,.82); box-shadow: 0 5px 20px rgba(55, 39, 91, .06); color: var(--ink); padding: 9px 13px; }
+.level-chip span { color: var(--coral); }
+
+.hero { grid-template-columns: minmax(0, 1.2fr) 330px; gap: 44px; padding: 56px 0 34px; align-items: center; }
+h1, h2 { font-family: inherit; font-weight: 760; letter-spacing: -.055em; }
+h1 { max-width: 700px; font-size: clamp(2.7rem, 6vw, 4.75rem); line-height: 1; margin: 13px 0 20px; }
+.eyebrow { color: var(--coral); font-size: .7rem; letter-spacing: .11em; }
+.hero-copy > p { max-width: 570px; font-size: 1.05rem; line-height: 1.65; }
+.lesson-meta { gap: 8px; margin-top: 25px; }
+.lesson-meta li { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,.72); color: #514a67; border: 1px solid #ebe6f2; padding: 8px 11px; font-weight: 650; }
+.lesson-meta li span { color: var(--coral); }
+.coach-note { position: relative; min-height: 260px; overflow: hidden; display: block; border: 0; border-radius: 30px; padding: 0; background: linear-gradient(135deg, #eee8ff 0%, #ffe8f3 100%); box-shadow: var(--shadow); }
+.coach-note::after { content: ""; position: absolute; width: 130px; height: 130px; right: -45px; bottom: -48px; border-radius: 50%; background: rgba(255,255,255,.48); }
+.coach-note p { position: absolute; z-index: 2; left: 25px; right: 25px; bottom: 21px; padding: 13px 15px; border-radius: 16px; background: rgba(255,255,255,.78); color: #5e5870; font-size: .83rem; box-shadow: 0 8px 20px rgba(84, 57, 128, .08); }
+.coach-note strong { color: var(--ink); margin-bottom: 3px; }
+.coach-note .coach-mark { position: absolute; left: 64px; top: 54px; z-index: 1; width: 94px; height: 94px; border-radius: 37px 37px 37px 10px; font-size: 2.2rem; transform: rotate(-7deg); }
+.sun { position: absolute; right: 27px; top: 24px; color: var(--peach); font-size: 2.3rem; line-height: 1; }
+.speech-bubble { position: absolute; z-index: 1; left: 34px; top: 36px; padding: 13px 16px; border-radius: 18px 18px 18px 4px; background: white; color: var(--coral-dark); font-weight: 800; font-size: 1.15rem; transform: rotate(-4deg); }
+.cactus { position: absolute; left: 142px; top: 81px; width: 47px; height: 92px; border-radius: 25px 25px 13px 13px; background: #8dd9b5; }
+.cactus i { position: absolute; display: block; width: 26px; height: 42px; border: 8px solid #8dd9b5; }
+.cactus i:nth-child(1) { left: -20px; bottom: 18px; border-right: 0; border-radius: 20px 0 0 20px; }
+.cactus i:nth-child(2) { right: -20px; bottom: 35px; border-left: 0; border-radius: 0 20px 20px 0; }
+.cactus i:nth-child(3) { width: 7px; height: 55px; left: 10px; bottom: 14px; border: 0; border-left: 2px solid rgba(39,126,87,.2); }
+
+.lesson-card { border: 1px solid rgba(97, 75, 150, .1); border-radius: 30px; box-shadow: var(--shadow); padding: clamp(24px, 5vw, 46px); }
+.lesson-card h2 { font-size: clamp(1.85rem, 4vw, 2.7rem); line-height: 1.08; }
+.progress-track { height: 8px; background: #eeeaf6; }
+.progress-track span { background: linear-gradient(90deg, var(--coral), #9c7df4); }
+.context { background: var(--lavender-soft); color: #5d5870; border-radius: 18px; padding: 17px 19px; }
+.option { border-color: #e4deef; border-radius: 16px; padding: 17px 18px; background: #fff; }
+.option:hover { border-color: #a58df4; }
+.option.selected, .duration-options .chosen, .diagnostic-options .chosen { border-color: var(--coral); background: var(--lavender-soft); box-shadow: 0 0 0 3px rgba(118, 85, 232, .1); }
+.feedback { border-radius: 16px; margin-top: 16px; }
+.feedback.correct { background: var(--green-soft); color: #245d43; }
+.feedback.retry { background: #fff0f6; color: #8a3d67; }
+.primary-button, .secondary-button { border-radius: 999px; min-height: 50px; padding: 13px 22px; }
+.primary-button { background: var(--coral); box-shadow: 0 8px 18px rgba(118, 85, 232, .22); }
+.primary-button:hover:not(:disabled), .microphone-button:hover:not(:disabled) { background: var(--coral-dark); }
+.secondary-button { background: #f0ebff; color: var(--coral-dark); }
+.secondary-button:hover { background: #e4dcff; }
+.audio-control .secondary-button { border-radius: 50%; width: 50px; min-width: 50px; padding: 0; font-size: 0; }
+.audio-control .secondary-button::after { content: "▶"; font-size: .95rem; }
+.microphone-button { background: var(--peach); color: #5d371c; box-shadow: none; }
+.recording-guidance, .mistake-memory { background: var(--lavender-soft); }
+.transcript { border-color: #b9e6cd; border-radius: 16px; background: var(--green-soft); }
+.teacher-feedback { border-color: #d8cdfb; border-radius: 20px; background: #faf8ff; }
+.teacher-feedback li { border-left-color: var(--pink); border-radius: 0 10px 10px 0; }
+.coach-mark { background: linear-gradient(135deg, var(--coral), var(--pink)); font-family: inherit; }
+.summary-grid div { background: var(--lavender-soft); border-radius: 16px; }
+.progress-next-step, .learner-overview { background: linear-gradient(135deg, #e7f8ef, #edf7ff); border-radius: 20px; }
+.learner-overview dl div { background: rgba(255,255,255,.76); border-radius: 14px; }
+.plan-kind { background: var(--lavender-soft); color: var(--coral-dark); }
+.plan-kind.provider_pending { background: #f3eff7; }
+.profile-form input[type="text"], .profile-form input:not([type]), .profile-form select, .pilot-feedback-form select, .pilot-feedback-form textarea { border-color: #e2dcec; border-radius: 14px; }
+.duration-options label, .diagnostic-options label, .rating-options label { border-color: #e4deef; border-radius: 14px; }
+.end-lesson-confirmation { border-color: #e4deef; border-radius: 18px; background: var(--lavender-soft); }
 
 @media (max-width: 760px) {
   main { width: min(100% - 24px, 1120px); }

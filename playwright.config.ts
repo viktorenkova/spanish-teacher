@@ -1,13 +1,17 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const e2ePort = Number(process.env.PLAYWRIGHT_PORT ?? "3200");
+const e2eBaseUrl = `http://localhost:${e2ePort}`;
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: false,
   workers: 1,
   retries: 0,
+  timeout: 60_000,
   reporter: "list",
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: e2eBaseUrl,
     trace: "retain-on-failure",
   },
   projects: [
@@ -17,8 +21,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run dev",
-    url: "http://localhost:3000",
+    command: `npm run dev -- --port ${e2ePort}`,
+    url: e2eBaseUrl,
     reuseExistingServer: true,
     timeout: 120_000,
     env: {

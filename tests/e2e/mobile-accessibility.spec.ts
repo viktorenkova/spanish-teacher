@@ -9,9 +9,10 @@ test("keeps onboarding usable on mobile with semantic labels and reduced motion"
   await page.goto("/");
 
   await expect(page.getByRole("main")).toBeVisible();
-  await expect(page.getByRole("heading", { level: 1, name: "Start speaking from the first lesson." })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Learn Spanish that feels good to use." })).toBeVisible();
   const nameInput = page.getByLabel("What should the coach call you?");
   await expect(nameInput).toBeVisible();
+  await expect(nameInput).toBeEnabled();
   await nameInput.focus();
   await expect(nameInput).toBeFocused();
 
