@@ -113,6 +113,7 @@ npm run test:smoke
 27. Lesson history. — recent topics, results, speaking evidence, and changes between completed lessons are visible before planning
 28. Practice rhythm. — local active days, the current rhythm, and gentle next-practice guidance are visible without penalising breaks
 29. Lesson-end active recall. — each completed lesson now includes a short reveal-after-recall check using the lesson's useful Spanish without changing the review schedule
+30. Installable PWA shell. — manifest icons, standalone metadata, service-worker registration, and a safe offline fallback are implemented for personal web use
 
 ## Non-goals for MVP
 
