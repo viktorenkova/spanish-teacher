@@ -26,6 +26,11 @@ export type LearnerOverview = LearnerProgressSummary & {
     objective: string;
     status: "complete" | "current" | "upcoming";
   }>;
+  phrasebook: Array<{
+    id: string;
+    targetText: string;
+    supportText: string;
+  }>;
 };
 
 type CurriculumEvidence = Partial<Record<LessonKey, string[]>>;
@@ -40,6 +45,7 @@ export function buildLearnerOverview(input: {
   progress: LearnerProgressSummary;
   completedLessonCount: number;
   completedExerciseIds: CurriculumEvidence;
+  phrasebook?: LearnerOverview["phrasebook"];
 }): LearnerOverview {
   const nextLessonKey = chooseCurriculumLesson(input.completedExerciseIds);
   const nextLesson = getLessonDefinition(nextLessonKey);
@@ -72,5 +78,6 @@ export function buildLearnerOverview(input: {
           ? "current"
           : "upcoming",
     })),
+    phrasebook: input.phrasebook ?? [],
   };
 }

@@ -24,6 +24,7 @@ describe("learner overview", () => {
       progress: { ...progress, introducedItemCount: 0, dueReviewCount: 0 },
       completedLessonCount: 0,
       completedExerciseIds: {},
+      phrasebook: [],
     });
 
     expect(overview.completedTopicCount).toBe(0);
@@ -38,6 +39,7 @@ describe("learner overview", () => {
       status: "upcoming",
     });
     expect(overview.learner).toEqual(learner);
+    expect(overview.phrasebook).toEqual([]);
   });
 
   it("shows cafe ordering after introductions and routines are complete", () => {
@@ -49,6 +51,9 @@ describe("learner overview", () => {
         "introductions-v1": introductionLesson.map(({ id }) => id),
         "daily-routines-v1": dailyRoutineLesson.map(({ id }) => id),
       },
+      phrasebook: [
+        { id: "phrase:name", targetText: "Me llamo…", supportText: "My name is…" },
+      ],
     });
 
     expect(overview.completedLessonCount).toBe(2);
@@ -61,6 +66,9 @@ describe("learner overview", () => {
       "complete",
       "complete",
       "current",
+    ]);
+    expect(overview.phrasebook).toEqual([
+      { id: "phrase:name", targetText: "Me llamo…", supportText: "My name is…" },
     ]);
   });
 });

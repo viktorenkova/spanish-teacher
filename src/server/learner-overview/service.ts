@@ -8,7 +8,13 @@ import {
   type SessionDuration,
 } from "@/domain/lesson-planner";
 import { getDatabase } from "@/server/db/client";
-import { exerciseAttempts, learners, lessonSessions } from "@/server/db/schema";
+import {
+  exerciseAttempts,
+  learnerItemStates,
+  learners,
+  learningItems,
+  lessonSessions,
+} from "@/server/db/schema";
 import { loadLearnerProgressSummary } from "@/server/review/service";
 
 export class LearnerOverviewNotFoundError extends Error {
@@ -20,7 +26,7 @@ export class LearnerOverviewNotFoundError extends Error {
 
 export async function loadLearnerOverview(learnerId: string) {
   const db = getDatabase();
-  const [learner, progress, correctAttempts, completedLessons] = await Promise.all([
+  const [learner, progress, correctAttempts, completedLessons, phrasebook] = await Promise.all([
     db
       .select({
         displayName: learners.displayName,
@@ -51,6 +57,16 @@ export async function loadLearnerOverview(learnerId: string) {
         eq(lessonSessions.learnerId, learnerId),
         eq(lessonSessions.status, "completed"),
       )),
+    db
+      .select({
+        id: learningItems.id,
+        targetText: learningItems.targetText,
+        supportText: learningItems.supportText,
+      })
+      .from(learnerItemStates)
+      .innerJoin(learningItems, eq(learnerItemStates.learningItemId, learningItems.id))
+      .where(eq(learnerItemStates.learnerId, learnerId))
+      .orderBy(learnerItemStates.updatedAt),
   ]);
 
   if (!learner) throw new LearnerOverviewNotFoundError();
@@ -80,5 +96,6 @@ export async function loadLearnerOverview(learnerId: string) {
     progress,
     completedLessonCount: completedLessons.length,
     completedExerciseIds,
+    phrasebook,
   });
 }

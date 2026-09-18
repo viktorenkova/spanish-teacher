@@ -294,6 +294,15 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .learner-overview dt { color: var(--muted); font-size: .62rem; line-height: 1.3; text-transform: uppercase; letter-spacing: .05em; }
 .learner-overview dd { margin: 5px 0 0; font: 700 1.18rem Georgia, serif; }
 .learner-overview > small { grid-column: 1 / -1; color: var(--muted); font-size: .72rem; }
+.phrasebook { grid-column: 1 / -1; border-top: 1px solid rgba(24, 72, 56, .12); padding-top: 14px; }
+.phrasebook > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; font-weight: 700; }
+.phrasebook > summary strong { color: var(--muted); font-size: .76rem; }
+.phrasebook-help { margin: 10px 0 12px !important; font-size: .78rem; }
+.phrasebook ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.phrasebook li { display: grid; gap: 7px; min-width: 0; padding: 12px; border-radius: 14px; background: rgba(255, 255, 255, .68); }
+.phrasebook li > strong { font-size: 1rem; line-height: 1.35; }
+.phrasebook li details summary { cursor: pointer; color: var(--muted); font-size: .72rem; }
+.phrasebook li details span { display: block; margin-top: 5px; color: var(--ink); font-size: .82rem; line-height: 1.4; }
 .curriculum-map { grid-column: 1 / -1; border-top: 1px solid rgba(49, 83, 122, .14); padding-top: 14px; }
 .curriculum-map summary { cursor: pointer; display: flex; justify-content: space-between; gap: 14px; align-items: center; color: var(--ink); font-size: .82rem; font-weight: 800; }
 .curriculum-map summary::marker { color: var(--coral); }
@@ -470,6 +479,8 @@ h1 { max-width: 700px; font-size: clamp(2.7rem, 6vw, 4.75rem); line-height: 1; m
   .today-actions .primary-button, .today-actions .text-button { width: 100%; }
   .learner-overview dl { grid-template-columns: repeat(3, 1fr); }
   .learner-overview > small { grid-column: 1; }
+  .phrasebook { grid-column: 1; }
+  .phrasebook ul { grid-template-columns: 1fr; }
   .curriculum-map { grid-column: 1; }
   .curriculum-topic { grid-template-columns: 32px minmax(0, 1fr); }
   .curriculum-topic-status { grid-column: 2; justify-self: start; }

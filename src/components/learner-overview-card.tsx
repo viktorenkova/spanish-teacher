@@ -124,6 +124,26 @@ export function LearnerOverviewCard({
           ))}
         </ol>
       </details>
+      {overview.phrasebook.length > 0 && (
+        <details className="phrasebook">
+          <summary>
+            <span>Your useful Spanish</span>
+            <strong>{overview.phrasebook.length} phrase{overview.phrasebook.length === 1 ? "" : "s"}</strong>
+          </summary>
+          <p className="phrasebook-help">Read the Spanish first. Try to remember the meaning, then reveal it.</p>
+          <ul>
+            {overview.phrasebook.map((item) => (
+              <li key={item.id}>
+                <strong lang="es">{item.targetText}</strong>
+                <details>
+                  <summary>Show meaning</summary>
+                  <span>{item.supportText}</span>
+                </details>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
       <div className="learner-profile-actions">
         <button className="text-button" type="button" onClick={onChangeLearner}>
           Change learner
