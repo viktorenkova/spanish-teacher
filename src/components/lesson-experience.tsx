@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createEmptyProgress,
   getExerciseCoaching,
+  getLessonRecallItems,
   getLessonDefinition,
   type LessonExercise,
   type LessonKey,
@@ -140,6 +141,7 @@ export function LessonExperience({
   const [confirmingEnd, setConfirmingEnd] = useState(false);
   const [endingLesson, setEndingLesson] = useState(false);
   const [endLessonError, setEndLessonError] = useState<string>();
+  const [revealedRecallItems, setRevealedRecallItems] = useState<string[]>([]);
   const lesson = getLessonDefinition(lessonKey);
 
   if (!lesson) throw new Error("Unknown lesson");
@@ -425,6 +427,7 @@ export function LessonExperience({
         lesson.exercises.map((item) => [item.learningItem.id, item.learningItem]),
       ).values(),
     ).slice(0, 4);
+    const recallItems = getLessonRecallItems(lesson);
 
     return (
       <section className="lesson-card completion-card" aria-labelledby="lesson-complete">
@@ -446,6 +449,38 @@ export function LessonExperience({
               </li>
             ))}
           </ul>
+        </section>
+        <section className="lesson-recall-check" aria-labelledby="lesson-recall-check-title">
+          <div className="lesson-recall-heading">
+            <div>
+              <span>Quick recall</span>
+              <h3 id="lesson-recall-check-title">Can you remember these without looking?</h3>
+            </div>
+            <small>{revealedRecallItems.length}/{recallItems.length} checked</small>
+          </div>
+          <p>Think of the Spanish first. Reveal the answer only after you have tried.</p>
+          <div className="lesson-recall-list">
+            {recallItems.map((item) => {
+              const revealed = revealedRecallItems.includes(item.id);
+              return (
+                <article className="lesson-recall-item" key={item.id}>
+                  <span>{item.supportText}</span>
+                  {revealed ? (
+                    <strong lang="es">{item.targetText}</strong>
+                  ) : (
+                    <button
+                      type="button"
+                      className="text-button"
+                      onClick={() => setRevealedRecallItems((current) => [...current, item.id])}
+                    >
+                      Reveal Spanish
+                    </button>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+          <small className="lesson-recall-note">This is a memory check, not a test. Your scheduled reviews remain unchanged.</small>
         </section>
         <dl className="summary-grid">
           <div><dt>Steps completed</dt><dd>{exercises.length}/{exercises.length}</dd></div>

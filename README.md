@@ -112,6 +112,7 @@ npm run test:smoke
 26. Learner-facing adaptation explanation. — topic, review, mistake, and skill decisions are explained in clear English
 27. Lesson history. — recent topics, results, speaking evidence, and changes between completed lessons are visible before planning
 28. Practice rhythm. — local active days, the current rhythm, and gentle next-practice guidance are visible without penalising breaks
+29. Lesson-end active recall. — each completed lesson now includes a short reveal-after-recall check using the lesson's useful Spanish without changing the review schedule
 
 ## Non-goals for MVP
 

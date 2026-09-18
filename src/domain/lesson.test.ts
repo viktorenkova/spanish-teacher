@@ -4,6 +4,7 @@ import {
   cafeOrderingLesson,
   dailyRoutineLesson,
   getExerciseCoaching,
+  getLessonRecallItems,
   introductionLesson,
   lessonCatalog,
   recordAnswer,
@@ -74,5 +75,14 @@ describe("lesson progress", () => {
 
     expect(speakingExercise).toBeDefined();
     expect(speakingExercise && getExerciseCoaching(speakingExercise)).toBeUndefined();
+  });
+
+  it("builds a short unique recall set for lesson completion", () => {
+    const lesson = lessonCatalog["introductions-v1"];
+    const recallItems = getLessonRecallItems(lesson, 3);
+
+    expect(recallItems).toHaveLength(3);
+    expect(new Set(recallItems.map(({ id }) => id)).size).toBe(3);
+    expect(recallItems.every(({ targetText, supportText }) => targetText && supportText)).toBe(true);
   });
 });

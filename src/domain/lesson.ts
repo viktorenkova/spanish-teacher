@@ -97,6 +97,14 @@ export type LessonDefinition = {
   exercises: LessonExercise[];
 };
 
+export function getLessonRecallItems(lesson: LessonDefinition, limit = 3): LearningItemDefinition[] {
+  return Array.from(
+    new Map(
+      lesson.exercises.map((exercise) => [exercise.learningItem.id, exercise.learningItem]),
+    ).values(),
+  ).slice(0, Math.max(0, limit));
+}
+
 export type LearningItemDefinition = {
   id: string;
   kind: "word" | "phrase" | "construction" | "grammar_pattern";
