@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createEmptyProgress,
+  getExerciseCoaching,
   getLessonDefinition,
   type LessonExercise,
   type LessonKey,
@@ -34,6 +35,25 @@ type AttemptResponse = {
   progress: LessonProgress;
   teacherFeedback?: TeacherFeedback;
   mistakeMemory?: MistakeMemory;
+};
+
+const modalityLabels: Record<LessonExercise["modality"], { label: string; guidance: string }> = {
+  recognition: {
+    label: "Understand",
+    guidance: "Notice the meaning before you try to produce the phrase yourself.",
+  },
+  recall: {
+    label: "Recall",
+    guidance: "Bring the Spanish phrase back from memory.",
+  },
+  listening: {
+    label: "Listen",
+    guidance: "Listen for the useful words in natural Spanish.",
+  },
+  production: {
+    label: "Speak",
+    guidance: "Use the language yourself in a short spoken answer.",
+  },
 };
 
 function TeacherFeedbackCard({ feedback }: { feedback: TeacherFeedback }) {
@@ -196,14 +216,17 @@ export function LessonExperience({
       ),
     [currentProgress.completedExerciseIds, exercises],
   );
+  const completedStepCount = currentProgress.completedExerciseIds.filter((id) =>
+    exercises.some((item) => item.id === id)).length;
+  const currentStepNumber = Math.min(completedStepCount + 1, exercises.length);
   const percent = Math.round(
-    (currentProgress.completedExerciseIds.filter((id) => exercises.some((item) => item.id === id)).length
-      / exercises.length) * 100,
+    (completedStepCount / exercises.length) * 100,
   );
   const pendingCompletesLesson = Boolean(
     pendingProgress
     && exercises.every((item) => pendingProgress.completedExerciseIds.includes(item.id)),
   );
+  const exerciseCoaching = exercise ? getExerciseCoaching(exercise) : undefined;
 
   async function submitAnswer() {
     if (!exercise || !selectedOption || submitting) return;
@@ -397,16 +420,39 @@ export function LessonExperience({
   }
 
   if (!exercise) {
+    const practisedPhrases = Array.from(
+      new Map(
+        lesson.exercises.map((item) => [item.learningItem.id, item.learningItem]),
+      ).values(),
+    ).slice(0, 4);
+
     return (
       <section className="lesson-card completion-card" aria-labelledby="lesson-complete">
         <span className="eyebrow">Lesson complete</span>
         <h2 id="lesson-complete">{lesson.completionTitle}</h2>
-        <p>{lesson.completionSummary} Your transcript, answers, and FSRS review schedule are saved.</p>
+        <p>{lesson.completionSummary}</p>
+        <section className="lesson-achievement" aria-labelledby="lesson-achievement-title">
+          <span>You can now</span>
+          <h3 id="lesson-achievement-title">{lesson.objective}</h3>
+          <p>You completed the full practice path: understanding, recall, listening, and speaking.</p>
+        </section>
+        <section className="lesson-language-recap" aria-labelledby="lesson-language-recap-title">
+          <h3 id="lesson-language-recap-title">Useful Spanish from this lesson</h3>
+          <ul>
+            {practisedPhrases.map((item) => (
+              <li key={item.id}>
+                <strong lang="es">{item.targetText}</strong>
+                <span>{item.supportText}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
         <dl className="summary-grid">
-          <div><dt>Objectives</dt><dd>{progress.correctAnswers}/{lesson.exercises.length}</dd></div>
+          <div><dt>Steps completed</dt><dd>{exercises.length}/{exercises.length}</dd></div>
           <div><dt>Attempts</dt><dd>{progress.attempts}</dd></div>
           <div><dt>Phrases started</dt><dd>{progressSummary?.introducedItemCount ?? "—"}</dd></div>
         </dl>
+        <p className="saved-progress-note">Your answers, transcript, and review schedule are saved automatically.</p>
         {progressSummary && (
           <div className="progress-next-step" aria-label="Your next practice step">
             <strong>Your next useful step</strong>
@@ -437,7 +483,10 @@ export function LessonExperience({
   return (
     <section className="lesson-card" aria-labelledby="exercise-title">
       <div className="lesson-progress" aria-label={`${percent}% complete`}>
-        <div className="progress-copy"><span>Today’s lesson</span><span>{percent}%</span></div>
+        <div className="progress-copy">
+          <span>Step {currentStepNumber} of {exercises.length}</span>
+          <span>{percent}%</span>
+        </div>
         <div className="progress-track"><span style={{ width: `${percent}%` }} /></div>
       </div>
 
@@ -478,6 +527,10 @@ export function LessonExperience({
         </div>
       )}
 
+      <div className="exercise-stage" aria-label={`Current practice: ${modalityLabels[exercise.modality].label}`}>
+        <span>{modalityLabels[exercise.modality].label}</span>
+        <p>{modalityLabels[exercise.modality].guidance}</p>
+      </div>
       <span className="eyebrow">{exercise.eyebrow}</span>
       <h2 id="exercise-title">{exercise.prompt}</h2>
       <p className="context">{exercise.context}</p>
@@ -554,6 +607,33 @@ export function LessonExperience({
         >
           {feedback.message}
         </p>
+      )}
+      {feedback && exerciseCoaching && (
+        <aside className={`exercise-coaching ${feedback.correct ? "transfer" : "retry"}`} aria-live="polite">
+          {feedback.correct ? (
+            <>
+              <small>Use it again</small>
+              <h3>Move the phrase to a new situation</h3>
+              <p>{exerciseCoaching.transferPrompt}</p>
+              <div className="coaching-target">
+                <span>Useful Spanish</span>
+                <strong lang="es">{exerciseCoaching.targetPhrase}</strong>
+              </div>
+            </>
+          ) : (
+            <>
+              <small>Coach hint</small>
+              <h3>Notice this before you try again</h3>
+              <p>{exerciseCoaching.notice}</p>
+              <div className="coaching-target">
+                <span>Target phrase</span>
+                <strong lang="es">{exerciseCoaching.targetPhrase}</strong>
+              </div>
+              <p className="coaching-explanation">{exerciseCoaching.explanation}</p>
+              <strong className="coaching-action">Choose again and check the meaning.</strong>
+            </>
+          )}
+        </aside>
       )}
       {teacherFeedback && <TeacherFeedbackCard feedback={teacherFeedback} />}
       {mistakeMemory && <MistakeMemoryCard memory={mistakeMemory} />}

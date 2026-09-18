@@ -2,6 +2,7 @@ import "server-only";
 import { and, asc, desc, eq, inArray, lte, ne } from "drizzle-orm";
 import {
   getLearningItemDefinition,
+  isLessonKey,
   type LessonKey,
   type ReviewCandidate,
 } from "@/domain/lesson";
@@ -32,8 +33,7 @@ export async function createLessonPlan(input: {
   const [
     dueItems,
     skillEstimates,
-    completedIntroductionExercises,
-    completedDailyRoutineExercises,
+    completedCurriculumExercises,
     activeMistakes,
     learnerProfile,
   ] = await Promise.all([
@@ -59,22 +59,11 @@ export async function createLessonPlan(input: {
       .orderBy(asc(learnerSkillEstimates.confidence))
       .limit(2),
     db
-      .select({ exerciseId: exerciseAttempts.exerciseId })
+      .select({ lessonKey: exerciseAttempts.lessonKey, exerciseId: exerciseAttempts.exerciseId })
       .from(exerciseAttempts)
       .where(
         and(
           eq(exerciseAttempts.learnerId, input.learnerId),
-          eq(exerciseAttempts.lessonKey, "introductions-v1"),
-          eq(exerciseAttempts.correct, true),
-        ),
-      ),
-    db
-      .select({ exerciseId: exerciseAttempts.exerciseId })
-      .from(exerciseAttempts)
-      .where(
-        and(
-          eq(exerciseAttempts.learnerId, input.learnerId),
-          eq(exerciseAttempts.lessonKey, "daily-routines-v1"),
           eq(exerciseAttempts.correct, true),
         ),
       ),
@@ -101,14 +90,17 @@ export async function createLessonPlan(input: {
     ? learnerProfile.primaryGoal
     : "conversation";
 
-  const lessonKey = chooseCurriculumLesson({
-    completedIntroductionExerciseIds: completedIntroductionExercises.map(
-      ({ exerciseId }) => exerciseId,
-    ),
-    completedDailyRoutineExerciseIds: completedDailyRoutineExercises.map(
-      ({ exerciseId }) => exerciseId,
-    ),
-  });
+  const completedExerciseIds = completedCurriculumExercises.reduce<Partial<Record<LessonKey, string[]>>>(
+    (byLesson, attempt) => {
+      if (!isLessonKey(attempt.lessonKey)) return byLesson;
+      const exerciseIds = byLesson[attempt.lessonKey] ?? [];
+      if (!exerciseIds.includes(attempt.exerciseId)) exerciseIds.push(attempt.exerciseId);
+      byLesson[attempt.lessonKey] = exerciseIds;
+      return byLesson;
+    },
+    {},
+  );
+  const lessonKey = chooseCurriculumLesson(completedExerciseIds);
 
   const activeItemIds = new Set(activeMistakes.map(({ learningItemId }) => learningItemId));
   const reviewCandidates: ReviewCandidate[] = [
@@ -198,3 +190,4 @@ export function mapSavedLessonPlan(saved: typeof lessonPlans.$inferSelect) {
     createdAt: saved.createdAt.toISOString(),
   };
 }
+

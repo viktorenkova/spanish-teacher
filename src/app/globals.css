@@ -97,6 +97,9 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .end-lesson-actions .secondary-button { margin: 0; padding: 10px 14px; }
 .progress-copy { display: flex; justify-content: space-between; font-size: .75rem; font-weight: 700; color: var(--muted); margin-bottom: 8px; }
 .progress-track { height: 6px; background: var(--cream-deep); border-radius: 99px; overflow: hidden; }
+.exercise-stage { display: flex; align-items: center; gap: 10px; margin: -20px 0 26px; color: var(--muted); }
+.exercise-stage span { flex: 0 0 auto; border-radius: 999px; padding: 6px 10px; background: var(--lavender-soft); color: var(--coral-dark); font-size: .66rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.exercise-stage p { margin: 0; font-size: .78rem; line-height: 1.45; }
 .progress-track span { display: block; height: 100%; background: var(--coral); border-radius: inherit; transition: width .35s ease; }
 .context { white-space: pre-line; color: var(--muted); line-height: 1.75; background: var(--cream); border-radius: 16px; padding: 18px 20px; margin: 0 0 22px; }
 .options { display: grid; gap: 10px; }
@@ -106,6 +109,17 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .feedback { padding: 13px 15px; border-radius: 12px; line-height: 1.55; font-size: .9rem; }
 .feedback.correct { background: var(--green-soft); }
 .feedback.retry { background: #fff0e9; color: #853d30; }
+.exercise-coaching { margin-top: 14px; display: grid; gap: 10px; border: 1px solid rgba(23, 59, 55, .12); border-radius: 18px; padding: 18px; }
+.exercise-coaching.retry { background: #fffaf5; }
+.exercise-coaching.transfer { background: #f3f8f4; }
+.exercise-coaching > small { color: var(--coral-dark); font-size: .66rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.exercise-coaching h3 { margin: 0; font: 700 1.12rem Georgia, serif; }
+.exercise-coaching p { margin: 0; color: var(--muted); line-height: 1.55; }
+.coaching-target { display: grid; gap: 4px; border-radius: 14px; padding: 13px 15px; background: white; }
+.coaching-target span { color: var(--muted); font-size: .67rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.coaching-target strong { font: 700 1.15rem Georgia, serif; }
+.coaching-explanation { font-size: .86rem; }
+.coaching-action { font-size: .82rem; }
 .primary-button, .secondary-button { cursor: pointer; border: 0; border-radius: 12px; padding: 14px 20px; font-weight: 800; margin-top: 22px; }
 .primary-button { width: 100%; color: white; background: var(--ink); }
 .primary-button:hover:not(:disabled) { background: #0b2e2a; }
@@ -148,6 +162,18 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .memory-status.improving { background: var(--green-soft); }
 .mistake-memory > p { color: var(--muted); font-size: .72rem; line-height: 1.45; margin: 13px 0 0; }
 .completion-card p { color: var(--muted); line-height: 1.7; }
+.lesson-achievement { margin: 24px 0 14px; padding: 20px; border-radius: 20px; background: linear-gradient(135deg, #e7f8ef, #edf7ff); }
+.lesson-achievement > span { color: var(--coral-dark); font-size: .68rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.lesson-achievement h3 { margin: 6px 0 8px; font: 700 1.45rem Georgia, serif; line-height: 1.25; }
+.lesson-achievement p { margin: 0; color: var(--ink); font-size: .86rem; line-height: 1.55; }
+.lesson-language-recap { margin: 14px 0 20px; padding: 18px 20px; border: 1px solid rgba(118, 85, 232, .12); border-radius: 18px; background: #fff; }
+.lesson-language-recap h3 { margin: 0 0 12px; font-size: .95rem; }
+.lesson-language-recap ul { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+.lesson-language-recap li { display: grid; grid-template-columns: minmax(130px, .7fr) 1fr; gap: 14px; align-items: baseline; padding-bottom: 8px; border-bottom: 1px solid rgba(23, 59, 55, .08); }
+.lesson-language-recap li:last-child { padding-bottom: 0; border-bottom: 0; }
+.lesson-language-recap strong { font: 700 .95rem Georgia, serif; }
+.lesson-language-recap span { color: var(--muted); font-size: .78rem; line-height: 1.4; }
+.saved-progress-note { margin: 12px 0 0; font-size: .75rem; }
 .review-note { margin-top: 20px; font-size: .82rem; }
 .progress-next-step { margin-top: 20px; padding: 16px 18px; border-radius: 14px; background: var(--green-soft); }
 .progress-next-step strong { font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; }
@@ -221,6 +247,19 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .text-button:hover { color: var(--ink); }
 .planner-durations { margin: 28px 0 8px; }
 .planner-durations button { cursor: pointer; }
+.today-focus { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px 28px; margin: 26px 0 14px; padding: 22px; border: 1px solid rgba(118, 85, 232, .12); border-radius: 20px; background: linear-gradient(135deg, var(--lavender-soft), #fff); }
+.today-focus-copy h3 { margin: 6px 0 8px; font: 700 1.45rem Georgia, serif; }
+.today-focus-copy p { margin: 0; color: var(--muted); line-height: 1.55; }
+.today-label { color: var(--coral-dark); font-size: .68rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.today-snapshot { display: grid; grid-template-columns: repeat(3, minmax(72px, 1fr)); gap: 8px; margin: 0; align-self: center; }
+.today-snapshot div { padding: 11px; border-radius: 13px; background: rgba(255, 255, 255, .8); }
+.today-snapshot dt { color: var(--muted); font-size: .62rem; line-height: 1.3; text-transform: uppercase; letter-spacing: .05em; }
+.today-snapshot dd { margin: 5px 0 0; font: 700 1.08rem Georgia, serif; }
+.today-reasons { margin: 14px 0 22px; padding: 17px 18px; border-radius: 16px; background: var(--green-soft); }
+.today-reasons h3 { margin: 0 0 10px; font-size: .95rem; }
+.today-reasons ul { display: grid; gap: 7px; margin: 0; padding-left: 20px; color: var(--muted); font-size: .82rem; line-height: 1.5; }
+.today-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.today-actions .primary-button { margin: 0; }
 .learner-overview { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px 28px; margin: 24px 0 4px; padding: 20px; border-radius: 18px; background: var(--green-soft); }
 .learner-overview h3 { margin: 6px 0; font: 700 1.35rem Georgia, serif; }
 .learner-overview p { margin: 0; color: var(--muted); line-height: 1.5; }
@@ -341,6 +380,9 @@ h1 { max-width: 700px; font-size: clamp(2.7rem, 6vw, 4.75rem); line-height: 1; m
 .feedback { border-radius: 16px; margin-top: 16px; }
 .feedback.correct { background: var(--green-soft); color: #245d43; }
 .feedback.retry { background: #fff0f6; color: #8a3d67; }
+.exercise-coaching { border-color: #ddd4f8; }
+.exercise-coaching.retry { background: #fff9fc; }
+.exercise-coaching.transfer { background: #f7fbf8; }
 .primary-button, .secondary-button { border-radius: 999px; min-height: 50px; padding: 13px 22px; }
 .primary-button { background: var(--coral); box-shadow: 0 8px 18px rgba(118, 85, 232, .22); }
 .primary-button:hover:not(:disabled), .microphone-button:hover:not(:disabled) { background: var(--coral-dark); }
@@ -370,9 +412,15 @@ h1 { max-width: 700px; font-size: clamp(2.7rem, 6vw, 4.75rem); line-height: 1; m
   .coach-note { display: none; }
   .lesson-card { border-radius: 20px; }
   .summary-grid { grid-template-columns: 1fr; }
+  .exercise-stage { align-items: flex-start; flex-direction: column; }
+  .lesson-language-recap li { grid-template-columns: 1fr; gap: 3px; }
   .pilot-feedback-form { grid-template-columns: 1fr; }
   .pilot-feedback-form > label, .pilot-feedback-form > label:last-of-type { grid-column: 1; }
   .learner-overview { grid-template-columns: 1fr; }
+  .today-focus { grid-template-columns: 1fr; }
+  .today-snapshot { grid-template-columns: repeat(3, 1fr); }
+  .today-actions { align-items: stretch; flex-direction: column; }
+  .today-actions .primary-button, .today-actions .text-button { width: 100%; }
   .learner-overview dl { grid-template-columns: repeat(3, 1fr); }
   .learner-overview > small { grid-column: 1; }
   .practice-rhythm { grid-template-columns: 1fr; }

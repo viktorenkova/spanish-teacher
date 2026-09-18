@@ -11,7 +11,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import type { LessonExercise } from "@/domain/lesson";
+import type { LessonExercise, LessonKey } from "@/domain/lesson";
 import type { LearnerPrimaryGoal } from "@/domain/learner-profile";
 
 export const a1BandEnum = pgEnum("a1_band", ["early", "mid", "strong"]);
@@ -261,7 +261,7 @@ export const lessonPlans = pgTable(
     status: text("status").notNull().default("planned"),
     plannerVersion: text("planner_version").notNull(),
     plan: jsonb("plan").$type<{
-      lessonKey?: "introductions-v1" | "daily-routines-v1" | "cafe-ordering-v1";
+      lessonKey?: LessonKey;
       primaryGoal?: LearnerPrimaryGoal;
       goalFocus?: string;
       adaptationReasons?: string[];

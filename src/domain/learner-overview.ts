@@ -35,10 +35,7 @@ export function buildLearnerOverview(input: {
   completedLessonCount: number;
   completedExerciseIds: CurriculumEvidence;
 }): LearnerOverview {
-  const nextLessonKey = chooseCurriculumLesson({
-    completedIntroductionExerciseIds: input.completedExerciseIds["introductions-v1"] ?? [],
-    completedDailyRoutineExerciseIds: input.completedExerciseIds["daily-routines-v1"] ?? [],
-  });
+  const nextLessonKey = chooseCurriculumLesson(input.completedExerciseIds);
   const nextLesson = getLessonDefinition(nextLessonKey);
   if (!nextLesson) throw new Error("Unknown next curriculum lesson");
 

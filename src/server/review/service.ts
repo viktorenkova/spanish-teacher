@@ -2,11 +2,7 @@ import "server-only";
 import { and, asc, eq } from "drizzle-orm";
 import { summariseLearnerProgress, type LearnerProgressSummary } from "@/domain/progress";
 import { getLessonDefinition, type LessonExercise, type LessonKey } from "@/domain/lesson";
-import {
-  assessCafeOrderTranscript,
-  assessIntroductionTranscript,
-  assessMorningRoutineTranscript,
-} from "@/domain/speaking";
+import { getSpeakingAssessor } from "@/domain/speaking";
 import { getDatabase } from "@/server/db/client";
 import { updateLessonSessionAfterAttempt } from "@/server/lesson-sessions/service";
 import { updateMistakeMemory } from "@/server/mistakes/service";
@@ -270,11 +266,7 @@ export async function recordSpeakingAttempt(input: {
     throw new Error("Unknown speaking exercise");
   }
 
-  const assessment = input.lessonKey === "daily-routines-v1"
-    ? assessMorningRoutineTranscript(input.transcript)
-    : input.lessonKey === "cafe-ordering-v1"
-      ? assessCafeOrderTranscript(input.transcript)
-      : assessIntroductionTranscript(input.transcript);
+  const assessment = getSpeakingAssessor(exercise.speakingTask.assessorId)(input.transcript);
   const result = await persistExerciseAttempt(
     {
       ...input,

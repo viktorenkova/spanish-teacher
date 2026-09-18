@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { lessonKeys } from "@/domain/lesson";
 import { logError } from "@/server/observability/logger";
 import { loadLearnerProgressSummary, loadLessonProgress } from "@/server/review/service";
 
 const learnerIdSchema = z.uuid();
-const lessonKeySchema = z.enum(["introductions-v1", "daily-routines-v1", "cafe-ordering-v1"]);
+const lessonKeySchema = z.enum(lessonKeys);
 
 export async function GET(request: Request) {
   const learnerId = new URL(request.url).searchParams.get("learnerId");
@@ -30,3 +31,5 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Lesson progress could not be loaded." }, { status: 503 });
   }
 }
+
+

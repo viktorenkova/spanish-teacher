@@ -31,7 +31,7 @@ export default function Home() {
           <div className="sun" aria-hidden="true">☼</div>
           <div className="speech-bubble" lang="es">¡Hola!</div>
           <div className="cactus" aria-hidden="true"><i /><i /><i /></div>
-          <p><strong>Today’s goal</strong>Say your name and where you are from.</p>
+          <p><strong>Today’s practice</strong>Your next useful step is chosen from your progress.</p>
         </aside>
       </div>
 

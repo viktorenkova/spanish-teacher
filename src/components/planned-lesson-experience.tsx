@@ -55,6 +55,7 @@ export function PlannedLessonExperience({
   }>();
   const [overviewRefreshKey, setOverviewRefreshKey] = useState(0);
   const [selectedDuration, setSelectedDuration] = useState<SessionDuration>(10);
+  const [changingDuration, setChangingDuration] = useState(false);
   const [creating, setCreating] = useState(false);
   const [started, setStarted] = useState(false);
   const [error, setError] = useState<string>();
@@ -326,13 +327,81 @@ export function PlannedLessonExperience({
   }
 
   if (!plan) {
+    const dueReviewCount = overview?.dueReviewCount ?? 0;
+    const nextLessonTitle = overview?.nextLesson.title ?? "your next A1 topic";
+    const nextLessonObjective = overview?.nextLesson.objective
+      ?? "The coach will choose the most useful next step from your saved progress.";
+
     return (
       <section className="lesson-card planner-card" aria-labelledby="planner-title">
-        <span className="eyebrow">Plan today’s lesson</span>
-        <h2 id="planner-title">How much time do you have?</h2>
-        <p className="support-copy">
-          The coach will balance due reviews, new A1 language, listening, and mandatory speaking.
-        </p>
+        <span className="eyebrow">Today</span>
+        <h2 id="planner-title">
+          {overview ? `Ready for ${selectedDuration} minutes, ${overview.learner.displayName}?` : "Preparing today’s practice…"}
+        </h2>
+        <p className="support-copy">Your coach uses saved progress to choose what is most useful next.</p>
+
+        <section className="today-focus" aria-labelledby="today-focus-title">
+          <div className="today-focus-copy">
+            <span className="today-label">Next conversation topic</span>
+            <h3 id="today-focus-title">{nextLessonTitle}</h3>
+            <p>{nextLessonObjective}</p>
+          </div>
+          <dl className="today-snapshot" aria-label="Today’s lesson snapshot">
+            <div><dt>Time</dt><dd>{selectedDuration} min</dd></div>
+            <div>
+              <dt>Progress</dt>
+              <dd>{overview ? `${overview.completedTopicCount}/${overview.totalTopicCount}` : "—"}</dd>
+            </div>
+            <div><dt>Reviews</dt><dd>{overview ? dueReviewCount : "—"}</dd></div>
+          </dl>
+        </section>
+
+        {overview && (
+          <section className="today-reasons" aria-labelledby="today-reasons-title">
+            <h3 id="today-reasons-title">Why this is useful today</h3>
+            <ul>
+              <li>Continue with {nextLessonTitle} from your current A1 path.</li>
+              <li>
+                {dueReviewCount > 0
+                  ? `Bring back ${dueReviewCount} due review${dueReviewCount === 1 ? "" : "s"} before they fade.`
+                  : "Keep review light because nothing is due right now."}
+              </li>
+              <li>Practise listening and speaking in the same short session.</li>
+            </ul>
+          </section>
+        )}
+
+        <div className="today-actions">
+          <button className="primary-button" disabled={creating || !overview} onClick={createPlan}>
+            {creating ? "Building today’s lesson…" : "Build today’s lesson"}
+          </button>
+          <button
+            className="text-button"
+            type="button"
+            aria-expanded={changingDuration}
+            aria-controls="today-duration-options"
+            onClick={() => setChangingDuration((value) => !value)}
+          >
+            {changingDuration ? "Keep this duration" : `Change duration · ${selectedDuration} min`}
+          </button>
+        </div>
+
+        {changingDuration && (
+          <div id="today-duration-options" className="duration-options planner-durations" aria-label="Lesson duration">
+            {supportedSessionDurations.map((duration) => (
+              <button
+                key={duration}
+                className={selectedDuration === duration ? "chosen" : ""}
+                aria-pressed={selectedDuration === duration}
+                onClick={() => setSelectedDuration(duration)}
+              >
+                {duration} min
+              </button>
+            ))}
+          </div>
+        )}
+
+        {error && <p className="feedback retry" role="alert">{error}</p>}
         {overview && (
           <LearnerOverviewCard
             overview={overview}
@@ -344,22 +413,6 @@ export function PlannedLessonExperience({
         )}
         {rhythm && <PracticeRhythmCard rhythm={rhythm} />}
         {history && history.length > 0 && <LessonHistoryCard history={history} />}
-        <div className="duration-options planner-durations" aria-label="Lesson duration">
-          {supportedSessionDurations.map((duration) => (
-            <button
-              key={duration}
-              className={selectedDuration === duration ? "chosen" : ""}
-              aria-pressed={selectedDuration === duration}
-              onClick={() => setSelectedDuration(duration)}
-            >
-              {duration} min
-            </button>
-          ))}
-        </div>
-        {error && <p className="feedback retry" role="alert">{error}</p>}
-        <button className="primary-button" disabled={creating} onClick={createPlan}>
-          {creating ? "Building your lesson…" : "Build my lesson"}
-        </button>
       </section>
     );
   }

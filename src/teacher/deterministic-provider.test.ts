@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   assessCafeOrderTranscript,
   assessIntroductionTranscript,
+  assessRestaurantTranscript,
   assessMorningRoutineTranscript,
+  assessWeatherTranscript,
 } from "../domain/speaking";
 import { DeterministicTeacherProvider } from "./deterministic-provider";
 
@@ -62,5 +64,28 @@ describe("deterministic teacher provider", () => {
       "cafe_request_missing",
       "politeness_missing",
     ]);
+  });
+
+  it("keeps different restaurant weaknesses separate in mistake memory", async () => {
+    const transcript = "Para mí, la tortilla.";
+    const feedback = await provider.generateFeedback({
+      ...request(transcript),
+      objective: "Order one dish and ask for the bill.",
+      assessment: assessRestaurantTranscript(transcript),
+    });
+
+    expect(feedback.corrections.map(({ code }) => code)).toEqual(["bill_request_missing"]);
+    expect(feedback.corrections[0]?.suggestion).toBe("La cuenta, por favor.");
+  });
+
+  it("gives a specific weather correction instead of a generic speaking error", async () => {
+    const transcript = "Hace frío.";
+    const feedback = await provider.generateFeedback({
+      ...request(transcript),
+      objective: "Describe the weather and say how it affects you.",
+      assessment: assessWeatherTranscript(transcript),
+    });
+
+    expect(feedback.corrections.map(({ code }) => code)).toEqual(["weather_feeling_missing"]);
   });
 });

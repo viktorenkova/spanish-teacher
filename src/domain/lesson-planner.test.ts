@@ -4,7 +4,7 @@ import {
   chooseCurriculumLesson,
   supportedSessionDurations,
 } from "./lesson-planner";
-import { dailyRoutineLesson, introductionLesson } from "./lesson";
+import { dailyRoutineLesson, introductionLesson, lessonCatalog, lessonKeys } from "./lesson";
 
 describe("duration-aware lesson planner", () => {
   it.each(supportedSessionDurations)("builds a coherent %i-minute plan", (targetMinutes) => {
@@ -27,20 +27,20 @@ describe("duration-aware lesson planner", () => {
 
   it("advances to daily routines only after every introduction exercise is complete", () => {
     expect(chooseCurriculumLesson({
-      completedIntroductionExerciseIds: [introductionLesson[0].id],
-      completedDailyRoutineExerciseIds: [],
+      "introductions-v1": [introductionLesson[0].id],
+      "daily-routines-v1": [],
     }))
       .toBe("introductions-v1");
     expect(chooseCurriculumLesson({
-      completedIntroductionExerciseIds: introductionLesson.map(({ id }) => id),
-      completedDailyRoutineExerciseIds: [],
+      "introductions-v1": introductionLesson.map(({ id }) => id),
+      "daily-routines-v1": [],
     })).toBe("daily-routines-v1");
   });
 
   it("advances from daily routines to cafe ordering", () => {
     expect(chooseCurriculumLesson({
-      completedIntroductionExerciseIds: introductionLesson.map(({ id }) => id),
-      completedDailyRoutineExerciseIds: dailyRoutineLesson.map(({ id }) => id),
+      "introductions-v1": introductionLesson.map(({ id }) => id),
+      "daily-routines-v1": dailyRoutineLesson.map(({ id }) => id),
     })).toBe("cafe-ordering-v1");
   });
 
@@ -55,6 +55,22 @@ describe("duration-aware lesson planner", () => {
     expect(plan.lessonKey).toBe("daily-routines-v1");
     expect(plan.blocks.find(({ id }) => id === "introduction-context")?.title)
       .toBe("Talk about your morning");
+  });
+
+  it.each(lessonKeys)("uses catalog planner metadata for %s", (lessonKey) => {
+    const plan = buildLessonPlan({
+      targetMinutes: 10,
+      dueReviewCount: 0,
+      weakestSkills: [],
+      lessonKey,
+    });
+    const lesson = lessonCatalog[lessonKey];
+
+    expect(plan.blocks.find(({ id }) => id === "listening-core")?.objective)
+      .toBe(lesson.planner.listeningObjective);
+    expect(plan.blocks.find(({ id }) => id === "speaking-core")?.title)
+      .toBe(lesson.planner.speakingTitle);
+    expect(plan.adaptationReasons).toContain(lesson.planner.progressionReason);
   });
 
   it("aligns the plan explanation and context with the learner goal", () => {
@@ -109,3 +125,4 @@ describe("duration-aware lesson planner", () => {
     expect(plan.blocks.at(-1)?.objective).toContain("grammar");
   });
 });
+
