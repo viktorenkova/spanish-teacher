@@ -1,4 +1,5 @@
 import { CoachExperience } from "@/components/coach-experience";
+import { PwaInstallButton } from "@/components/pwa-install-button";
 
 export default function Home() {
   return (
@@ -9,8 +10,11 @@ export default function Home() {
           <span className="brand-name">Hola<span>.</span></span>
           <small>Spanish coach</small>
         </a>
-        <div className="level-chip" aria-label="Spanish level A1, English support B1">
-          <span>ES</span> A1 <i /> <span>EN</span> B1
+        <div className="header-actions">
+          <PwaInstallButton />
+          <div className="level-chip" aria-label="Spanish level A1, English support B1">
+            <span>ES</span> A1 <i /> <span>EN</span> B1
+          </div>
         </div>
       </header>
 

@@ -49,6 +49,20 @@ main { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding-bottom: 80
 .brand span { font-family: Georgia, serif; font-size: 1.35rem; font-weight: 700; }
 .brand small { color: var(--muted); font-size: .68rem; letter-spacing: .16em; text-transform: uppercase; }
 
+.header-actions { display: flex; align-items: center; gap: 10px; }
+.install-app-button {
+  cursor: pointer;
+  min-height: 38px;
+  border: 1px solid rgba(118, 85, 232, .18);
+  border-radius: 999px;
+  padding: 8px 13px;
+  background: var(--lavender-soft);
+  color: var(--coral-dark);
+  font-size: .76rem;
+  font-weight: 800;
+}
+.install-app-button:hover { background: #e4dcff; }
+
 .level-chip {
   display: flex;
   gap: 8px;
@@ -420,6 +434,8 @@ h1 { max-width: 700px; font-size: clamp(2.7rem, 6vw, 4.75rem); line-height: 1; m
 @media (max-width: 760px) {
   main { width: min(100% - 24px, 1120px); }
   .site-header { min-height: 74px; }
+  .header-actions { gap: 7px; }
+  .install-app-button { min-height: 36px; padding-inline: 11px; }
   .hero { grid-template-columns: 1fr; padding: 48px 0 30px; gap: 24px; }
   .coach-note { display: none; }
   .lesson-card { border-radius: 20px; }
