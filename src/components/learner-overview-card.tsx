@@ -11,6 +11,7 @@ import {
   supportedSessionDurations,
   type SessionDuration,
 } from "@/domain/lesson-planner";
+import { speakWithBrowser } from "@/tts/browser-provider";
 
 export function LearnerOverviewCard({
   overview,
@@ -39,6 +40,28 @@ export function LearnerOverviewCard({
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string>();
   const [error, setError] = useState<string>();
+  const [playingPhraseId, setPlayingPhraseId] = useState<string>();
+  const [phraseAudioError, setPhraseAudioError] = useState<string>();
+
+  async function playPhrase(item: LearnerOverview["phrasebook"][number]) {
+    setPlayingPhraseId(item.id);
+    setPhraseAudioError(undefined);
+    try {
+      await speakWithBrowser({
+        text: item.targetText,
+        locale: "es-ES",
+        rate: 0.86,
+      });
+    } catch (audioError) {
+      setPhraseAudioError(
+        audioError instanceof Error
+          ? audioError.message
+          : "Spanish audio could not be played in this browser.",
+      );
+    } finally {
+      setPlayingPhraseId((current) => current === item.id ? undefined : current);
+    }
+  }
 
   async function renameLearner(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -134,7 +157,19 @@ export function LearnerOverviewCard({
           <ul>
             {overview.phrasebook.map((item) => (
               <li key={item.id}>
-                <strong lang="es">{item.targetText}</strong>
+                <div className="phrasebook-phrase">
+                  <strong lang="es">{item.targetText}</strong>
+                  <button
+                    className="phrasebook-listen"
+                    type="button"
+                    disabled={playingPhraseId === item.id}
+                    aria-label={`Listen to ${item.targetText} in Spanish`}
+                    onClick={() => void playPhrase(item)}
+                  >
+                    <span aria-hidden="true">▶</span>
+                    {playingPhraseId === item.id ? "Playing…" : "Listen"}
+                  </button>
+                </div>
                 <details>
                   <summary>Show meaning</summary>
                   <span>{item.supportText}</span>
@@ -142,6 +177,7 @@ export function LearnerOverviewCard({
               </li>
             ))}
           </ul>
+          {phraseAudioError && <p className="phrasebook-audio-error" role="alert">{phraseAudioError}</p>}
         </details>
       )}
       <div className="learner-profile-actions">

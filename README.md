@@ -117,6 +117,7 @@ npm run test:smoke
 31. Browser-native PWA install experience. — an install action appears only when the browser confirms the app can be installed and disappears after the install prompt is used or the app is installed
 32. Learner-facing A1 curriculum map. — the saved-progress view now shows the full deterministic learning path with completed, current, and upcoming topics
 33. Personal phrasebook. — saved progress now exposes the Spanish the learner has actually started, with meaning hidden by default for quick active recall outside a lesson
+34. Phrasebook listening practice. — every saved Spanish phrase can be played with the existing browser `es-ES` speech provider for quick listening and pronunciation reference without an LLM
 
 ## Non-goals for MVP
 

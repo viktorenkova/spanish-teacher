@@ -301,8 +301,15 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .phrasebook ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
 .phrasebook li { display: grid; gap: 7px; min-width: 0; padding: 12px; border-radius: 14px; background: rgba(255, 255, 255, .68); }
 .phrasebook li > strong { font-size: 1rem; line-height: 1.35; }
+.phrasebook-phrase { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.phrasebook-phrase > strong { min-width: 0; font-size: 1rem; line-height: 1.35; }
+.phrasebook-listen { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 5px; min-height: 30px; padding: 5px 9px; border: 1px solid rgba(118, 85, 232, .2); border-radius: 999px; background: var(--lavender-soft); color: var(--coral-dark); font-size: .7rem; font-weight: 800; }
+.phrasebook-listen:hover:not(:disabled) { border-color: var(--coral); }
+.phrasebook-listen:focus-visible { outline: 3px solid rgba(118, 85, 232, .2); outline-offset: 2px; }
+.phrasebook-listen:disabled { cursor: wait; opacity: .65; }
 .phrasebook li details summary { cursor: pointer; color: var(--muted); font-size: .72rem; }
 .phrasebook li details span { display: block; margin-top: 5px; color: var(--ink); font-size: .82rem; line-height: 1.4; }
+.phrasebook-audio-error { grid-column: 1 / -1; margin: 10px 0 0 !important; color: #9a3030 !important; font-size: .75rem !important; }
 .curriculum-map { grid-column: 1 / -1; border-top: 1px solid rgba(49, 83, 122, .14); padding-top: 14px; }
 .curriculum-map summary { cursor: pointer; display: flex; justify-content: space-between; gap: 14px; align-items: center; color: var(--ink); font-size: .82rem; font-weight: 800; }
 .curriculum-map summary::marker { color: var(--coral); }
@@ -481,6 +488,7 @@ h1 { max-width: 700px; font-size: clamp(2.7rem, 6vw, 4.75rem); line-height: 1; m
   .learner-overview > small { grid-column: 1; }
   .phrasebook { grid-column: 1; }
   .phrasebook ul { grid-template-columns: 1fr; }
+  .phrasebook-phrase { align-items: center; }
   .curriculum-map { grid-column: 1; }
   .curriculum-topic { grid-template-columns: 32px minmax(0, 1fr); }
   .curriculum-topic-status { grid-column: 2; justify-self: start; }
