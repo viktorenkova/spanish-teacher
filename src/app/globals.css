@@ -294,6 +294,22 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .learner-overview dt { color: var(--muted); font-size: .62rem; line-height: 1.3; text-transform: uppercase; letter-spacing: .05em; }
 .learner-overview dd { margin: 5px 0 0; font: 700 1.18rem Georgia, serif; }
 .learner-overview > small { grid-column: 1 / -1; color: var(--muted); font-size: .72rem; }
+.curriculum-map { grid-column: 1 / -1; border-top: 1px solid rgba(49, 83, 122, .14); padding-top: 14px; }
+.curriculum-map summary { cursor: pointer; display: flex; justify-content: space-between; gap: 14px; align-items: center; color: var(--ink); font-size: .82rem; font-weight: 800; }
+.curriculum-map summary::marker { color: var(--coral); }
+.curriculum-map summary strong { color: var(--coral-dark); font-size: .74rem; }
+.curriculum-map ol { display: grid; gap: 8px; margin: 14px 0 2px; padding: 0; list-style: none; }
+.curriculum-topic { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 11px; align-items: center; padding: 11px 12px; border-radius: 14px; background: rgba(255,255,255,.72); }
+.curriculum-topic-index { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #ece8f3; color: var(--muted); font-size: .72rem; font-weight: 850; }
+.curriculum-topic div { min-width: 0; }
+.curriculum-topic div > strong { display: block; font-size: .82rem; }
+.curriculum-topic p { margin: 3px 0 0; color: var(--muted); font-size: .72rem; line-height: 1.4; }
+.curriculum-topic-status { border-radius: 999px; padding: 5px 8px; color: var(--muted); background: #f3f0f7; font-size: .62rem; font-weight: 850; text-transform: uppercase; letter-spacing: .04em; }
+.curriculum-topic.complete .curriculum-topic-index { background: var(--green-soft); color: #245d43; }
+.curriculum-topic.complete .curriculum-topic-status { background: var(--green-soft); color: #245d43; }
+.curriculum-topic.current { border: 1px solid rgba(118, 85, 232, .18); background: var(--lavender-soft); }
+.curriculum-topic.current .curriculum-topic-index { background: var(--coral); color: white; }
+.curriculum-topic.current .curriculum-topic-status { background: white; color: var(--coral-dark); }
 .learner-profile-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 16px; margin-top: -8px; }
 .learner-profile-actions .text-button { padding: 4px 0; }
 .learner-profile-management { grid-column: 1 / -1; display: grid; gap: 16px; padding-top: 18px; border-top: 1px solid rgba(49, 83, 122, .14); }
@@ -454,6 +470,9 @@ h1 { max-width: 700px; font-size: clamp(2.7rem, 6vw, 4.75rem); line-height: 1; m
   .today-actions .primary-button, .today-actions .text-button { width: 100%; }
   .learner-overview dl { grid-template-columns: repeat(3, 1fr); }
   .learner-overview > small { grid-column: 1; }
+  .curriculum-map { grid-column: 1; }
+  .curriculum-topic { grid-template-columns: 32px minmax(0, 1fr); }
+  .curriculum-topic-status { grid-column: 2; justify-self: start; }
   .practice-rhythm { grid-template-columns: 1fr; }
   .practice-rhythm dl { grid-template-columns: repeat(3, 1fr); }
   .practice-rhythm > small { grid-column: 1; }

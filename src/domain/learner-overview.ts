@@ -1,4 +1,4 @@
-import { getLessonDefinition, lessonCatalog, type LessonKey } from "./lesson";
+import { getLessonDefinition, lessonCatalog, lessonKeys, type LessonKey } from "./lesson";
 import { chooseCurriculumLesson, type SessionDuration } from "./lesson-planner";
 import type { LearnerPrimaryGoal } from "./learner-profile";
 import type { LearnerProgressSummary } from "./progress";
@@ -20,6 +20,12 @@ export type LearnerOverview = LearnerProgressSummary & {
     title: string;
     objective: string;
   };
+  curriculum: Array<{
+    key: LessonKey;
+    title: string;
+    objective: string;
+    status: "complete" | "current" | "upcoming";
+  }>;
 };
 
 type CurriculumEvidence = Partial<Record<LessonKey, string[]>>;
@@ -39,10 +45,10 @@ export function buildLearnerOverview(input: {
   const nextLesson = getLessonDefinition(nextLessonKey);
   if (!nextLesson) throw new Error("Unknown next curriculum lesson");
 
-  const lessonKeys = Object.keys(lessonCatalog) as LessonKey[];
   const completedTopicCount = lessonKeys.filter((key) => (
     lessonIsComplete(key, input.completedExerciseIds)
   )).length;
+  const curriculumComplete = completedTopicCount === lessonKeys.length;
 
   return {
     learner: input.learner,
@@ -50,11 +56,21 @@ export function buildLearnerOverview(input: {
     completedLessonCount: input.completedLessonCount,
     completedTopicCount,
     totalTopicCount: lessonKeys.length,
-    curriculumComplete: completedTopicCount === lessonKeys.length,
+    curriculumComplete,
     nextLesson: {
       key: nextLesson.key,
       title: nextLesson.title,
       objective: nextLesson.objective,
     },
+    curriculum: lessonKeys.map((key) => ({
+      key,
+      title: lessonCatalog[key].title,
+      objective: lessonCatalog[key].objective,
+      status: lessonIsComplete(key, input.completedExerciseIds)
+        ? "complete"
+        : !curriculumComplete && key === nextLessonKey
+          ? "current"
+          : "upcoming",
+    })),
   };
 }

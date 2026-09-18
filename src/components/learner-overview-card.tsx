@@ -102,6 +102,28 @@ export function LearnerOverviewCard({
         {overview.learner.overallLevel} · {overview.learner.a1Band} A1 · {overview.introducedItemCount} phrase{overview.introducedItemCount === 1 ? "" : "s"} started
         {overview.hasCompletedSpeakingTask ? " · speaking practice saved" : " · speaking is included in every lesson"}
       </small>
+      <details className="curriculum-map">
+        <summary>
+          <span>Your A1 learning path</span>
+          <strong>{overview.completedTopicCount}/{overview.totalTopicCount} topics</strong>
+        </summary>
+        <ol>
+          {overview.curriculum.map((topic, index) => (
+            <li key={topic.key} className={`curriculum-topic ${topic.status}`}>
+              <span className="curriculum-topic-index" aria-hidden="true">
+                {topic.status === "complete" ? "✓" : index + 1}
+              </span>
+              <div>
+                <strong>{topic.title}</strong>
+                <p>{topic.objective}</p>
+              </div>
+              <span className="curriculum-topic-status">
+                {topic.status === "complete" ? "Done" : topic.status === "current" ? "Now" : "Later"}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </details>
       <div className="learner-profile-actions">
         <button className="text-button" type="button" onClick={onChangeLearner}>
           Change learner

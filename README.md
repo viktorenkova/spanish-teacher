@@ -11,8 +11,8 @@ lessons.
 
 ## Current milestone
 
-The repository is implementing MVP-0: a coherent A1 learning loop across the
-three initial curriculum topics. The current slice includes persistent
+The repository is implementing MVP-0: a coherent A1 learning loop across an
+expanded deterministic curriculum path. The current slice includes persistent
 profiles, an A1 diagnostic, FSRS review state, listening, a transcript-backed
 spoken task in every lesson, persisted provider-based teacher feedback,
 structured long-term mistake memory, executable adaptive reviews, and
@@ -115,6 +115,7 @@ npm run test:smoke
 29. Lesson-end active recall. — each completed lesson now includes a short reveal-after-recall check using the lesson's useful Spanish without changing the review schedule
 30. Installable PWA shell. — manifest icons, standalone metadata, service-worker registration, and a safe offline fallback are implemented for personal web use
 31. Browser-native PWA install experience. — an install action appears only when the browser confirms the app can be installed and disappears after the install prompt is used or the app is installed
+32. Learner-facing A1 curriculum map. — the saved-progress view now shows the full deterministic learning path with completed, current, and upcoming topics
 
 ## Non-goals for MVP
 

@@ -29,6 +29,14 @@ describe("learner overview", () => {
     expect(overview.completedTopicCount).toBe(0);
     expect(overview.curriculumComplete).toBe(false);
     expect(overview.nextLesson.key).toBe("introductions-v1");
+    expect(overview.curriculum[0]).toMatchObject({
+      key: "introductions-v1",
+      status: "current",
+    });
+    expect(overview.curriculum[1]).toMatchObject({
+      key: "daily-routines-v1",
+      status: "upcoming",
+    });
     expect(overview.learner).toEqual(learner);
   });
 
@@ -49,5 +57,10 @@ describe("learner overview", () => {
       key: "cafe-ordering-v1",
       title: "Order in a cafe",
     });
+    expect(overview.curriculum.slice(0, 3).map(({ status }) => status)).toEqual([
+      "complete",
+      "complete",
+      "current",
+    ]);
   });
 });

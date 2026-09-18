@@ -2,11 +2,20 @@
 
 ## Implemented sequence
 
-The first deterministic curriculum path is:
+The deterministic A1 curriculum path is:
 
 1. Introductions and personal information.
 2. Daily routines.
 3. Ordering food and drinks in a cafe.
+4. Shopping for food.
+5. Asking for directions.
+6. Using public transport.
+7. Checking in at a hotel.
+8. Eating in a restaurant.
+9. Talking about family.
+10. Talking about free time.
+11. Making simple plans.
+12. Talking about the weather.
 
 The next topic unlocks only when every core exercise in the current topic has
 successful evidence. Each topic retains recognition, active retrieval,
