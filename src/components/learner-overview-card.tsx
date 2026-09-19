@@ -18,6 +18,7 @@ import {
 } from "@/domain/lesson-planner";
 import { BrowserSpeechToTextProvider } from "@/stt/browser-provider";
 import { speakWithBrowser } from "@/tts/browser-provider";
+import { PhrasebookRecall } from "./phrasebook-recall";
 
 export function LearnerOverviewCard({
   overview,
@@ -49,6 +50,8 @@ export function LearnerOverviewCard({
   const [playingPhraseId, setPlayingPhraseId] = useState<string>();
   const [phraseAudioError, setPhraseAudioError] = useState<string>();
   const [phraseQuery, setPhraseQuery] = useState("");
+  const [recallItems, setRecallItems] = useState<LearnerOverview["phrasebook"]>();
+  const recallStart = useRef<HTMLButtonElement>(null);
   const [recordingPhraseId, setRecordingPhraseId] = useState<string>();
   const [phraseSpeechError, setPhraseSpeechError] = useState<string>();
   const [phraseSpeechResult, setPhraseSpeechResult] = useState<{
@@ -198,6 +201,13 @@ export function LearnerOverviewCard({
             <span>Your useful Spanish</span>
             <strong>{overview.phrasebook.length} phrase{overview.phrasebook.length === 1 ? "" : "s"}</strong>
           </summary>
+          {recallItems && (
+            <PhrasebookRecall items={recallItems} onClose={() => {
+              setRecallItems(undefined);
+              requestAnimationFrame(() => recallStart.current?.focus());
+            }} />
+          )}
+          <div hidden={Boolean(recallItems)}>
           <p className="phrasebook-help">
             Read the Spanish first. Remember the meaning, listen, then say the phrase aloud.
           </p>
@@ -229,6 +239,16 @@ export function LearnerOverviewCard({
             {visiblePhrases.length} of {overview.phrasebook.length} phrases
             {visiblePhrases.length === 0 && ". No phrases found. Try another word or clear your search."}
           </p>
+          <button
+            ref={recallStart}
+            className="secondary-button phrasebook-recall-start"
+            type="button"
+            disabled={visiblePhrases.length === 0 || Boolean(recordingPhraseId) || Boolean(playingPhraseId)}
+            onClick={() => setRecallItems(visiblePhrases.slice(0, 5))}
+          >
+            Practise from memory
+          </button>
+          <p className="phrasebook-help">Try the first {Math.min(5, visiblePhrases.length)} phrases in these results, one at a time.</p>
           <ul id="phrasebook-results">
             {visiblePhrases.map((item) => (
               <li key={item.id}>
@@ -283,6 +303,7 @@ export function LearnerOverviewCard({
           <p className="phrasebook-privacy-note">
             Audio is not saved by Spanish Coach. Browser transcription can be wrong, and this practice does not score pronunciation or change your saved progress.
           </p>
+          </div>
         </details>
       )}
       <div className="learner-profile-actions">
