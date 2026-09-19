@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import type { LearnerOverview } from "@/domain/learner-overview";
+import { filterPhrasebook } from "@/domain/phrasebook-search";
 import {
   assessPhraseRehearsal,
   type PhraseRehearsalAssessment,
@@ -47,6 +48,7 @@ export function LearnerOverviewCard({
   const [error, setError] = useState<string>();
   const [playingPhraseId, setPlayingPhraseId] = useState<string>();
   const [phraseAudioError, setPhraseAudioError] = useState<string>();
+  const [phraseQuery, setPhraseQuery] = useState("");
   const [recordingPhraseId, setRecordingPhraseId] = useState<string>();
   const [phraseSpeechError, setPhraseSpeechError] = useState<string>();
   const [phraseSpeechResult, setPhraseSpeechResult] = useState<{
@@ -55,6 +57,7 @@ export function LearnerOverviewCard({
     assessment: PhraseRehearsalAssessment;
   }>();
   const phraseSpeechProvider = useRef(new BrowserSpeechToTextProvider());
+  const visiblePhrases = filterPhrasebook(overview.phrasebook, phraseQuery);
 
   useEffect(() => () => phraseSpeechProvider.current.abort(), []);
 
@@ -198,8 +201,36 @@ export function LearnerOverviewCard({
           <p className="phrasebook-help">
             Read the Spanish first. Remember the meaning, listen, then say the phrase aloud.
           </p>
-          <ul>
-            {overview.phrasebook.map((item) => (
+          <div className="phrasebook-search">
+            <label htmlFor="phrasebook-query">Find a phrase</label>
+            <input
+              id="phrasebook-query"
+              type="search"
+              value={phraseQuery}
+              disabled={Boolean(recordingPhraseId) || Boolean(playingPhraseId)}
+              onChange={(event) => setPhraseQuery(event.target.value)}
+              placeholder="Search in Spanish or English"
+              aria-describedby="phrasebook-search-help"
+              aria-controls="phrasebook-results"
+            />
+            <small id="phrasebook-search-help">You can type without accents. Stop speaking or wait for the audio to finish before searching.</small>
+            {phraseQuery && (
+              <button
+                className="text-button"
+                type="button"
+                disabled={Boolean(recordingPhraseId) || Boolean(playingPhraseId)}
+                onClick={() => setPhraseQuery("")}
+              >
+                Clear search
+              </button>
+            )}
+          </div>
+          <p className="phrasebook-search-count" role="status">
+            {visiblePhrases.length} of {overview.phrasebook.length} phrases
+            {visiblePhrases.length === 0 && ". No phrases found. Try another word or clear your search."}
+          </p>
+          <ul id="phrasebook-results">
+            {visiblePhrases.map((item) => (
               <li key={item.id}>
                 <div className="phrasebook-phrase">
                   <strong lang="es">{item.targetText}</strong>

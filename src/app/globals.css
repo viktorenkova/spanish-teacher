@@ -298,6 +298,13 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .phrasebook > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; font-weight: 700; }
 .phrasebook > summary strong { color: var(--muted); font-size: .76rem; }
 .phrasebook-help { margin: 10px 0 12px !important; font-size: .78rem; }
+.phrasebook-search { display: grid; gap: 7px; margin-bottom: 10px; }
+.phrasebook-search label { font-size: .82rem; font-weight: 700; }
+.phrasebook-search input { width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid #a99ec5; border-radius: 10px; background: var(--paper); color: var(--ink); font: inherit; font-size: 1rem; }
+.phrasebook-search input:focus-visible { outline: 3px solid var(--coral); outline-offset: 2px; }
+.phrasebook-search small { color: var(--muted); font-size: .75rem; }
+.phrasebook-search button { justify-self: start; min-height: 44px; }
+.phrasebook-search-count { margin: 0 0 10px !important; font-size: .78rem; }
 .phrasebook ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
 .phrasebook li { display: grid; gap: 7px; min-width: 0; padding: 12px; border-radius: 14px; background: rgba(255, 255, 255, .68); }
 .phrasebook li > strong { font-size: 1rem; line-height: 1.35; }
