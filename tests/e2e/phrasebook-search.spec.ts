@@ -110,13 +110,25 @@ for (const width of [1280, 375]) {
       await practice.getByRole("button", { name: index === 0 ? "I needed help" : "I remembered it" }).click();
     }
     await expect(practice).toContainText("You marked 4 of 5 phrases as remembered");
+    await expect(practice).toContainText("You checked 5 of 6 phrases in this practice.");
     await practice.getByRole("button", { name: "Try difficult phrases again" }).click();
     await expect(practice.getByRole("heading")).toHaveText("Say it from memory · 1 of 1");
     await expect(practice).toContainText("A coffee, please.");
     await practice.getByRole("button", { name: "Reveal Spanish" }).click();
     await practice.getByRole("button", { name: "I remembered it" }).click();
     await expect(practice).toContainText("You marked 1 of 1 phrases as remembered");
+    await expect(practice).toContainText("You checked 5 of 6 phrases in this practice.");
     await expect(practice.getByRole("button", { name: "Try difficult phrases again" })).toHaveCount(0);
+    await practice.getByRole("button", { name: "Practise next phrase", exact: true }).click();
+    await expect(practice.getByRole("heading")).toBeFocused();
+    await expect(practice.getByRole("heading")).toHaveText("Say it from memory · 1 of 1");
+    await expect(practice).toContainText("Water, please.");
+    await expect(practice.locator("[lang=es]")).toHaveCount(0);
+    await practice.getByRole("button", { name: "Reveal Spanish" }).click();
+    await practice.getByRole("button", { name: "I remembered it" }).click();
+    await expect(practice).toContainText("You checked 6 of 6 phrases in this practice.");
+    await expect(practice).toContainText("You have checked all the phrases in this set.");
+    await expect(practice.getByRole("button", { name: /Practise next/ })).toHaveCount(0);
     await practice.getByRole("button", { name: "Back to phrasebook" }).click();
     await expect(start).toBeFocused();
     await page.getByRole("searchbox").fill("morning");

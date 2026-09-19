@@ -9,7 +9,9 @@ export function PhrasebookRecall({ items, onClose }: {
   items: Phrase[];
   onClose: () => void;
 }) {
-  const [round, setRound] = useState(items);
+  const [round, setRound] = useState(() => items.slice(0, 5));
+  const [nextBatchStart, setNextBatchStart] = useState(Math.min(5, items.length));
+  const [checkedIds, setCheckedIds] = useState<string[]>([]);
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [needsHelp, setNeedsHelp] = useState<Phrase[]>([]);
@@ -22,6 +24,7 @@ export function PhrasebookRecall({ items, onClose }: {
 
   function next(remembered: boolean) {
     if (!revealed || !phrase) return;
+    setCheckedIds((current) => current.includes(phrase.id) ? current : [...current, phrase.id]);
     if (!remembered) setNeedsHelp((current) => [...current, phrase]);
     setRevealed(false);
     setIndex((current) => current + 1);
@@ -56,7 +59,12 @@ export function PhrasebookRecall({ items, onClose }: {
       ) : (
         <>
           <p>You marked {round.length - needsHelp.length} of {round.length} phrases as remembered in this round.</p>
-          <p>{needsHelp.length ? "Try the phrases you needed help with once more." : "You have finished this short practice. Come back later to try again."}</p>
+          <p>You checked {checkedIds.length} of {items.length} phrases in this practice.</p>
+          <p>{needsHelp.length
+            ? "Try the phrases you needed help with once more. You can also take a break."
+            : nextBatchStart < items.length
+              ? "You can try the next phrases or take a break."
+              : "You have checked all the phrases in this set. Come back later to try again."}</p>
           {needsHelp.length > 0 && (
             <button type="button" className="secondary-button" onClick={() => {
               setRound(needsHelp);
@@ -64,6 +72,15 @@ export function PhrasebookRecall({ items, onClose }: {
               setIndex(0);
               setRevealed(false);
             }}>Try difficult phrases again</button>
+          )}
+          {nextBatchStart < items.length && (
+            <button type="button" className="secondary-button" onClick={() => {
+              setRound(items.slice(nextBatchStart, nextBatchStart + 5));
+              setNextBatchStart((current) => Math.min(current + 5, items.length));
+              setNeedsHelp([]);
+              setIndex(0);
+              setRevealed(false);
+            }}>{items.length - nextBatchStart === 1 ? "Practise next phrase" : `Practise next ${Math.min(5, items.length - nextBatchStart)} phrases`}</button>
           )}
         </>
       )}

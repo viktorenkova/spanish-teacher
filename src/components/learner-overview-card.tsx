@@ -244,11 +244,11 @@ export function LearnerOverviewCard({
             className="secondary-button phrasebook-recall-start"
             type="button"
             disabled={visiblePhrases.length === 0 || Boolean(recordingPhraseId) || Boolean(playingPhraseId)}
-            onClick={() => setRecallItems(visiblePhrases.slice(0, 5))}
+            onClick={() => setRecallItems([...visiblePhrases])}
           >
             Practise from memory
           </button>
-          <p className="phrasebook-help">Try the first {Math.min(5, visiblePhrases.length)} phrases in these results, one at a time.</p>
+          <p className="phrasebook-help">Practise these search results in short sets of up to five phrases. You can stop after any set.</p>
           <ul id="phrasebook-results">
             {visiblePhrases.map((item) => (
               <li key={item.id}>

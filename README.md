@@ -121,6 +121,7 @@ npm run test:smoke
 35. Phrasebook speaking rehearsal. — saved phrases can be repeated with browser `es-ES` transcription and honest deterministic word matching without treating a transcript as pronunciation evidence
 36. Phrasebook search. — find saved phrases by Spanish or English words, with accent-insensitive matching, a result count, and a clear-search action; listening and speaking remain available in the results
 37. Phrasebook memory practice. — rehearse up to five search results from English prompts, reveal the Spanish after speaking, mark your own recall, and retry difficult phrases; this optional self-check does not save results or change FSRS reviews
+38. Complete phrasebook practice sets. — continue through all current search results in batches of up to five, with a count of unique phrases checked; retrying a difficult phrase does not skip the next batch or inflate that count
 
 ## Non-goals for MVP
 
