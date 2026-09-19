@@ -98,6 +98,12 @@ test("completes a lesson with listening and speaking, then adapts the next topic
     await expect(recentLesson.getByText("Done", { exact: true })).toBeVisible();
     await expect(page.getByText(`Saved progress · ${displayName}`, { exact: true })).toBeVisible();
     await expect(page.getByText("1/3", { exact: true })).toBeVisible();
+    await page.locator("details.phrasebook > summary").click();
+    await page.getByRole("button", { name: "Practise saying Me llamo…", exact: true }).first().click();
+    await expect(page.getByText(/Listening… Say the phrase/)).toBeVisible();
+    await page.getByRole("button", { name: "Stop practising Me llamo…", exact: true }).click();
+    await expect(page.getByText("Me llamo Katia. Soy de Madrid.", { exact: true })).toBeVisible();
+    await expect(page.getByText(/Pronunciation was not assessed/)).toBeVisible();
     await page.getByRole("button", { name: "Build my lesson" }).click();
 
     await expect(page.getByRole("heading", { name: "A coherent path, chosen for you." })).toBeVisible();

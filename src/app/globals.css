@@ -307,9 +307,21 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .phrasebook-listen:hover:not(:disabled) { border-color: var(--coral); }
 .phrasebook-listen:focus-visible { outline: 3px solid rgba(118, 85, 232, .2); outline-offset: 2px; }
 .phrasebook-listen:disabled { cursor: wait; opacity: .65; }
+.phrasebook-speak { justify-self: start; min-height: 34px; padding: 6px 10px; border: 1px solid rgba(24, 72, 56, .18); border-radius: 10px; background: var(--green-soft); color: #245d43; font-size: .72rem; font-weight: 800; }
+.phrasebook-speak:hover:not(:disabled) { border-color: #5d9d7d; }
+.phrasebook-speak:focus-visible { outline: 3px solid rgba(59, 137, 101, .2); outline-offset: 2px; }
+.phrasebook-speak:disabled { cursor: wait; opacity: .65; }
+.phrasebook-recording { color: #8a3b2d !important; font-size: .72rem; }
+.phrasebook-transcript { display: grid; gap: 4px; padding: 9px 10px; border-left: 3px solid #9a8fc8; border-radius: 8px; background: rgba(245, 242, 255, .78); }
+.phrasebook-transcript.matched { border-left-color: #4b946e; background: rgba(229, 247, 237, .82); }
+.phrasebook-transcript.close { border-left-color: #d79a3f; background: rgba(255, 247, 226, .84); }
+.phrasebook-transcript small { color: var(--muted); font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+.phrasebook-transcript p { color: var(--ink); font-weight: 750; }
+.phrasebook-transcript span { color: var(--muted); font-size: .7rem; line-height: 1.45; }
 .phrasebook li details summary { cursor: pointer; color: var(--muted); font-size: .72rem; }
 .phrasebook li details span { display: block; margin-top: 5px; color: var(--ink); font-size: .82rem; line-height: 1.4; }
 .phrasebook-audio-error { grid-column: 1 / -1; margin: 10px 0 0 !important; color: #9a3030 !important; font-size: .75rem !important; }
+.phrasebook-privacy-note { margin: 12px 0 0 !important; color: var(--muted); font-size: .68rem; line-height: 1.45; }
 .curriculum-map { grid-column: 1 / -1; border-top: 1px solid rgba(49, 83, 122, .14); padding-top: 14px; }
 .curriculum-map summary { cursor: pointer; display: flex; justify-content: space-between; gap: 14px; align-items: center; color: var(--ink); font-size: .82rem; font-weight: 800; }
 .curriculum-map summary::marker { color: var(--coral); }

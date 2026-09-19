@@ -37,6 +37,19 @@ name construction (`Me llamo…` or `Mi nombre es…`) and origin construction
 (`Soy de…` or `Vengo de…`). This is deliberately task completion, not general
 grammar correction or pronunciation scoring.
 
+## Phrasebook rehearsal
+
+The personal phrasebook also offers a lightweight speaking rehearsal outside a
+lesson. The browser creates an `es-ES` transcript, and deterministic code checks
+whether the target words appear in the same order. Open templates such as
+`Me llamo…` can contain the learner's own words, and alternatives separated by
+`/` are checked independently.
+
+This rehearsal shows the transcript and reminds the learner that recognition
+can be wrong. It does not save audio, create an exercise attempt, update FSRS,
+or claim to assess pronunciation. Only scored lesson work changes saved learning
+progress.
+
 ## Next provider step
 
 A future server STT implementation can use the same port, but choosing a cloud

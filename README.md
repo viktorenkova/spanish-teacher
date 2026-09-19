@@ -118,6 +118,7 @@ npm run test:smoke
 32. Learner-facing A1 curriculum map. — the saved-progress view now shows the full deterministic learning path with completed, current, and upcoming topics
 33. Personal phrasebook. — saved progress now exposes the Spanish the learner has actually started, with meaning hidden by default for quick active recall outside a lesson
 34. Phrasebook listening practice. — every saved Spanish phrase can be played with the existing browser `es-ES` speech provider for quick listening and pronunciation reference without an LLM
+35. Phrasebook speaking rehearsal. — saved phrases can be repeated with browser `es-ES` transcription and honest deterministic word matching without treating a transcript as pronunciation evidence
 
 ## Non-goals for MVP
 

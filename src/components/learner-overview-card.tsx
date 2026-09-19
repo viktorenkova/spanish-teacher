@@ -1,7 +1,11 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import type { LearnerOverview } from "@/domain/learner-overview";
+import {
+  assessPhraseRehearsal,
+  type PhraseRehearsalAssessment,
+} from "@/domain/phrase-rehearsal";
 import {
   learnerPrimaryGoalLabels,
   learnerPrimaryGoals,
@@ -11,6 +15,7 @@ import {
   supportedSessionDurations,
   type SessionDuration,
 } from "@/domain/lesson-planner";
+import { BrowserSpeechToTextProvider } from "@/stt/browser-provider";
 import { speakWithBrowser } from "@/tts/browser-provider";
 
 export function LearnerOverviewCard({
@@ -42,6 +47,16 @@ export function LearnerOverviewCard({
   const [error, setError] = useState<string>();
   const [playingPhraseId, setPlayingPhraseId] = useState<string>();
   const [phraseAudioError, setPhraseAudioError] = useState<string>();
+  const [recordingPhraseId, setRecordingPhraseId] = useState<string>();
+  const [phraseSpeechError, setPhraseSpeechError] = useState<string>();
+  const [phraseSpeechResult, setPhraseSpeechResult] = useState<{
+    itemId: string;
+    transcript: string;
+    assessment: PhraseRehearsalAssessment;
+  }>();
+  const phraseSpeechProvider = useRef(new BrowserSpeechToTextProvider());
+
+  useEffect(() => () => phraseSpeechProvider.current.abort(), []);
 
   async function playPhrase(item: LearnerOverview["phrasebook"][number]) {
     setPlayingPhraseId(item.id);
@@ -60,6 +75,33 @@ export function LearnerOverviewCard({
       );
     } finally {
       setPlayingPhraseId((current) => current === item.id ? undefined : current);
+    }
+  }
+
+  async function startPhraseRehearsal(item: LearnerOverview["phrasebook"][number]) {
+    if (recordingPhraseId) return;
+    window.speechSynthesis?.cancel();
+    setRecordingPhraseId(item.id);
+    setPhraseSpeechError(undefined);
+    setPhraseSpeechResult(undefined);
+    try {
+      const transcript = await phraseSpeechProvider.current.transcribe({
+        locale: "es-ES",
+        maxDurationMs: 15_000,
+      });
+      setPhraseSpeechResult({
+        itemId: item.id,
+        transcript: transcript.text,
+        assessment: assessPhraseRehearsal(item.targetText, transcript.text),
+      });
+    } catch (speechError) {
+      setPhraseSpeechError(
+        speechError instanceof Error
+          ? speechError.message
+          : "Spanish speech could not be transcribed.",
+      );
+    } finally {
+      setRecordingPhraseId((current) => current === item.id ? undefined : current);
     }
   }
 
@@ -153,7 +195,9 @@ export function LearnerOverviewCard({
             <span>Your useful Spanish</span>
             <strong>{overview.phrasebook.length} phrase{overview.phrasebook.length === 1 ? "" : "s"}</strong>
           </summary>
-          <p className="phrasebook-help">Read the Spanish first. Try to remember the meaning, then reveal it.</p>
+          <p className="phrasebook-help">
+            Read the Spanish first. Remember the meaning, listen, then say the phrase aloud.
+          </p>
           <ul>
             {overview.phrasebook.map((item) => (
               <li key={item.id}>
@@ -162,7 +206,7 @@ export function LearnerOverviewCard({
                   <button
                     className="phrasebook-listen"
                     type="button"
-                    disabled={playingPhraseId === item.id}
+                    disabled={Boolean(recordingPhraseId) || playingPhraseId === item.id}
                     aria-label={`Listen to ${item.targetText} in Spanish`}
                     onClick={() => void playPhrase(item)}
                   >
@@ -170,6 +214,32 @@ export function LearnerOverviewCard({
                     {playingPhraseId === item.id ? "Playing…" : "Listen"}
                   </button>
                 </div>
+                <button
+                  className="phrasebook-speak"
+                  type="button"
+                  disabled={Boolean(recordingPhraseId && recordingPhraseId !== item.id)}
+                  aria-label={recordingPhraseId === item.id
+                    ? `Stop practising ${item.targetText}`
+                    : `Practise saying ${item.targetText}`}
+                  onClick={() => {
+                    if (recordingPhraseId === item.id) phraseSpeechProvider.current.stop();
+                    else void startPhraseRehearsal(item);
+                  }}
+                >
+                  {recordingPhraseId === item.id ? "■ Stop and check" : "● Practise speaking"}
+                </button>
+                {recordingPhraseId === item.id && (
+                  <p className="phrasebook-recording" role="status">
+                    Listening… Say the phrase, then stop the microphone.
+                  </p>
+                )}
+                {phraseSpeechResult?.itemId === item.id && (
+                  <div className={`phrasebook-transcript ${phraseSpeechResult.assessment.status}`} aria-live="polite">
+                    <small>The browser heard</small>
+                    <p lang="es">{phraseSpeechResult.transcript}</p>
+                    <span>{phraseSpeechResult.assessment.feedback}</span>
+                  </div>
+                )}
                 <details>
                   <summary>Show meaning</summary>
                   <span>{item.supportText}</span>
@@ -178,6 +248,10 @@ export function LearnerOverviewCard({
             ))}
           </ul>
           {phraseAudioError && <p className="phrasebook-audio-error" role="alert">{phraseAudioError}</p>}
+          {phraseSpeechError && <p className="phrasebook-audio-error" role="alert">{phraseSpeechError}</p>}
+          <p className="phrasebook-privacy-note">
+            Audio is not saved by Spanish Coach. Browser transcription can be wrong, and this practice does not score pronunciation or change your saved progress.
+          </p>
         </details>
       )}
       <div className="learner-profile-actions">
