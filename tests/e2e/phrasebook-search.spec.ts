@@ -49,6 +49,48 @@ async function openPhrasebook(page: Page, width: number, savedOverview = overvie
 }
 
 for (const width of [1280, 375]) {
+  test(`plays revealed answers, stops on navigation and handles unavailable audio at ${width}px`, async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(window, "SpeechSynthesisUtterance", { configurable: true, value: class {
+        constructor(public text: string) {}
+      } });
+      Object.defineProperty(window, "speechSynthesis", { configurable: true, value: {
+        getVoices: () => [{ lang: "es-ES", name: "Test Spanish" }],
+        cancel: () => { document.documentElement.dataset.speaking = "false"; },
+        speak: (utterance: SpeechSynthesisUtterance) => {
+          document.documentElement.dataset.speaking = "true";
+          document.documentElement.dataset.spokenText = utterance.text;
+        },
+      } });
+    });
+    await openPhrasebook(page, width);
+    await page.getByRole("button", { name: "Practise from memory" }).click();
+    const practice = page.locator(".phrasebook-recall");
+    await expect(practice.getByRole("button", { name: "Listen to the answer" })).toHaveCount(0);
+    await practice.getByRole("button", { name: "Reveal Spanish" }).click();
+    await practice.getByRole("button", { name: "Listen to the answer" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-spoken-text", "Un café, por favor.");
+    await practice.getByRole("button", { name: "Stop audio" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-speaking", "false");
+    await practice.getByRole("button", { name: "Listen to the answer" }).click();
+    await practice.getByRole("button", { name: "I remembered it" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-speaking", "false");
+    await practice.getByRole("button", { name: "Reveal Spanish" }).click();
+    await practice.getByRole("button", { name: "Listen to the answer" }).click();
+    await practice.getByRole("button", { name: "Back to phrasebook" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-speaking", "false");
+    await page.evaluate(() => {
+      window.speechSynthesis.getVoices = () => [{ lang: "en-GB", name: "English" } as SpeechSynthesisVoice];
+    });
+    await page.getByRole("button", { name: "Practise from memory" }).click();
+    await practice.getByRole("button", { name: "Reveal Spanish" }).click();
+    await practice.getByRole("button", { name: "Listen to the answer" }).click();
+    await expect(practice.getByRole("alert")).toContainText("No Spanish voice");
+    await practice.getByRole("button", { name: "I needed help" }).click();
+    await expect(practice.getByRole("heading")).toHaveText("Say it from memory · 2 of 3");
+    await expect(practice.getByRole("alert")).toHaveCount(0);
+  });
+
   test(`searches saved phrases and keeps speaking usable at ${width}px`, async ({ page }) => {
     await openPhrasebook(page, width);
     const phrasebook = page.locator("details.phrasebook");

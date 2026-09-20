@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { LearnerOverview } from "@/domain/learner-overview";
+import { PhraseAudioButton } from "./phrase-audio-button";
 
 type Phrase = LearnerOverview["phrasebook"][number];
 
@@ -47,6 +48,8 @@ export function PhrasebookRecall({ items, onClose }: {
             <>
               <div className="phrasebook-recall-answer" ref={answer} tabIndex={-1}>
                 <strong lang="es">{phrase.targetText}</strong>
+                <PhraseAudioButton key={phrase.id} text={phrase.targetText} />
+                <p>Listen, then say the phrase again.</p>
                 <p>Compare your words. Another Spanish answer may also be correct. For a phrase with …, add your own details.</p>
               </div>
               <div className="phrasebook-recall-actions">
