@@ -68,7 +68,7 @@ npm run db:migrate
 npm run dev
 ```
 
-Then open `http://localhost:3000`.
+Then open `http://localhost:3100`.
 
 Quality checks:
 
