@@ -309,6 +309,7 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .phrasebook-recall h4 { margin: 0; font-size: 1.1rem; }
 .phrasebook-recall small { color: var(--muted); line-height: 1.5; }
 .phrasebook-recall-answer { display: grid; gap: 10px; padding: 12px; border-radius: 10px; background: var(--green-soft); }
+.phrase-audio-status { display: inline-flex; margin-top: 8px; color: var(--muted); font-size: .82rem; font-weight: 700; }
 .phrasebook-recall-answer > strong { font-size: 1.2rem; }
 .phrasebook-recall-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .phrasebook-recall button, .phrasebook-recall-start { min-height: 44px; white-space: normal; }

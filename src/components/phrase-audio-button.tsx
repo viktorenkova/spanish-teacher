@@ -40,6 +40,7 @@ export function PhraseAudioButton({ text }: { text: string }) {
       <button type="button" className="secondary-button" onClick={() => void play()}>
         {playing ? "Stop audio" : "Listen to the answer"}
       </button>
+      {playing && <span aria-live="polite" className="phrase-audio-status">Speaking Spanish…</span>}
       {error && <p role="alert">{error} You can still read the answer and continue.</p>}
     </div>
   );
