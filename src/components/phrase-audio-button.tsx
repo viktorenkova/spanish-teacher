@@ -6,6 +6,7 @@ import { speakWithBrowser } from "@/tts/browser-provider";
 export function PhraseAudioButton({ text }: { text: string }) {
   const [playing, setPlaying] = useState(false);
   const [error, setError] = useState<string>();
+  const [rate, setRate] = useState(0.86);
   const playback = useRef<AbortController | null>(null);
 
   useEffect(() => () => playback.current?.abort(), []);
@@ -22,7 +23,7 @@ export function PhraseAudioButton({ text }: { text: string }) {
     setPlaying(true);
     setError(undefined);
     try {
-      await speakWithBrowser({ text, locale: "es-ES", rate: 0.86 }, controller.signal);
+      await speakWithBrowser({ text, locale: "es-ES", rate }, controller.signal);
     } catch (audioError) {
       if (!controller.signal.aborted) {
         setError(audioError instanceof Error ? audioError.message : "Spanish audio could not be played.");
@@ -37,6 +38,14 @@ export function PhraseAudioButton({ text }: { text: string }) {
 
   return (
     <div>
+      <label>
+        <span>Speed </span>
+        <select value={rate} onChange={(event) => setRate(Number(event.target.value))} disabled={playing}>
+          <option value={0.7}>Slow</option>
+          <option value={0.86}>Normal</option>
+          <option value={1}>Fast</option>
+        </select>
+      </label>
       <button type="button" className="secondary-button" onClick={() => void play()}>
         {playing ? "Stop audio" : "Listen to the answer"}
       </button>
