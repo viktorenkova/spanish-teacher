@@ -36,13 +36,23 @@ describe("phrase rehearsal assessment", () => {
   });
 
   it("distinguishes partial evidence from a different transcript", () => {
-    expect(assessPhraseRehearsal(
+    const partial = assessPhraseRehearsal(
       "Quiero un café, por favor.",
       "quiero un cafe",
-    ).status).toBe("close");
-    expect(assessPhraseRehearsal(
+    );
+    expect(partial).toMatchObject({
+      status: "close",
+      missingWords: ["por", "favor"],
+    });
+    expect(partial.feedback).toContain("Focus on: por, favor.");
+
+    const different = assessPhraseRehearsal(
       "Quiero un café, por favor.",
       "buenos dias",
-    ).status).toBe("retry");
+    );
+    expect(different).toMatchObject({
+      status: "retry",
+      missingWords: ["quiero", "un", "cafe", "por", "favor"],
+    });
   });
 });

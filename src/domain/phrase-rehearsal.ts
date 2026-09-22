@@ -3,6 +3,7 @@ export type PhraseRehearsalAssessment = {
   feedback: string;
   matchedWordCount: number;
   targetWordCount: number;
+  missingWords: string[];
 };
 
 function normalizeWords(value: string) {
@@ -33,17 +34,26 @@ function targetVariants(targetText: string) {
 function orderedWordMatches(target: string[], transcript: string[]) {
   let transcriptIndex = 0;
   let matched = 0;
+  const missingWords: string[] = [];
 
   for (const targetWord of target) {
     while (transcriptIndex < transcript.length && transcript[transcriptIndex] !== targetWord) {
       transcriptIndex += 1;
     }
-    if (transcriptIndex >= transcript.length) break;
+    if (transcriptIndex >= transcript.length) {
+      missingWords.push(targetWord);
+      continue;
+    }
     matched += 1;
     transcriptIndex += 1;
   }
 
-  return matched;
+  return { matchedWordCount: matched, missingWords };
+}
+
+function focusHint(missingWords: string[]) {
+  if (missingWords.length === 0) return "";
+  return ` Focus on: ${missingWords.join(", ")}.`;
 }
 
 export function assessPhraseRehearsal(
@@ -55,13 +65,13 @@ export function assessPhraseRehearsal(
   const best = variants
     .map((targetWords) => ({
       targetWordCount: targetWords.length,
-      matchedWordCount: orderedWordMatches(targetWords, transcriptWords),
+      ...orderedWordMatches(targetWords, transcriptWords),
     }))
     .sort((left, right) => {
       const leftCoverage = left.matchedWordCount / left.targetWordCount;
       const rightCoverage = right.matchedWordCount / right.targetWordCount;
       return rightCoverage - leftCoverage || right.matchedWordCount - left.matchedWordCount;
-    })[0] ?? { targetWordCount: 0, matchedWordCount: 0 };
+    })[0] ?? { targetWordCount: 0, matchedWordCount: 0, missingWords: [] };
 
   const coverage = best.targetWordCount > 0
     ? best.matchedWordCount / best.targetWordCount
@@ -78,14 +88,14 @@ export function assessPhraseRehearsal(
   if (coverage >= 0.6) {
     return {
       status: "close",
-      feedback: "The browser heard some key words. Compare the transcript and try the whole phrase again. Pronunciation was not assessed.",
+      feedback: `The browser heard some key words. Try the whole phrase again.${focusHint(best.missingWords)} Pronunciation was not assessed.`,
       ...best,
     };
   }
 
   return {
     status: "retry",
-    feedback: "The transcript is different from this phrase. Listen once more and try again. Pronunciation was not assessed.",
+    feedback: `The transcript is different from this phrase. Listen once more and try again.${focusHint(best.missingWords)} Pronunciation was not assessed.`,
     ...best,
   };
 }

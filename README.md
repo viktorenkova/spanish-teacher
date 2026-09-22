@@ -123,6 +123,9 @@ npm run test:smoke
 37. Phrasebook memory practice. — rehearse up to five search results from English prompts, reveal the Spanish after speaking, mark your own recall, and retry difficult phrases; this optional self-check does not save results or change FSRS reviews
 38. Complete phrasebook practice sets. — continue through all current search results in batches of up to five, with a count of unique phrases checked; retrying a difficult phrase does not skip the next batch or inflate that count
 39. Listen after recall. — revealed memory-practice answers include optional Spanish audio and a stop button; leaving the answer cancels playback, and unavailable audio does not block practice
+40. Phrasebook audio pacing. — revealed answers expose slow, normal, and fast browser speech plus visible playback state
+41. Speak after recall. — revealed memory-practice answers can be repeated into the microphone and checked with the deterministic transcript matcher on desktop and mobile
+42. Focused phrase feedback. — incomplete speaking rehearsal identifies key target words to focus on while keeping pronunciation explicitly unassessed
 
 ## Non-goals for MVP
 
