@@ -272,9 +272,23 @@ export function LearnerOverviewCard({
                 Speaking this visit: {spokenPhraseIds.length} of {overview.phrasebook.length} saved {overview.phrasebook.length === 1 ? "phrase" : "phrases"} checked.
               </p>
               {spokenPhraseIds.length === overview.phrasebook.length && (
-                <p className="phrasebook-speaking-complete" role="status">
-                  Speaking set complete. You checked every saved phrase this visit.
-                </p>
+                <div className="phrasebook-speaking-complete">
+                  <span role="status">Speaking set complete. You checked every saved phrase this visit.</span>
+                  <button
+                    className="text-button"
+                    type="button"
+                    disabled={Boolean(recordingPhraseId) || Boolean(playingPhraseId)}
+                    onClick={() => {
+                      setSpokenPhraseIds([]);
+                      setPhraseSpeechResult(undefined);
+                      setPhraseRepairState({});
+                      setPhraseSpeechError(undefined);
+                      setPhraseQuery("");
+                    }}
+                  >
+                    Start speaking set again
+                  </button>
+                </div>
               )}
             </>
           )}

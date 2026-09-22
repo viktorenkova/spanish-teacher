@@ -174,6 +174,11 @@ for (const width of [1280, 375]) {
     await results.getByRole("button", { name: "Stop practising Buenos días." }).click();
     await expect(phrasebook.getByText("Speaking this visit: 3 of 3 saved phrases checked.", { exact: true })).toBeVisible();
     await expect(phrasebook.locator(".phrasebook-speaking-complete")).toContainText("Speaking set complete");
+    await phrasebook.getByRole("button", { name: "Start speaking set again" }).click();
+    await expect(phrasebook.locator(".phrasebook-speaking-progress")).toHaveCount(0);
+    await expect(phrasebook.locator(".phrasebook-speaking-complete")).toHaveCount(0);
+    await expect(search).toHaveValue("");
+    await expect(results.locator(".phrasebook-transcript")).toHaveCount(0);
     await search.fill("   ");
     await expect(results).toHaveCount(3);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
