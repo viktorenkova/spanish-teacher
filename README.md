@@ -133,6 +133,7 @@ npm run test:smoke
 47. Measurable phrasebook speaking. — regular phrasebook rehearsal now counts unique phrases spoken during the current visit, so repeated repair attempts stay measurable without becoming saved progress or FSRS evidence
 48. Phrasebook speaking coverage. — current-visit speaking now shows unique coverage against the full saved phrasebook and gives a completion message after every saved phrase has been checked
 49. Repeatable speaking set. — after completing the saved phrasebook speaking set, the learner can start a fresh current-visit run without reloading or changing saved progress
+50. Speaking repair summary. — completing a phrasebook speaking set now reports how many phrases were successfully repaired and how many still need repair, using only current-visit deterministic evidence
 
 ## Non-goals for MVP
 

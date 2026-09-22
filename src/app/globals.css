@@ -341,6 +341,7 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .phrasebook-repair-guide span { color: var(--muted); font-size: .7rem; line-height: 1.45; }
 .phrasebook-repair-success { padding: 8px 10px; border-left: 3px solid #4b946e; border-radius: 8px; background: rgba(229, 247, 237, .82); color: #245d43 !important; font-size: .72rem; font-weight: 750; line-height: 1.45; }
 .phrasebook-speaking-complete { display: grid; justify-items: start; gap: 8px; margin: 10px 0 14px; padding: 8px 10px; border-left: 3px solid #4b946e; border-radius: 8px; background: rgba(229, 247, 237, .82); color: #245d43 !important; font-size: .72rem; font-weight: 750; line-height: 1.45; }
+.phrasebook-speaking-summary { font-weight: 650; }
 .phrasebook-speaking-complete .text-button { margin: 0; }
 .phrasebook li details summary { cursor: pointer; color: var(--muted); font-size: .72rem; }
 .phrasebook li details span { display: block; margin-top: 5px; color: var(--ink); font-size: .82rem; line-height: 1.4; }

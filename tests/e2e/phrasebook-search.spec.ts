@@ -174,6 +174,7 @@ for (const width of [1280, 375]) {
     await results.getByRole("button", { name: "Stop practising Buenos días." }).click();
     await expect(phrasebook.getByText("Speaking this visit: 3 of 3 saved phrases checked.", { exact: true })).toBeVisible();
     await expect(phrasebook.locator(".phrasebook-speaking-complete")).toContainText("Speaking set complete");
+    await expect(phrasebook.locator(".phrasebook-speaking-summary")).toHaveText("Repairs completed: 1 phrase. Still to repair: 0 phrases.");
     await phrasebook.getByRole("button", { name: "Start speaking set again" }).click();
     await expect(phrasebook.locator(".phrasebook-speaking-progress")).toHaveCount(0);
     await expect(phrasebook.locator(".phrasebook-speaking-complete")).toHaveCount(0);

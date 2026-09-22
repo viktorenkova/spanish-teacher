@@ -63,6 +63,8 @@ export function LearnerOverviewCard({
   const [spokenPhraseIds, setSpokenPhraseIds] = useState<string[]>([]);
   const phraseSpeechProvider = useRef(new BrowserSpeechToTextProvider());
   const visiblePhrases = filterPhrasebook(overview.phrasebook, phraseQuery);
+  const repairedPhraseCount = Object.values(phraseRepairState).filter((status) => status === "repaired").length;
+  const pendingRepairCount = Object.values(phraseRepairState).filter((status) => status === "needs-repair").length;
 
   useEffect(() => () => phraseSpeechProvider.current.abort(), []);
 
@@ -274,6 +276,9 @@ export function LearnerOverviewCard({
               {spokenPhraseIds.length === overview.phrasebook.length && (
                 <div className="phrasebook-speaking-complete">
                   <span role="status">Speaking set complete. You checked every saved phrase this visit.</span>
+                  <span className="phrasebook-speaking-summary">
+                    Repairs completed: {repairedPhraseCount} {repairedPhraseCount === 1 ? "phrase" : "phrases"}. Still to repair: {pendingRepairCount} {pendingRepairCount === 1 ? "phrase" : "phrases"}.
+                  </span>
                   <button
                     className="text-button"
                     type="button"
