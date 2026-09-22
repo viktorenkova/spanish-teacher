@@ -3,7 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { speakWithBrowser } from "@/tts/browser-provider";
 
-export function PhraseAudioButton({ text }: { text: string }) {
+export function PhraseAudioButton({
+  text,
+  disabled = false,
+  onPlaybackChange,
+}: {
+  text: string;
+  disabled?: boolean;
+  onPlaybackChange?: (playing: boolean) => void;
+}) {
   const [playing, setPlaying] = useState(false);
   const [error, setError] = useState<string>();
   const [rate, setRate] = useState(0.86);
@@ -16,11 +24,13 @@ export function PhraseAudioButton({ text }: { text: string }) {
       playback.current.abort();
       playback.current = null;
       setPlaying(false);
+      onPlaybackChange?.(false);
       return;
     }
     const controller = new AbortController();
     playback.current = controller;
     setPlaying(true);
+    onPlaybackChange?.(true);
     setError(undefined);
     try {
       await speakWithBrowser({ text, locale: "es-ES", rate }, controller.signal);
@@ -32,6 +42,7 @@ export function PhraseAudioButton({ text }: { text: string }) {
       if (playback.current === controller && !controller.signal.aborted) {
         playback.current = null;
         setPlaying(false);
+        onPlaybackChange?.(false);
       }
     }
   }
@@ -40,13 +51,13 @@ export function PhraseAudioButton({ text }: { text: string }) {
     <div>
       <label>
         <span>Speed </span>
-        <select value={rate} onChange={(event) => setRate(Number(event.target.value))} disabled={playing}>
+        <select value={rate} onChange={(event) => setRate(Number(event.target.value))} disabled={playing || disabled}>
           <option value={0.7}>Slow</option>
           <option value={0.86}>Normal</option>
           <option value={1}>Fast</option>
         </select>
       </label>
-      <button type="button" className="secondary-button" onClick={() => void play()}>
+      <button type="button" className="secondary-button" disabled={disabled} onClick={() => void play()}>
         {playing ? "Stop audio" : "Listen to the answer"}
       </button>
       {playing && <span aria-live="polite" className="phrase-audio-status">Speaking Spanish…</span>}

@@ -2,6 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { LearnerOverview } from "@/domain/learner-overview";
+import {
+  assessPhraseRehearsal,
+  type PhraseRehearsalAssessment,
+} from "@/domain/phrase-rehearsal";
+import { BrowserSpeechToTextProvider } from "@/stt/browser-provider";
 import { PhraseAudioButton } from "./phrase-audio-button";
 
 type Phrase = LearnerOverview["phrasebook"][number];
@@ -16,15 +21,55 @@ export function PhrasebookRecall({ items, onClose }: {
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
   const [needsHelp, setNeedsHelp] = useState<Phrase[]>([]);
+  const [playingAudio, setPlayingAudio] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [speechError, setSpeechError] = useState<string>();
+  const [speechResult, setSpeechResult] = useState<{
+    transcript: string;
+    assessment: PhraseRehearsalAssessment;
+  }>();
   const heading = useRef<HTMLHeadingElement>(null);
   const answer = useRef<HTMLDivElement>(null);
+  const speechProvider = useRef(new BrowserSpeechToTextProvider());
   const phrase = round[index];
 
   useEffect(() => { heading.current?.focus(); }, [index, round]);
   useEffect(() => { if (revealed) answer.current?.focus(); }, [revealed]);
+  useEffect(() => () => speechProvider.current.abort(), []);
+
+  function resetSpeechPractice() {
+    speechProvider.current.abort();
+    setSpeechError(undefined);
+    setSpeechResult(undefined);
+    setRecording(false);
+    setPlayingAudio(false);
+  }
+
+  async function practiseSpeaking() {
+    if (!phrase || playingAudio) return;
+    if (recording) {
+      speechProvider.current.stop();
+      return;
+    }
+    setRecording(true);
+    setSpeechError(undefined);
+    setSpeechResult(undefined);
+    try {
+      const transcript = await speechProvider.current.transcribe({ locale: "es-ES", maxDurationMs: 15_000 });
+      setSpeechResult({
+        transcript: transcript.text,
+        assessment: assessPhraseRehearsal(phrase.targetText, transcript.text),
+      });
+    } catch (error) {
+      setSpeechError(error instanceof Error ? error.message : "Spanish speech could not be transcribed.");
+    } finally {
+      setRecording(false);
+    }
+  }
 
   function next(remembered: boolean) {
     if (!revealed || !phrase) return;
+    resetSpeechPractice();
     setCheckedIds((current) => current.includes(phrase.id) ? current : [...current, phrase.id]);
     if (!remembered) setNeedsHelp((current) => [...current, phrase]);
     setRevealed(false);
@@ -48,13 +93,37 @@ export function PhrasebookRecall({ items, onClose }: {
             <>
               <div className="phrasebook-recall-answer" ref={answer} tabIndex={-1}>
                 <strong lang="es">{phrase.targetText}</strong>
-                <PhraseAudioButton key={phrase.id} text={phrase.targetText} />
+                <PhraseAudioButton
+                  key={phrase.id}
+                  text={phrase.targetText}
+                  disabled={recording}
+                  onPlaybackChange={setPlayingAudio}
+                />
+                <button
+                  type="button"
+                  className="phrasebook-speak"
+                  disabled={playingAudio}
+                  onClick={() => void practiseSpeaking()}
+                >
+                  {recording ? "■ Stop and check" : "● Say it and check"}
+                </button>
+                {recording && (
+                  <p className="phrasebook-recording" role="status">Listening… Say the whole phrase, then stop the microphone.</p>
+                )}
+                {speechResult && (
+                  <div className={`phrasebook-transcript ${speechResult.assessment.status}`} aria-live="polite">
+                    <small>The browser heard</small>
+                    <p lang="es">{speechResult.transcript}</p>
+                    <span>{speechResult.assessment.feedback}</span>
+                  </div>
+                )}
+                {speechError && <p className="phrasebook-audio-error" role="alert">{speechError}</p>}
                 <p>Listen, then say the phrase again.</p>
                 <p>Compare your words. Another Spanish answer may also be correct. For a phrase with …, add your own details.</p>
               </div>
               <div className="phrasebook-recall-actions">
-                <button type="button" className="secondary-button" onClick={() => next(true)}>I remembered it</button>
-                <button type="button" className="secondary-button" onClick={() => next(false)}>I needed help</button>
+                <button type="button" className="secondary-button" disabled={recording} onClick={() => next(true)}>I remembered it</button>
+                <button type="button" className="secondary-button" disabled={recording} onClick={() => next(false)}>I needed help</button>
               </div>
             </>
           )}
@@ -70,6 +139,7 @@ export function PhrasebookRecall({ items, onClose }: {
               : "You have checked all the phrases in this set. Come back later to try again."}</p>
           {needsHelp.length > 0 && (
             <button type="button" className="secondary-button" onClick={() => {
+              resetSpeechPractice();
               setRound(needsHelp);
               setNeedsHelp([]);
               setIndex(0);
@@ -78,6 +148,7 @@ export function PhrasebookRecall({ items, onClose }: {
           )}
           {nextBatchStart < items.length && (
             <button type="button" className="secondary-button" onClick={() => {
+              resetSpeechPractice();
               setRound(items.slice(nextBatchStart, nextBatchStart + 5));
               setNextBatchStart((current) => Math.min(current + 5, items.length));
               setNeedsHelp([]);

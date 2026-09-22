@@ -72,6 +72,12 @@ for (const width of [1280, 375]) {
     await expect(page.locator("html")).toHaveAttribute("data-spoken-text", "Un café, por favor.");
     await practice.getByRole("button", { name: "Stop audio" }).click();
     await expect(page.locator("html")).toHaveAttribute("data-speaking", "false");
+    await practice.getByRole("button", { name: "Say it and check" }).click();
+    await expect(practice.getByRole("button", { name: "Stop and check" })).toBeVisible();
+    await expect(practice.getByRole("button", { name: "Listen to the answer" })).toBeDisabled();
+    await practice.getByRole("button", { name: "Stop and check" }).click();
+    await expect(practice.locator(".phrasebook-transcript")).toContainText("The browser heard");
+    await expect(practice.locator(".phrasebook-transcript")).toContainText("Pronunciation was not assessed");
     await practice.getByRole("button", { name: "Listen to the answer" }).click();
     await practice.getByRole("button", { name: "I remembered it" }).click();
     await expect(page.locator("html")).toHaveAttribute("data-speaking", "false");
