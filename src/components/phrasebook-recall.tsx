@@ -28,6 +28,7 @@ export function PhrasebookRecall({ items, onClose }: {
     transcript: string;
     assessment: PhraseRehearsalAssessment;
   }>();
+  const [repairState, setRepairState] = useState<"none" | "needs-repair" | "repaired">("none");
   const heading = useRef<HTMLHeadingElement>(null);
   const answer = useRef<HTMLDivElement>(null);
   const speechProvider = useRef(new BrowserSpeechToTextProvider());
@@ -45,6 +46,7 @@ export function PhrasebookRecall({ items, onClose }: {
     speechProvider.current.abort();
     setSpeechError(undefined);
     setSpeechResult(undefined);
+    setRepairState("none");
     setRecording(false);
     setPlayingAudio(false);
   }
@@ -60,9 +62,14 @@ export function PhrasebookRecall({ items, onClose }: {
     setSpeechResult(undefined);
     try {
       const transcript = await speechProvider.current.transcribe({ locale: "es-ES", maxDurationMs: 15_000 });
+      const assessment = assessPhraseRehearsal(phrase.targetText, transcript.text);
       setSpeechResult({
         transcript: transcript.text,
-        assessment: assessPhraseRehearsal(phrase.targetText, transcript.text),
+        assessment,
+      });
+      setRepairState((current) => {
+        if (assessment.status !== "matched") return "needs-repair";
+        return current === "needs-repair" || current === "repaired" ? "repaired" : "none";
       });
     } catch (error) {
       setSpeechError(error instanceof Error ? error.message : "Spanish speech could not be transcribed.");
@@ -127,6 +134,11 @@ export function PhrasebookRecall({ items, onClose }: {
                     <p lang="es">{speechResult.transcript}</p>
                     <span>{speechResult.assessment.feedback}</span>
                   </div>
+                )}
+                {speechResult?.assessment.status === "matched" && repairState === "repaired" && (
+                  <p className="phrasebook-repair-success" role="status">
+                    Nice repair. You completed the full phrase after focusing on the missing words.
+                  </p>
                 )}
                 {repairWords.length > 0 && (
                   <div className="phrasebook-repair-guide">

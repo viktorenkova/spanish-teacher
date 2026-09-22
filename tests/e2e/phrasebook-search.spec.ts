@@ -68,7 +68,7 @@ for (const width of [1280, 375]) {
         },
       } });
     });
-    await openPhrasebook(page, width, overview, "un cafe");
+    await openPhrasebook(page, width, overview, ["un cafe", "un cafe por favor"]);
     await page.getByRole("button", { name: "Practise from memory" }).click();
     const practice = page.locator(".phrasebook-recall");
     await expect(practice.getByRole("button", { name: "Listen to the answer" })).toHaveCount(0);
@@ -88,6 +88,11 @@ for (const width of [1280, 375]) {
     await expect(practice.getByRole("button", { name: "Try speaking again" })).toBeVisible();
     await practice.getByRole("button", { name: "Listen to focus words" }).click();
     await expect(page.locator("html")).toHaveAttribute("data-spoken-text", "por favor");
+    await practice.getByRole("button", { name: "Stop audio" }).click();
+    await practice.getByRole("button", { name: "Try speaking again" }).click();
+    await practice.getByRole("button", { name: "Stop and check" }).click();
+    await expect(practice.locator(".phrasebook-repair-success")).toContainText("Nice repair");
+    await expect(practice.locator(".phrasebook-repair-guide")).toHaveCount(0);
     await practice.getByRole("button", { name: "I remembered it" }).click();
     await expect(page.locator("html")).toHaveAttribute("data-speaking", "false");
     await practice.getByRole("button", { name: "Reveal Spanish" }).click();
