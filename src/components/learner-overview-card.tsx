@@ -267,9 +267,16 @@ export function LearnerOverviewCard({
           </button>
           <p className="phrasebook-help">Practise these search results in short sets of up to five phrases. You can stop after any set.</p>
           {spokenPhraseIds.length > 0 && (
-            <p className="phrasebook-help phrasebook-speaking-progress" role="status">
-              Speaking this visit: {spokenPhraseIds.length} {spokenPhraseIds.length === 1 ? "phrase" : "phrases"} checked.
-            </p>
+            <>
+              <p className="phrasebook-help phrasebook-speaking-progress" role="status">
+                Speaking this visit: {spokenPhraseIds.length} of {overview.phrasebook.length} saved {overview.phrasebook.length === 1 ? "phrase" : "phrases"} checked.
+              </p>
+              {spokenPhraseIds.length === overview.phrasebook.length && (
+                <p className="phrasebook-speaking-complete" role="status">
+                  Speaking set complete. You checked every saved phrase this visit.
+                </p>
+              )}
+            </>
           )}
           <ul id="phrasebook-results">
             {visiblePhrases.map((item) => {

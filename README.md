@@ -131,6 +131,7 @@ npm run test:smoke
 45. Repair success feedback. — when a regular phrasebook speaking retry completes the phrase after an incomplete attempt, the current session shows a short deterministic success message without changing saved progress or FSRS
 46. Memory-practice repair success. — the same current-session success feedback now appears after a successful speaking repair inside `Practise from memory`, keeping both phrasebook speaking paths consistent
 47. Measurable phrasebook speaking. — regular phrasebook rehearsal now counts unique phrases spoken during the current visit, so repeated repair attempts stay measurable without becoming saved progress or FSRS evidence
+48. Phrasebook speaking coverage. — current-visit speaking now shows unique coverage against the full saved phrasebook and gives a completion message after every saved phrase has been checked
 
 ## Non-goals for MVP
 

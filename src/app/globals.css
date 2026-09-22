@@ -340,6 +340,7 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .phrasebook-repair-guide p { color: var(--ink); font-size: .92rem; font-weight: 800; }
 .phrasebook-repair-guide span { color: var(--muted); font-size: .7rem; line-height: 1.45; }
 .phrasebook-repair-success { padding: 8px 10px; border-left: 3px solid #4b946e; border-radius: 8px; background: rgba(229, 247, 237, .82); color: #245d43 !important; font-size: .72rem; font-weight: 750; line-height: 1.45; }
+.phrasebook-speaking-complete { margin: 10px 0 14px; padding: 8px 10px; border-left: 3px solid #4b946e; border-radius: 8px; background: rgba(229, 247, 237, .82); color: #245d43 !important; font-size: .72rem; font-weight: 750; line-height: 1.45; }
 .phrasebook li details summary { cursor: pointer; color: var(--muted); font-size: .72rem; }
 .phrasebook li details span { display: block; margin-top: 5px; color: var(--ink); font-size: .82rem; line-height: 1.4; }
 .phrasebook-audio-error { grid-column: 1 / -1; margin: 10px 0 0 !important; color: #9a3030 !important; font-size: .75rem !important; }
