@@ -137,6 +137,7 @@ npm run test:smoke
 51. Pending repair focus. — after completing a speaking set with unresolved phrases, the learner can filter directly to those phrases and automatically return to the full phrasebook after the last repair is completed
 52. Per-phrase speaking feedback. — transcripts and focused repair words now remain attached to each checked phrase during the current visit instead of disappearing when another phrase is practised
 53. Per-phrase speaking status. — each saved phrase now shows whether it was checked, still needs repair, or was repaired during the current speaking set
+54. Unchecked phrase focus. — a partial speaking set can now filter to phrases not yet checked, then automatically return to the full phrasebook after the final unchecked phrase
 
 ## Non-goals for MVP
 

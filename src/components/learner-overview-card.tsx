@@ -61,12 +61,14 @@ export function LearnerOverviewCard({
   }>>({});
   const [phraseRepairState, setPhraseRepairState] = useState<Record<string, "needs-repair" | "repaired">>({});
   const [spokenPhraseIds, setSpokenPhraseIds] = useState<string[]>([]);
-  const [repairFilterActive, setRepairFilterActive] = useState(false);
+  const [speakingFilter, setSpeakingFilter] = useState<"all" | "repair" | "unchecked">("all");
   const phraseSpeechProvider = useRef(new BrowserSpeechToTextProvider());
   const searchedPhrases = filterPhrasebook(overview.phrasebook, phraseQuery);
-  const visiblePhrases = repairFilterActive
+  const visiblePhrases = speakingFilter === "repair"
     ? searchedPhrases.filter((item) => phraseRepairState[item.id] === "needs-repair")
-    : searchedPhrases;
+    : speakingFilter === "unchecked"
+      ? searchedPhrases.filter((item) => !spokenPhraseIds.includes(item.id))
+      : searchedPhrases;
   const repairedPhraseCount = Object.values(phraseRepairState).filter((status) => status === "repaired").length;
   const pendingRepairCount = Object.values(phraseRepairState).filter((status) => status === "needs-repair").length;
 
@@ -114,6 +116,8 @@ export function LearnerOverviewCard({
       const resolvesLastPendingRepair = assessment.status === "matched"
         && phraseRepairState[item.id] === "needs-repair"
         && pendingRepairCount === 1;
+      const completesUncheckedSet = !spokenPhraseIds.includes(item.id)
+        && spokenPhraseIds.length + 1 === overview.phrasebook.length;
       setPhraseSpeechResults((current) => ({
         ...current,
         [item.id]: {
@@ -133,7 +137,7 @@ export function LearnerOverviewCard({
         }
         return next;
       });
-      if (resolvesLastPendingRepair) setRepairFilterActive(false);
+      if (resolvesLastPendingRepair || completesUncheckedSet) setSpeakingFilter("all");
     } catch (speechError) {
       setPhraseSpeechError(
         speechError instanceof Error
@@ -273,10 +277,14 @@ export function LearnerOverviewCard({
             {visiblePhrases.length} of {overview.phrasebook.length} phrases
             {visiblePhrases.length === 0 && ". No phrases found. Try another word or clear your search."}
           </p>
-          {repairFilterActive && (
+          {speakingFilter !== "all" && (
             <div className="phrasebook-repair-filter">
-              <span role="status">Showing phrases still to repair this visit.</span>
-              <button className="text-button" type="button" onClick={() => setRepairFilterActive(false)}>
+              <span role="status">
+                {speakingFilter === "repair"
+                  ? "Showing phrases still to repair this visit."
+                  : "Showing phrases not checked this visit."}
+              </span>
+              <button className="text-button" type="button" onClick={() => setSpeakingFilter("all")}>
                 Show all phrases
               </button>
             </div>
@@ -296,6 +304,19 @@ export function LearnerOverviewCard({
               <p className="phrasebook-help phrasebook-speaking-progress" role="status">
                 Speaking this visit: {spokenPhraseIds.length} of {overview.phrasebook.length} saved {overview.phrasebook.length === 1 ? "phrase" : "phrases"} checked.
               </p>
+              {spokenPhraseIds.length < overview.phrasebook.length && (
+                <button
+                  className="text-button phrasebook-unchecked-filter"
+                  type="button"
+                  disabled={Boolean(recordingPhraseId) || Boolean(playingPhraseId)}
+                  onClick={() => {
+                    setPhraseQuery("");
+                    setSpeakingFilter("unchecked");
+                  }}
+                >
+                  Show unchecked phrases
+                </button>
+              )}
               {spokenPhraseIds.length === overview.phrasebook.length && (
                 <div className="phrasebook-speaking-complete">
                   <span role="status">Speaking set complete. You checked every saved phrase this visit.</span>
@@ -309,7 +330,7 @@ export function LearnerOverviewCard({
                       disabled={Boolean(recordingPhraseId) || Boolean(playingPhraseId)}
                       onClick={() => {
                         setPhraseQuery("");
-                        setRepairFilterActive(true);
+                        setSpeakingFilter("repair");
                       }}
                     >
                       Show phrases to repair
@@ -325,7 +346,7 @@ export function LearnerOverviewCard({
                       setPhraseRepairState({});
                       setPhraseSpeechError(undefined);
                       setPhraseQuery("");
-                      setRepairFilterActive(false);
+                      setSpeakingFilter("all");
                     }}
                   >
                     Start speaking set again

@@ -190,6 +190,11 @@ for (const width of [1280, 375]) {
     await expect(phrasebook.getByText("Speaking this visit: 1 of 3 saved phrases checked.", { exact: true })).toBeVisible();
     await expect(results.locator(".phrasebook-repair-guide")).toHaveCount(0);
     await expect(results.getByRole("button", { name: "Say Un café, por favor. again" })).toBeVisible();
+    await phrasebook.getByRole("button", { name: "Show unchecked phrases" }).click();
+    await expect(phrasebook.locator(".phrasebook-repair-filter")).toContainText("Showing phrases not checked this visit.");
+    await expect(results).toHaveCount(2);
+    await expect(phrasebook.getByText("Un café, por favor.", { exact: true })).toHaveCount(0);
+    await phrasebook.getByRole("button", { name: "Show all phrases" }).click();
     await search.fill("good morning");
     await expect(results).toHaveCount(1);
     await expect(results).toContainText("Buenos días.");
@@ -211,6 +216,7 @@ for (const width of [1280, 375]) {
     await phrasebook.getByRole("button", { name: "Start speaking set again" }).click();
     await expect(phrasebook.locator(".phrasebook-speaking-progress")).toHaveCount(0);
     await expect(phrasebook.locator(".phrasebook-speaking-complete")).toHaveCount(0);
+    await expect(phrasebook.getByRole("button", { name: "Show unchecked phrases" })).toHaveCount(0);
     await expect(search).toHaveValue("");
     await expect(results.locator(".phrasebook-transcript")).toHaveCount(0);
     await search.fill("   ");
