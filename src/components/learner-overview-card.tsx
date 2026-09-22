@@ -343,6 +343,13 @@ export function LearnerOverviewCard({
               const needsRepair = phraseRepairState[item.id] === "needs-repair";
               const repairedPhrase = itemSpeechResult?.assessment.status === "matched"
                 && phraseRepairState[item.id] === "repaired";
+              const speakingStatus = needsRepair
+                ? "Needs repair"
+                : phraseRepairState[item.id] === "repaired"
+                  ? "Repaired"
+                  : spokenPhraseIds.includes(item.id)
+                    ? "Checked"
+                    : undefined;
 
               return (
               <li key={item.id}>
@@ -359,6 +366,11 @@ export function LearnerOverviewCard({
                     {playingPhraseId === item.id ? "Playing…" : "Listen"}
                   </button>
                 </div>
+                {speakingStatus && (
+                  <span className={`phrasebook-speaking-status ${speakingStatus.toLowerCase().replace(" ", "-")}`}>
+                    {speakingStatus}
+                  </span>
+                )}
                 <button
                   className="phrasebook-speak"
                   type="button"

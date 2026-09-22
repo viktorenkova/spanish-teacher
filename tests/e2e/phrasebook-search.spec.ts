@@ -67,7 +67,10 @@ for (const width of [1280, 375]) {
     await results.getByRole("button", { name: "Stop practising Buenos días." }).click();
 
     await expect(phrasebook.locator(".phrasebook-speaking-summary")).toHaveText("Repairs completed: 0 phrases. Still to repair: 1 phrase.");
-    await expect(results.filter({ hasText: "Un café, por favor." }).locator(".phrasebook-repair-guide")).toContainText("por · favor");
+    const coffeePhrase = results.filter({ hasText: "Un café, por favor." });
+    await expect(coffeePhrase.locator(".phrasebook-speaking-status")).toHaveText("Needs repair");
+    await expect(coffeePhrase.locator(".phrasebook-repair-guide")).toContainText("por · favor");
+    await expect(results.filter({ hasText: "Me llamo…" }).locator(".phrasebook-speaking-status")).toHaveText("Checked");
     await phrasebook.getByRole("button", { name: "Show phrases to repair" }).click();
     await expect(phrasebook.locator(".phrasebook-repair-filter")).toContainText("Showing phrases still to repair this visit.");
     await expect(results).toHaveCount(1);
@@ -79,6 +82,7 @@ for (const width of [1280, 375]) {
     await expect(phrasebook.locator(".phrasebook-repair-filter")).toHaveCount(0);
     await expect(results).toHaveCount(3);
     await expect(phrasebook.locator(".phrasebook-speaking-summary")).toHaveText("Repairs completed: 1 phrase. Still to repair: 0 phrases.");
+    await expect(results.filter({ hasText: "Un café, por favor." }).locator(".phrasebook-speaking-status")).toHaveText("Repaired");
     await expect(phrasebook.getByRole("button", { name: "Show phrases to repair" })).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
