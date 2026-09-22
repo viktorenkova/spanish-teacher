@@ -60,6 +60,7 @@ export function LearnerOverviewCard({
     assessment: PhraseRehearsalAssessment;
   }>();
   const [phraseRepairState, setPhraseRepairState] = useState<Record<string, "needs-repair" | "repaired">>({});
+  const [spokenPhraseIds, setSpokenPhraseIds] = useState<string[]>([]);
   const phraseSpeechProvider = useRef(new BrowserSpeechToTextProvider());
   const visiblePhrases = filterPhrasebook(overview.phrasebook, phraseQuery);
 
@@ -105,6 +106,7 @@ export function LearnerOverviewCard({
         transcript: transcript.text,
         assessment,
       });
+      setSpokenPhraseIds((current) => current.includes(item.id) ? current : [...current, item.id]);
       setPhraseRepairState((current) => {
         const next = { ...current };
         if (assessment.status === "matched") {
@@ -264,6 +266,11 @@ export function LearnerOverviewCard({
             Practise from memory
           </button>
           <p className="phrasebook-help">Practise these search results in short sets of up to five phrases. You can stop after any set.</p>
+          {spokenPhraseIds.length > 0 && (
+            <p className="phrasebook-help phrasebook-speaking-progress" role="status">
+              Speaking this visit: {spokenPhraseIds.length} {spokenPhraseIds.length === 1 ? "phrase" : "phrases"} checked.
+            </p>
+          )}
           <ul id="phrasebook-results">
             {visiblePhrases.map((item) => {
               const itemSpeechResult = phraseSpeechResult?.itemId === item.id

@@ -145,6 +145,7 @@ for (const width of [1280, 375]) {
     await expect(phrasebook.getByRole("button", { name: "Clear search" })).toBeDisabled();
     await results.getByRole("button", { name: "Stop practising Un café, por favor." }).click();
     await expect(search).toBeEnabled();
+    await expect(phrasebook.getByText("Speaking this visit: 1 phrase checked.", { exact: true })).toBeVisible();
     await expect(results).toContainText("Pronunciation was not assessed");
     await expect(results.locator(".phrasebook-repair-guide")).toContainText("por · favor");
     await expect(results.getByRole("button", { name: "Try saying Un café, por favor. again" })).toBeVisible();
@@ -153,6 +154,7 @@ for (const width of [1280, 375]) {
     await results.getByRole("button", { name: "Try saying Un café, por favor. again" }).click();
     await results.getByRole("button", { name: "Stop practising Un café, por favor." }).click();
     await expect(results.locator(".phrasebook-repair-success")).toContainText("Nice repair");
+    await expect(phrasebook.getByText("Speaking this visit: 1 phrase checked.", { exact: true })).toBeVisible();
     await expect(results.locator(".phrasebook-repair-guide")).toHaveCount(0);
     await expect(results.getByRole("button", { name: "Say Un café, por favor. again" })).toBeVisible();
     await search.fill("good morning");
@@ -161,7 +163,7 @@ for (const width of [1280, 375]) {
     await search.fill("not-in-my-phrasebook");
     await expect(results).toHaveCount(0);
     await expect(phrasebook.getByRole("button", { name: "Practise from memory" })).toBeDisabled();
-    await expect(phrasebook.getByRole("status")).toContainText("No phrases found");
+    await expect(phrasebook.locator(".phrasebook-search-count")).toContainText("No phrases found");
     await phrasebook.getByRole("button", { name: "Clear search" }).click();
     await expect(search).toHaveValue("");
     await expect(results).toHaveCount(3);
