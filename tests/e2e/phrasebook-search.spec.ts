@@ -67,10 +67,12 @@ for (const width of [1280, 375]) {
     await results.getByRole("button", { name: "Stop practising Buenos días." }).click();
 
     await expect(phrasebook.locator(".phrasebook-speaking-summary")).toHaveText("Repairs completed: 0 phrases. Still to repair: 1 phrase.");
+    await expect(results.filter({ hasText: "Un café, por favor." }).locator(".phrasebook-repair-guide")).toContainText("por · favor");
     await phrasebook.getByRole("button", { name: "Show phrases to repair" }).click();
     await expect(phrasebook.locator(".phrasebook-repair-filter")).toContainText("Showing phrases still to repair this visit.");
     await expect(results).toHaveCount(1);
     await expect(results).toContainText("Un café, por favor.");
+    await expect(results.locator(".phrasebook-repair-guide")).toContainText("por · favor");
 
     await results.getByRole("button", { name: "Try saying Un café, por favor. again" }).click();
     await results.getByRole("button", { name: "Stop practising Un café, por favor." }).click();

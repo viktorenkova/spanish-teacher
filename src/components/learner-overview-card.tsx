@@ -54,11 +54,11 @@ export function LearnerOverviewCard({
   const recallStart = useRef<HTMLButtonElement>(null);
   const [recordingPhraseId, setRecordingPhraseId] = useState<string>();
   const [phraseSpeechError, setPhraseSpeechError] = useState<string>();
-  const [phraseSpeechResult, setPhraseSpeechResult] = useState<{
+  const [phraseSpeechResults, setPhraseSpeechResults] = useState<Record<string, {
     itemId: string;
     transcript: string;
     assessment: PhraseRehearsalAssessment;
-  }>();
+  }>>({});
   const [phraseRepairState, setPhraseRepairState] = useState<Record<string, "needs-repair" | "repaired">>({});
   const [spokenPhraseIds, setSpokenPhraseIds] = useState<string[]>([]);
   const [repairFilterActive, setRepairFilterActive] = useState(false);
@@ -100,7 +100,11 @@ export function LearnerOverviewCard({
     window.speechSynthesis?.cancel();
     setRecordingPhraseId(item.id);
     setPhraseSpeechError(undefined);
-    setPhraseSpeechResult(undefined);
+    setPhraseSpeechResults((current) => {
+      const next = { ...current };
+      delete next[item.id];
+      return next;
+    });
     try {
       const transcript = await phraseSpeechProvider.current.transcribe({
         locale: "es-ES",
@@ -110,11 +114,14 @@ export function LearnerOverviewCard({
       const resolvesLastPendingRepair = assessment.status === "matched"
         && phraseRepairState[item.id] === "needs-repair"
         && pendingRepairCount === 1;
-      setPhraseSpeechResult({
-        itemId: item.id,
-        transcript: transcript.text,
-        assessment,
-      });
+      setPhraseSpeechResults((current) => ({
+        ...current,
+        [item.id]: {
+          itemId: item.id,
+          transcript: transcript.text,
+          assessment,
+        },
+      }));
       setSpokenPhraseIds((current) => current.includes(item.id) ? current : [...current, item.id]);
       setPhraseRepairState((current) => {
         const next = { ...current };
@@ -314,7 +321,7 @@ export function LearnerOverviewCard({
                     disabled={Boolean(recordingPhraseId) || Boolean(playingPhraseId)}
                     onClick={() => {
                       setSpokenPhraseIds([]);
-                      setPhraseSpeechResult(undefined);
+                      setPhraseSpeechResults({});
                       setPhraseRepairState({});
                       setPhraseSpeechError(undefined);
                       setPhraseQuery("");
@@ -329,9 +336,7 @@ export function LearnerOverviewCard({
           )}
           <ul id="phrasebook-results">
             {visiblePhrases.map((item) => {
-              const itemSpeechResult = phraseSpeechResult?.itemId === item.id
-                ? phraseSpeechResult
-                : undefined;
+              const itemSpeechResult = phraseSpeechResults[item.id];
               const repairWords = itemSpeechResult && itemSpeechResult.assessment.status !== "matched"
                 ? itemSpeechResult.assessment.missingWords
                 : [];
