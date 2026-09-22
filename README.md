@@ -128,6 +128,7 @@ npm run test:smoke
 42. Focused phrase feedback. — incomplete speaking rehearsal identifies key target words to focus on while keeping pronunciation explicitly unassessed
 43. Focused speaking repair. — after an incomplete recall attempt, practise the missed key words with browser Spanish audio and retry the complete phrase without leaving the card
 44. Consistent phrase repair. — regular phrasebook speaking practice now offers the same missed-word listening and retry loop as memory practice
+45. Repair success feedback. — when a regular phrasebook speaking retry completes the phrase after an incomplete attempt, the current session shows a short deterministic success message without changing saved progress or FSRS
 
 ## Non-goals for MVP
 

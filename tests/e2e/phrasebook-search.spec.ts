@@ -29,7 +29,7 @@ async function openPhrasebook(
   page: Page,
   width: number,
   savedOverview = overview,
-  transcript = "Un café, por favor.",
+  transcript: string | string[] = "Un café, por favor.",
 ) {
     await page.setViewportSize({ width, height: 812 });
     await installMediaMocks(page, transcript);
@@ -122,7 +122,7 @@ for (const width of [1280, 375]) {
         },
       } });
     });
-    await openPhrasebook(page, width, overview, "un cafe");
+    await openPhrasebook(page, width, overview, ["un cafe", "un cafe por favor"]);
     const phrasebook = page.locator("details.phrasebook");
     const search = page.getByRole("searchbox", { name: "Find a phrase" });
     const results = phrasebook.locator("li");
@@ -145,6 +145,11 @@ for (const width of [1280, 375]) {
     await expect(results.getByRole("button", { name: "Try saying Un café, por favor. again" })).toBeVisible();
     await results.getByRole("button", { name: "Listen to focus words" }).click();
     await expect(page.locator("html")).toHaveAttribute("data-spoken-text", "por favor");
+    await results.getByRole("button", { name: "Try saying Un café, por favor. again" }).click();
+    await results.getByRole("button", { name: "Stop practising Un café, por favor." }).click();
+    await expect(results.locator(".phrasebook-repair-success")).toContainText("Nice repair");
+    await expect(results.locator(".phrasebook-repair-guide")).toHaveCount(0);
+    await expect(results.getByRole("button", { name: "Say Un café, por favor. again" })).toBeVisible();
     await search.fill("good morning");
     await expect(results).toHaveCount(1);
     await expect(results).toContainText("Buenos días.");

@@ -114,8 +114,10 @@ export async function loadLatestPilotFeedback(learnerId: string) {
   }
 }
 
-export async function installMediaMocks(page: Page, transcript: string) {
-  await page.addInitScript((mockTranscript) => {
+export async function installMediaMocks(page: Page, transcript: string | string[]) {
+  const transcripts = Array.isArray(transcript) ? transcript : [transcript];
+  await page.addInitScript((mockTranscripts) => {
+    let recognitionIndex = 0;
     class MockSpeechRecognition {
       lang = "";
       continuous = false;
@@ -129,6 +131,8 @@ export async function installMediaMocks(page: Page, transcript: string) {
       onend: (() => void) | null = null;
 
       start() {
+        const mockTranscript = mockTranscripts[Math.min(recognitionIndex, mockTranscripts.length - 1)] ?? "";
+        recognitionIndex += 1;
         window.setTimeout(() => {
           this.onresult?.({
             results: [{
@@ -163,7 +167,7 @@ export async function installMediaMocks(page: Page, transcript: string) {
       configurable: true,
       value: MockAudio,
     });
-  }, transcript);
+  }, transcripts);
 
   await page.route("**/api/tts/**", (route) => route.fulfill({
     status: 200,

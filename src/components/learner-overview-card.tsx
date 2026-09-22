@@ -59,6 +59,7 @@ export function LearnerOverviewCard({
     transcript: string;
     assessment: PhraseRehearsalAssessment;
   }>();
+  const [phraseRepairState, setPhraseRepairState] = useState<Record<string, "needs-repair" | "repaired">>({});
   const phraseSpeechProvider = useRef(new BrowserSpeechToTextProvider());
   const visiblePhrases = filterPhrasebook(overview.phrasebook, phraseQuery);
 
@@ -98,10 +99,21 @@ export function LearnerOverviewCard({
         locale: "es-ES",
         maxDurationMs: 15_000,
       });
+      const assessment = assessPhraseRehearsal(item.targetText, transcript.text);
       setPhraseSpeechResult({
         itemId: item.id,
         transcript: transcript.text,
-        assessment: assessPhraseRehearsal(item.targetText, transcript.text),
+        assessment,
+      });
+      setPhraseRepairState((current) => {
+        const next = { ...current };
+        if (assessment.status === "matched") {
+          if (current[item.id] === "needs-repair") next[item.id] = "repaired";
+          else if (current[item.id] !== "repaired") delete next[item.id];
+        } else {
+          next[item.id] = "needs-repair";
+        }
+        return next;
       });
     } catch (speechError) {
       setPhraseSpeechError(
@@ -260,6 +272,8 @@ export function LearnerOverviewCard({
               const repairWords = itemSpeechResult && itemSpeechResult.assessment.status !== "matched"
                 ? itemSpeechResult.assessment.missingWords
                 : [];
+              const repairedPhrase = itemSpeechResult?.assessment.status === "matched"
+                && phraseRepairState[item.id] === "repaired";
 
               return (
               <li key={item.id}>
@@ -311,6 +325,11 @@ export function LearnerOverviewCard({
                     <p lang="es">{itemSpeechResult.transcript}</p>
                     <span>{itemSpeechResult.assessment.feedback}</span>
                   </div>
+                )}
+                {repairedPhrase && (
+                  <p className="phrasebook-repair-success" role="status">
+                    Nice repair. You completed the full phrase after focusing on the missing words.
+                  </p>
                 )}
                 {repairWords.length > 0 && (
                   <div className="phrasebook-repair-guide">
