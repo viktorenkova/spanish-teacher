@@ -32,6 +32,10 @@ export function PhrasebookRecall({ items, onClose }: {
   const answer = useRef<HTMLDivElement>(null);
   const speechProvider = useRef(new BrowserSpeechToTextProvider());
   const phrase = round[index];
+  const repairWords = speechResult && speechResult.assessment.status !== "matched"
+    ? speechResult.assessment.missingWords
+    : [];
+  const repairText = repairWords.join(" ");
 
   useEffect(() => { heading.current?.focus(); }, [index, round]);
   useEffect(() => { if (revealed) answer.current?.focus(); }, [revealed]);
@@ -95,8 +99,9 @@ export function PhrasebookRecall({ items, onClose }: {
                 <strong lang="es">{phrase.targetText}</strong>
                 <PhraseAudioButton
                   key={phrase.id}
-                  text={phrase.targetText}
+                  text={repairText || phrase.targetText}
                   disabled={recording}
+                  idleLabel={repairText ? "Listen to focus words" : "Listen to the answer"}
                   onPlaybackChange={setPlayingAudio}
                 />
                 <button
@@ -105,7 +110,13 @@ export function PhrasebookRecall({ items, onClose }: {
                   disabled={playingAudio}
                   onClick={() => void practiseSpeaking()}
                 >
-                  {recording ? "■ Stop and check" : "● Say it and check"}
+                  {recording
+                    ? "■ Stop and check"
+                    : speechResult
+                      ? speechResult.assessment.status === "matched"
+                        ? "● Say it again"
+                        : "● Try speaking again"
+                      : "● Say it and check"}
                 </button>
                 {recording && (
                   <p className="phrasebook-recording" role="status">Listening… Say the whole phrase, then stop the microphone.</p>
@@ -115,6 +126,13 @@ export function PhrasebookRecall({ items, onClose }: {
                     <small>The browser heard</small>
                     <p lang="es">{speechResult.transcript}</p>
                     <span>{speechResult.assessment.feedback}</span>
+                  </div>
+                )}
+                {repairWords.length > 0 && (
+                  <div className="phrasebook-repair-guide">
+                    <strong>Focus words</strong>
+                    <p lang="es">{repairWords.join(" · ")}</p>
+                    <span>Listen to these words, then say the whole phrase again.</span>
                   </div>
                 )}
                 {speechError && <p className="phrasebook-audio-error" role="alert">{speechError}</p>}

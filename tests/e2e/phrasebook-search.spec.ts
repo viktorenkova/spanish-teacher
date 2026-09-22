@@ -25,9 +25,14 @@ const overview = buildLearnerOverview({
   ],
 });
 
-async function openPhrasebook(page: Page, width: number, savedOverview = overview) {
+async function openPhrasebook(
+  page: Page,
+  width: number,
+  savedOverview = overview,
+  transcript = "Un café, por favor.",
+) {
     await page.setViewportSize({ width, height: 812 });
-    await installMediaMocks(page, "Un café, por favor.");
+    await installMediaMocks(page, transcript);
     await page.addInitScript(() => {
       localStorage.setItem("spanish-coach:learner-id:v1", "phrasebook-test");
     });
@@ -63,7 +68,7 @@ for (const width of [1280, 375]) {
         },
       } });
     });
-    await openPhrasebook(page, width);
+    await openPhrasebook(page, width, overview, "un cafe");
     await page.getByRole("button", { name: "Practise from memory" }).click();
     const practice = page.locator(".phrasebook-recall");
     await expect(practice.getByRole("button", { name: "Listen to the answer" })).toHaveCount(0);
@@ -77,8 +82,12 @@ for (const width of [1280, 375]) {
     await expect(practice.getByRole("button", { name: "Listen to the answer" })).toBeDisabled();
     await practice.getByRole("button", { name: "Stop and check" }).click();
     await expect(practice.locator(".phrasebook-transcript")).toContainText("The browser heard");
+    await expect(practice.locator(".phrasebook-transcript")).toContainText("Focus on: por, favor");
     await expect(practice.locator(".phrasebook-transcript")).toContainText("Pronunciation was not assessed");
-    await practice.getByRole("button", { name: "Listen to the answer" }).click();
+    await expect(practice.locator(".phrasebook-repair-guide")).toContainText("por · favor");
+    await expect(practice.getByRole("button", { name: "Try speaking again" })).toBeVisible();
+    await practice.getByRole("button", { name: "Listen to focus words" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-spoken-text", "por favor");
     await practice.getByRole("button", { name: "I remembered it" }).click();
     await expect(page.locator("html")).toHaveAttribute("data-speaking", "false");
     await practice.getByRole("button", { name: "Reveal Spanish" }).click();

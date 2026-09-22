@@ -6,10 +6,12 @@ import { speakWithBrowser } from "@/tts/browser-provider";
 export function PhraseAudioButton({
   text,
   disabled = false,
+  idleLabel = "Listen to the answer",
   onPlaybackChange,
 }: {
   text: string;
   disabled?: boolean;
+  idleLabel?: string;
   onPlaybackChange?: (playing: boolean) => void;
 }) {
   const [playing, setPlaying] = useState(false);
@@ -58,7 +60,7 @@ export function PhraseAudioButton({
         </select>
       </label>
       <button type="button" className="secondary-button" disabled={disabled} onClick={() => void play()}>
-        {playing ? "Stop audio" : "Listen to the answer"}
+        {playing ? "Stop audio" : idleLabel}
       </button>
       {playing && <span aria-live="polite" className="phrase-audio-status">Speaking Spanish…</span>}
       {error && <p role="alert">{error} You can still read the answer and continue.</p>}
