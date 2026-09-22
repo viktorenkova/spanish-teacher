@@ -107,7 +107,22 @@ for (const width of [1280, 375]) {
   });
 
   test(`searches saved phrases and keeps speaking usable at ${width}px`, async ({ page }) => {
-    await openPhrasebook(page, width);
+    await page.addInitScript(() => {
+      Object.defineProperty(window, "SpeechSynthesisUtterance", { configurable: true, value: class {
+        onend: (() => void) | null = null;
+        onerror: (() => void) | null = null;
+        constructor(public text: string) {}
+      } });
+      Object.defineProperty(window, "speechSynthesis", { configurable: true, value: {
+        getVoices: () => [{ lang: "es-ES", name: "Test Spanish" }],
+        cancel: () => {},
+        speak: (utterance: SpeechSynthesisUtterance) => {
+          document.documentElement.dataset.spokenText = utterance.text;
+          window.setTimeout(() => utterance.onend?.({} as SpeechSynthesisEvent), 10);
+        },
+      } });
+    });
+    await openPhrasebook(page, width, overview, "un cafe");
     const phrasebook = page.locator("details.phrasebook");
     const search = page.getByRole("searchbox", { name: "Find a phrase" });
     const results = phrasebook.locator("li");
@@ -126,6 +141,10 @@ for (const width of [1280, 375]) {
     await results.getByRole("button", { name: "Stop practising Un café, por favor." }).click();
     await expect(search).toBeEnabled();
     await expect(results).toContainText("Pronunciation was not assessed");
+    await expect(results.locator(".phrasebook-repair-guide")).toContainText("por · favor");
+    await expect(results.getByRole("button", { name: "Try saying Un café, por favor. again" })).toBeVisible();
+    await results.getByRole("button", { name: "Listen to focus words" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-spoken-text", "por favor");
     await search.fill("good morning");
     await expect(results).toHaveCount(1);
     await expect(results).toContainText("Buenos días.");

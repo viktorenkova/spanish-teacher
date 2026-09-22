@@ -64,12 +64,15 @@ export function LearnerOverviewCard({
 
   useEffect(() => () => phraseSpeechProvider.current.abort(), []);
 
-  async function playPhrase(item: LearnerOverview["phrasebook"][number]) {
+  async function playPhrase(
+    item: LearnerOverview["phrasebook"][number],
+    text = item.targetText,
+  ) {
     setPlayingPhraseId(item.id);
     setPhraseAudioError(undefined);
     try {
       await speakWithBrowser({
-        text: item.targetText,
+        text,
         locale: "es-ES",
         rate: 0.86,
       });
@@ -250,7 +253,15 @@ export function LearnerOverviewCard({
           </button>
           <p className="phrasebook-help">Practise these search results in short sets of up to five phrases. You can stop after any set.</p>
           <ul id="phrasebook-results">
-            {visiblePhrases.map((item) => (
+            {visiblePhrases.map((item) => {
+              const itemSpeechResult = phraseSpeechResult?.itemId === item.id
+                ? phraseSpeechResult
+                : undefined;
+              const repairWords = itemSpeechResult && itemSpeechResult.assessment.status !== "matched"
+                ? itemSpeechResult.assessment.missingWords
+                : [];
+
+              return (
               <li key={item.id}>
                 <div className="phrasebook-phrase">
                   <strong lang="es">{item.targetText}</strong>
@@ -271,24 +282,50 @@ export function LearnerOverviewCard({
                   disabled={Boolean(recordingPhraseId && recordingPhraseId !== item.id)}
                   aria-label={recordingPhraseId === item.id
                     ? `Stop practising ${item.targetText}`
-                    : `Practise saying ${item.targetText}`}
+                    : itemSpeechResult
+                      ? itemSpeechResult.assessment.status === "matched"
+                        ? `Say ${item.targetText} again`
+                        : `Try saying ${item.targetText} again`
+                      : `Practise saying ${item.targetText}`}
                   onClick={() => {
                     if (recordingPhraseId === item.id) phraseSpeechProvider.current.stop();
                     else void startPhraseRehearsal(item);
                   }}
                 >
-                  {recordingPhraseId === item.id ? "■ Stop and check" : "● Practise speaking"}
+                  {recordingPhraseId === item.id
+                    ? "■ Stop and check"
+                    : itemSpeechResult
+                      ? itemSpeechResult.assessment.status === "matched"
+                        ? "● Say it again"
+                        : "● Try speaking again"
+                      : "● Practise speaking"}
                 </button>
                 {recordingPhraseId === item.id && (
                   <p className="phrasebook-recording" role="status">
                     Listening… Say the phrase, then stop the microphone.
                   </p>
                 )}
-                {phraseSpeechResult?.itemId === item.id && (
-                  <div className={`phrasebook-transcript ${phraseSpeechResult.assessment.status}`} aria-live="polite">
+                {itemSpeechResult && (
+                  <div className={`phrasebook-transcript ${itemSpeechResult.assessment.status}`} aria-live="polite">
                     <small>The browser heard</small>
-                    <p lang="es">{phraseSpeechResult.transcript}</p>
-                    <span>{phraseSpeechResult.assessment.feedback}</span>
+                    <p lang="es">{itemSpeechResult.transcript}</p>
+                    <span>{itemSpeechResult.assessment.feedback}</span>
+                  </div>
+                )}
+                {repairWords.length > 0 && (
+                  <div className="phrasebook-repair-guide">
+                    <strong>Focus words</strong>
+                    <p lang="es">{repairWords.join(" · ")}</p>
+                    <span>Listen to these words, then say the whole phrase again.</span>
+                    <button
+                      className="phrasebook-listen"
+                      type="button"
+                      disabled={Boolean(recordingPhraseId) || playingPhraseId === item.id}
+                      onClick={() => void playPhrase(item, repairWords.join(" "))}
+                    >
+                      <span aria-hidden="true">▶</span>
+                      {playingPhraseId === item.id ? "Playing…" : "Listen to focus words"}
+                    </button>
                   </div>
                 )}
                 <details>
@@ -296,7 +333,8 @@ export function LearnerOverviewCard({
                   <span>{item.supportText}</span>
                 </details>
               </li>
-            ))}
+              );
+            })}
           </ul>
           {phraseAudioError && <p className="phrasebook-audio-error" role="alert">{phraseAudioError}</p>}
           {phraseSpeechError && <p className="phrasebook-audio-error" role="alert">{phraseSpeechError}</p>}

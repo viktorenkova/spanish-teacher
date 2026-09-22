@@ -127,6 +127,7 @@ npm run test:smoke
 41. Speak after recall. — revealed memory-practice answers can be repeated into the microphone and checked with the deterministic transcript matcher on desktop and mobile
 42. Focused phrase feedback. — incomplete speaking rehearsal identifies key target words to focus on while keeping pronunciation explicitly unassessed
 43. Focused speaking repair. — after an incomplete recall attempt, practise the missed key words with browser Spanish audio and retry the complete phrase without leaving the card
+44. Consistent phrase repair. — regular phrasebook speaking practice now offers the same missed-word listening and retry loop as memory practice
 
 ## Non-goals for MVP
 
