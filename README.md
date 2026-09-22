@@ -134,6 +134,7 @@ npm run test:smoke
 48. Phrasebook speaking coverage. — current-visit speaking now shows unique coverage against the full saved phrasebook and gives a completion message after every saved phrase has been checked
 49. Repeatable speaking set. — after completing the saved phrasebook speaking set, the learner can start a fresh current-visit run without reloading or changing saved progress
 50. Speaking repair summary. — completing a phrasebook speaking set now reports how many phrases were successfully repaired and how many still need repair, using only current-visit deterministic evidence
+51. Pending repair focus. — after completing a speaking set with unresolved phrases, the learner can filter directly to those phrases and automatically return to the full phrasebook after the last repair is completed
 
 ## Non-goals for MVP
 

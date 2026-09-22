@@ -61,8 +61,12 @@ export function LearnerOverviewCard({
   }>();
   const [phraseRepairState, setPhraseRepairState] = useState<Record<string, "needs-repair" | "repaired">>({});
   const [spokenPhraseIds, setSpokenPhraseIds] = useState<string[]>([]);
+  const [repairFilterActive, setRepairFilterActive] = useState(false);
   const phraseSpeechProvider = useRef(new BrowserSpeechToTextProvider());
-  const visiblePhrases = filterPhrasebook(overview.phrasebook, phraseQuery);
+  const searchedPhrases = filterPhrasebook(overview.phrasebook, phraseQuery);
+  const visiblePhrases = repairFilterActive
+    ? searchedPhrases.filter((item) => phraseRepairState[item.id] === "needs-repair")
+    : searchedPhrases;
   const repairedPhraseCount = Object.values(phraseRepairState).filter((status) => status === "repaired").length;
   const pendingRepairCount = Object.values(phraseRepairState).filter((status) => status === "needs-repair").length;
 
@@ -103,6 +107,9 @@ export function LearnerOverviewCard({
         maxDurationMs: 15_000,
       });
       const assessment = assessPhraseRehearsal(item.targetText, transcript.text);
+      const resolvesLastPendingRepair = assessment.status === "matched"
+        && phraseRepairState[item.id] === "needs-repair"
+        && pendingRepairCount === 1;
       setPhraseSpeechResult({
         itemId: item.id,
         transcript: transcript.text,
@@ -119,6 +126,7 @@ export function LearnerOverviewCard({
         }
         return next;
       });
+      if (resolvesLastPendingRepair) setRepairFilterActive(false);
     } catch (speechError) {
       setPhraseSpeechError(
         speechError instanceof Error
@@ -258,6 +266,14 @@ export function LearnerOverviewCard({
             {visiblePhrases.length} of {overview.phrasebook.length} phrases
             {visiblePhrases.length === 0 && ". No phrases found. Try another word or clear your search."}
           </p>
+          {repairFilterActive && (
+            <div className="phrasebook-repair-filter">
+              <span role="status">Showing phrases still to repair this visit.</span>
+              <button className="text-button" type="button" onClick={() => setRepairFilterActive(false)}>
+                Show all phrases
+              </button>
+            </div>
+          )}
           <button
             ref={recallStart}
             className="secondary-button phrasebook-recall-start"
@@ -279,6 +295,19 @@ export function LearnerOverviewCard({
                   <span className="phrasebook-speaking-summary">
                     Repairs completed: {repairedPhraseCount} {repairedPhraseCount === 1 ? "phrase" : "phrases"}. Still to repair: {pendingRepairCount} {pendingRepairCount === 1 ? "phrase" : "phrases"}.
                   </span>
+                  {pendingRepairCount > 0 && (
+                    <button
+                      className="text-button"
+                      type="button"
+                      disabled={Boolean(recordingPhraseId) || Boolean(playingPhraseId)}
+                      onClick={() => {
+                        setPhraseQuery("");
+                        setRepairFilterActive(true);
+                      }}
+                    >
+                      Show phrases to repair
+                    </button>
+                  )}
                   <button
                     className="text-button"
                     type="button"
@@ -289,6 +318,7 @@ export function LearnerOverviewCard({
                       setPhraseRepairState({});
                       setPhraseSpeechError(undefined);
                       setPhraseQuery("");
+                      setRepairFilterActive(false);
                     }}
                   >
                     Start speaking set again
@@ -305,6 +335,7 @@ export function LearnerOverviewCard({
               const repairWords = itemSpeechResult && itemSpeechResult.assessment.status !== "matched"
                 ? itemSpeechResult.assessment.missingWords
                 : [];
+              const needsRepair = phraseRepairState[item.id] === "needs-repair";
               const repairedPhrase = itemSpeechResult?.assessment.status === "matched"
                 && phraseRepairState[item.id] === "repaired";
 
@@ -333,7 +364,9 @@ export function LearnerOverviewCard({
                       ? itemSpeechResult.assessment.status === "matched"
                         ? `Say ${item.targetText} again`
                         : `Try saying ${item.targetText} again`
-                      : `Practise saying ${item.targetText}`}
+                      : needsRepair
+                        ? `Try saying ${item.targetText} again`
+                        : `Practise saying ${item.targetText}`}
                   onClick={() => {
                     if (recordingPhraseId === item.id) phraseSpeechProvider.current.stop();
                     else void startPhraseRehearsal(item);
@@ -345,7 +378,9 @@ export function LearnerOverviewCard({
                       ? itemSpeechResult.assessment.status === "matched"
                         ? "● Say it again"
                         : "● Try speaking again"
-                      : "● Practise speaking"}
+                      : needsRepair
+                        ? "● Try speaking again"
+                        : "● Practise speaking"}
                 </button>
                 {recordingPhraseId === item.id && (
                   <p className="phrasebook-recording" role="status">

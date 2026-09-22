@@ -54,6 +54,33 @@ async function openPhrasebook(
 }
 
 for (const width of [1280, 375]) {
+  test(`returns to unfinished speaking repairs at ${width}px`, async ({ page }) => {
+    await openPhrasebook(page, width, overview, ["un cafe", "me llamo", "buenos dias", "un cafe por favor"]);
+    const phrasebook = page.locator("details.phrasebook");
+    const results = phrasebook.locator("li");
+
+    await results.getByRole("button", { name: "Practise saying Un café, por favor." }).click();
+    await results.getByRole("button", { name: "Stop practising Un café, por favor." }).click();
+    await results.getByRole("button", { name: "Practise saying Me llamo…" }).click();
+    await results.getByRole("button", { name: "Stop practising Me llamo…" }).click();
+    await results.getByRole("button", { name: "Practise saying Buenos días." }).click();
+    await results.getByRole("button", { name: "Stop practising Buenos días." }).click();
+
+    await expect(phrasebook.locator(".phrasebook-speaking-summary")).toHaveText("Repairs completed: 0 phrases. Still to repair: 1 phrase.");
+    await phrasebook.getByRole("button", { name: "Show phrases to repair" }).click();
+    await expect(phrasebook.locator(".phrasebook-repair-filter")).toContainText("Showing phrases still to repair this visit.");
+    await expect(results).toHaveCount(1);
+    await expect(results).toContainText("Un café, por favor.");
+
+    await results.getByRole("button", { name: "Try saying Un café, por favor. again" }).click();
+    await results.getByRole("button", { name: "Stop practising Un café, por favor." }).click();
+    await expect(phrasebook.locator(".phrasebook-repair-filter")).toHaveCount(0);
+    await expect(results).toHaveCount(3);
+    await expect(phrasebook.locator(".phrasebook-speaking-summary")).toHaveText("Repairs completed: 1 phrase. Still to repair: 0 phrases.");
+    await expect(phrasebook.getByRole("button", { name: "Show phrases to repair" })).toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+
   test(`plays revealed answers, stops on navigation and handles unavailable audio at ${width}px`, async ({ page }) => {
     await page.addInitScript(() => {
       Object.defineProperty(window, "SpeechSynthesisUtterance", { configurable: true, value: class {
