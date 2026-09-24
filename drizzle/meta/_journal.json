@@ -57,6 +57,13 @@
       "when": 1787999529090,
       "tag": "0007_unknown_puma",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1790283252690,
+      "tag": "0008_silky_thaddeus_ross",
+      "breakpoints": true
     }
   ]
 }

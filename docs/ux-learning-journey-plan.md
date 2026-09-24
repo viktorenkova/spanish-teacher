@@ -106,7 +106,7 @@ The main success condition is that the learner always understands the current ta
 - [x] Test at desktop `1440×900` and mobile `390×844`.
 - [x] Check keyboard order, focus visibility, headings, labels, live regions, and touch targets of at least `44×44` CSS pixels along the tested route.
 - [x] Check reduced motion, horizontal overflow, console errors, and preserved progress.
-- [ ] Measure completion-to-next-lesson continuation and completion-to-review selection when product analytics is introduced.
+- [x] Measure completion-to-next-lesson continuation and completion-to-review selection with first-party session choices; see [measurement](learning-journey-measurement.md).
 
 ### Verification record · 24 September 2026
 
@@ -114,7 +114,7 @@ The main success condition is that the learner always understands the current ta
 - Mobile: onboarding → diagnostic → plan → lesson → completion → Finish for today → reload → Progress → bounded phrase practice → Today.
 - Browser checks cover first-viewport actions, keyboard focus, semantic controls, visible status feedback, touch targets, reduced motion, overflow, browser errors, and saved progress after reload.
 - The mobile audit found a buried first-entry CTA and completion actions; both were moved above optional detail. It also found undersized controls, which were enlarged on the tested route.
-- Product analytics is not present yet. The two continuation measures remain a separate follow-up; no unverified conversion numbers are claimed.
+- First-party choice events and an operator report now provide the two continuation measures. Only sessions completed after deployment should be used for the first report.
 
 ## Implementation order
 

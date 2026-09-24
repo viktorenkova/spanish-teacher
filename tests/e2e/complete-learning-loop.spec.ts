@@ -3,6 +3,7 @@ import {
   cleanupLearner,
   completeOnboarding,
   installMediaMocks,
+  loadJourneyChoices,
   loadLatestPilotFeedback,
 } from "./helpers";
 
@@ -40,6 +41,12 @@ test("completes a lesson with listening and speaking, then adapts the next topic
     await page.getByRole("button", { name: "Build today’s lesson" }).click();
     await expect(page.getByRole("button", { name: "Start the ready practice" })).toBeInViewport();
     await page.getByRole("button", { name: "Start the ready practice" }).click();
+    const activeSessionResponse = await page.request.get(`/api/lesson/sessions?learnerId=${learnerId}`);
+    const activeSession = (await activeSessionResponse.json()) as { session: { id: string } };
+    const prematureChoice = await page.request.post("/api/learning-journey/choice", {
+      data: { learnerId, sessionId: activeSession.session.id, choice: "next_lesson" },
+    });
+    expect(prematureChoice.status()).toBe(409);
 
     await page.getByRole("radio", { name: "See you tomorrow" }).click();
     await page.getByRole("button", { name: "Check answer" }).click();
@@ -88,6 +95,13 @@ test("completes a lesson with listening and speaking, then adapts the next topic
 
     await page.getByRole("button", { name: /^Continue/ }).click();
     await expect(page.getByRole("heading", { name: "Ready for “Talk about your morning”?" })).toBeVisible();
+    await expect.poll(async () => (await loadJourneyChoices(learnerId!)).map(({ choice }) => choice))
+      .toEqual(["next_lesson"]);
+    const repeatedChoice = await page.request.post("/api/learning-journey/choice", {
+      data: { learnerId, sessionId: activeSession.session.id, choice: "next_lesson" },
+    });
+    expect(repeatedChoice.status()).toBe(200);
+    expect(await loadJourneyChoices(learnerId)).toHaveLength(1);
     await page.getByRole("button", { name: "Choose another duration" }).click();
     await expect(page.getByRole("tab", { name: "Today" })).toHaveAttribute("aria-selected", "true");
     await expect(page.getByRole("heading", { name: "Talk about your morning" })).toBeVisible();
@@ -114,6 +128,8 @@ test("completes a lesson with listening and speaking, then adapts the next topic
       page.locator(".learner-overview-progress").getByText("1/12", { exact: true }),
     ).toBeVisible();
     await page.getByRole("tab", { name: "Review" }).click();
+    await expect.poll(async () => (await loadJourneyChoices(learnerId!)).map(({ choice }) => choice))
+      .toContain("review");
     await expect(page.getByRole("heading", { name: "Practise 5 saved phrases" })).toBeVisible();
     await page.locator("details.phrasebook > summary").click();
     await page.getByRole("button", { name: "Practise saying Me llamo…", exact: true }).first().click();
@@ -237,6 +253,8 @@ test("mobile learner finishes for today, reviews phrases, and keeps saved progre
     await expect(page.getByRole("heading", { name: "Recent lessons" })).toBeVisible();
     await expect(page.locator(".learner-overview-progress").getByText("1/12", { exact: true })).toBeVisible();
     await page.getByRole("tab", { name: "Review" }).click();
+    await expect.poll(async () => (await loadJourneyChoices(learnerId!)).map(({ choice }) => choice))
+      .toEqual(["review"]);
     await page.getByRole("button", { name: "Start phrase practice" }).click();
     const practice = page.getByRole("region", { name: /Say it from memory|Memory practice complete/ });
     await expect(practice.getByRole("heading")).toHaveText("Say it from memory · 1 of 5");

@@ -11,6 +11,7 @@ import type { LearnerOverview } from "@/domain/learner-overview";
 import type { LessonHistoryEntry } from "@/domain/lesson-history";
 import type { PracticeRhythm } from "@/domain/practice-rhythm";
 import type { LocalLearnerProfile } from "@/browser/local-learner-profiles";
+import { isRecentCompletion, recentCompletionContext, recordJourneyChoice } from "@/browser/learning-journey";
 import {
   learnerPrimaryGoalLabels,
   type LearnerPrimaryGoal,
@@ -69,6 +70,11 @@ export function PlannedLessonExperience({
   const [error, setError] = useState<string>();
   const [dashboardSection, setDashboardSection] = useState<DashboardSection>("today");
   const [reviewItems, setReviewItems] = useState<LearnerOverview["phrasebook"]>();
+  const [recentCompletion, setRecentCompletion] = useState<{
+    learnerId: string;
+    sessionId: string;
+    recordedAt: string;
+  }>();
 
   useEffect(() => {
     if (started || reviewItems) return;
@@ -209,8 +215,26 @@ export function PlannedLessonExperience({
     const nextSection = dashboardSections[
       (currentIndex + direction + dashboardSections.length) % dashboardSections.length
     ];
-    setDashboardSection(nextSection);
+    selectDashboardSection(nextSection);
     requestAnimationFrame(() => document.getElementById(`dashboard-tab-${nextSection}`)?.focus());
+  }
+
+  function selectDashboardSection(section: DashboardSection) {
+    if (section === "review" && dashboardSection !== "review") {
+      const latestCompletion = history?.[0];
+      const recentHistorySessionId = latestCompletion
+        && isRecentCompletion(latestCompletion.completedAt)
+        ? latestCompletion.sessionId
+        : undefined;
+      const sessionId = recentCompletion?.learnerId === learnerId
+        && isRecentCompletion(recentCompletion.recordedAt)
+        ? recentCompletion.sessionId
+        : recentHistorySessionId;
+      if (sessionId) {
+        void recordJourneyChoice({ learnerId, sessionId, choice: "review" });
+      }
+    }
+    setDashboardSection(section);
   }
 
   async function createPlan() {
@@ -352,9 +376,14 @@ export function PlannedLessonExperience({
   }
 
   async function finishLesson(destination: "next" | "dashboard") {
+    const completedSessionId = session?.id;
     if (destination === "next") {
       const nextPlanReady = await createPlan();
       if (!nextPlanReady) return false;
+      if (completedSessionId) {
+        setRecentCompletion(recentCompletionContext(learnerId, completedSessionId));
+        void recordJourneyChoice({ learnerId, sessionId: completedSessionId, choice: "next_lesson" });
+      }
       setStarted(false);
       setSession(null);
       setOverviewRefreshKey((value) => value + 1);
@@ -362,6 +391,7 @@ export function PlannedLessonExperience({
       return true;
     }
 
+    if (completedSessionId) setRecentCompletion(recentCompletionContext(learnerId, completedSessionId));
     setStarted(false);
     setSession(null);
     setPlan(null);
@@ -399,7 +429,7 @@ export function PlannedLessonExperience({
               aria-selected={dashboardSection === section}
               aria-controls={`dashboard-panel-${section}`}
               tabIndex={dashboardSection === section ? 0 : -1}
-              onClick={() => setDashboardSection(section)}
+              onClick={() => selectDashboardSection(section)}
               onKeyDown={(event) => {
                 if (event.key === "ArrowRight") {
                   event.preventDefault();
@@ -410,7 +440,7 @@ export function PlannedLessonExperience({
                 } else if (event.key === "Home" || event.key === "End") {
                   event.preventDefault();
                   const destination = event.key === "Home" ? "today" : "progress";
-                  setDashboardSection(destination);
+                  selectDashboardSection(destination);
                   requestAnimationFrame(() => document.getElementById(`dashboard-tab-${destination}`)?.focus());
                 }
               }}

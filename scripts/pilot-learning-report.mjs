@@ -183,6 +183,32 @@ const recentSessions = query(`
   LIMIT 20;
 `);
 
+const journeyChoices = query(`
+  WITH completed AS (
+    SELECT id
+    FROM lesson_sessions
+    WHERE status = 'completed'
+      AND completed_at >= now() - ${windowInterval}
+  ), choices AS (
+    SELECT
+      lesson_session_id,
+      bool_or(choice = 'next_lesson') AS next_lesson,
+      bool_or(choice = 'review') AS review
+    FROM learning_journey_choices
+    GROUP BY lesson_session_id
+  )
+  SELECT
+    count(*) AS completed_lessons,
+    count(*) FILTER (WHERE coalesce(choices.next_lesson, false)) AS next_lesson_selected,
+    round(100.0 * count(*) FILTER (WHERE coalesce(choices.next_lesson, false)) / nullif(count(*), 0), 1)
+      AS next_lesson_pct,
+    count(*) FILTER (WHERE coalesce(choices.review, false)) AS review_selected,
+    round(100.0 * count(*) FILTER (WHERE coalesce(choices.review, false)) / nullif(count(*), 0), 1)
+      AS review_pct
+  FROM completed
+  LEFT JOIN choices ON choices.lesson_session_id = completed.id;
+`);
+
 console.info(`Pilot learning report · last ${windowDays} days\n`);
 console.info("Overview\n");
 console.info(overview);
@@ -192,3 +218,5 @@ console.info(`\nTopics · last ${windowDays} days\n`);
 console.info(topics);
 console.info(`\nRecent sessions · last ${windowDays} days\n`);
 console.info(recentSessions);
+console.info(`\nPost-lesson choices · last ${windowDays} days\n`);
+console.info(journeyChoices);

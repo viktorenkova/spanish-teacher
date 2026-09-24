@@ -114,6 +114,22 @@ export async function loadLatestPilotFeedback(learnerId: string) {
   }
 }
 
+export async function loadJourneyChoices(learnerId: string) {
+  const databaseUrl = process.env.DATABASE_URL
+    ?? "postgres://spanish_coach:spanish_coach@127.0.0.1:5432/spanish_coach";
+  const sql = postgres(databaseUrl, { max: 1 });
+  try {
+    return await sql<{ choice: "next_lesson" | "review"; lesson_session_id: string }[]>`
+      select choice, lesson_session_id
+      from learning_journey_choices
+      where learner_id = ${learnerId}
+      order by selected_at
+    `;
+  } finally {
+    await sql.end();
+  }
+}
+
 export async function installMediaMocks(page: Page, transcript: string | string[]) {
   const transcripts = Array.isArray(transcript) ? transcript : [transcript];
   await page.addInitScript((mockTranscripts) => {

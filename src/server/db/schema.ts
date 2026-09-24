@@ -304,6 +304,27 @@ export const lessonSessions = pgTable(
   ],
 );
 
+export const journeyChoiceEnum = pgEnum("journey_choice", ["next_lesson", "review"]);
+
+export const learningJourneyChoices = pgTable(
+  "learning_journey_choices",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    learnerId: uuid("learner_id")
+      .notNull()
+      .references(() => learners.id, { onDelete: "cascade" }),
+    lessonSessionId: uuid("lesson_session_id")
+      .notNull()
+      .references(() => lessonSessions.id, { onDelete: "cascade" }),
+    choice: journeyChoiceEnum("choice").notNull(),
+    selectedAt: timestamp("selected_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("learning_journey_choice_session_unique").on(table.lessonSessionId, table.choice),
+    index("learning_journey_choice_selected_idx").on(table.selectedAt),
+  ],
+);
+
 export const pilotFeedback = pgTable(
   "pilot_feedback",
   {
