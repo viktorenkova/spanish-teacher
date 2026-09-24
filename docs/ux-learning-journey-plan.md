@@ -78,10 +78,10 @@ The main success condition is that the learner always understands the current ta
 
 ## Phase 6 — Separate dashboard intentions
 
-- [ ] Organise returning-learner content into `Today`, `Review`, and `Progress` sections.
-- [ ] Remove duplicate next-topic and progress summaries.
-- [ ] Show review as recommended only when reviews are due.
-- [ ] Keep profile management visually separate from learning actions.
+- [x] Organise returning-learner content into `Today`, `Review`, and `Progress` sections.
+- [x] Remove duplicate next-topic and progress summaries.
+- [x] Show review as recommended only when reviews are due.
+- [x] Keep profile management visually separate from learning actions.
 
 ### Acceptance criteria
 

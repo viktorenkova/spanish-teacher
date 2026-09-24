@@ -285,6 +285,11 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .text-button:hover { color: var(--ink); }
 .planner-durations { margin: 28px 0 8px; }
 .planner-durations button { cursor: pointer; }
+.dashboard-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 26px 0 8px; padding: 5px; border-radius: 16px; background: #f0edf5; }
+.dashboard-tabs button { cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; border: 0; border-radius: 12px; background: transparent; color: var(--muted); font-size: .82rem; font-weight: 800; }
+.dashboard-tabs button[aria-selected="true"] { background: white; color: var(--ink); box-shadow: 0 5px 16px rgba(55, 39, 91, .08); }
+.dashboard-tabs button span { display: grid; place-items: center; min-width: 20px; height: 20px; border-radius: 999px; padding: 0 6px; background: var(--coral); color: white; font-size: .66rem; }
+.dashboard-tabs + [role="tabpanel"] { outline: none; }
 .plan-objective { max-width: 650px; margin: -5px 0 22px; color: var(--muted); font-size: 1rem; line-height: 1.65; }
 .plan-primary-actions { margin: 0 0 20px; }
 .plan-primary-actions .primary-button { margin: 0; }
@@ -306,6 +311,11 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .today-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .today-actions .primary-button { margin: 0; }
 .learner-overview { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px 28px; margin: 24px 0 4px; padding: 20px; border-radius: 18px; background: var(--green-soft); }
+.learner-overview-profile { display: block; margin-top: 20px; padding: 14px 18px; background: transparent; border-top: 1px solid rgba(23, 59, 55, .1); border-radius: 0; }
+.learner-overview-profile .learner-profile-actions { margin: 0; }
+.learner-overview-review { background: linear-gradient(135deg, var(--lavender-soft), #fff); }
+.review-overview-heading { grid-column: 1 / -1; }
+.empty-review-note { grid-column: 1 / -1; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,.75); }
 .learner-overview h3 { margin: 6px 0; font: 700 1.35rem Georgia, serif; }
 .learner-overview p { margin: 0; color: var(--muted); line-height: 1.5; }
 .learner-overview dl { display: grid; grid-template-columns: repeat(3, minmax(76px, 1fr)); gap: 8px; margin: 0; }

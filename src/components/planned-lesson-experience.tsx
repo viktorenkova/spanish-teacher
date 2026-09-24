@@ -31,6 +31,9 @@ type SavedSession = {
   plan: SavedPlan;
 };
 
+type DashboardSection = "today" | "review" | "progress";
+const dashboardSections: DashboardSection[] = ["today", "review", "progress"];
+
 export function PlannedLessonExperience({
   learnerId,
   onChangeLearner,
@@ -63,6 +66,7 @@ export function PlannedLessonExperience({
   const [creating, setCreating] = useState(false);
   const [started, setStarted] = useState(false);
   const [error, setError] = useState<string>();
+  const [dashboardSection, setDashboardSection] = useState<DashboardSection>("today");
 
   useEffect(() => {
     if (started) return;
@@ -197,6 +201,15 @@ export function PlannedLessonExperience({
   const rhythm = rhythmResult?.learnerId === learnerId
     ? rhythmResult.rhythm
     : undefined;
+
+  function moveDashboardTab(current: DashboardSection, direction: -1 | 1) {
+    const currentIndex = dashboardSections.indexOf(current);
+    const nextSection = dashboardSections[
+      (currentIndex + direction + dashboardSections.length) % dashboardSections.length
+    ];
+    setDashboardSection(nextSection);
+    requestAnimationFrame(() => document.getElementById(`dashboard-tab-${nextSection}`)?.focus());
+  }
 
   async function createPlan() {
     setCreating(true);
@@ -373,79 +386,139 @@ export function PlannedLessonExperience({
         </h2>
         <p className="support-copy">Your coach uses saved progress to choose what is most useful next.</p>
 
-        <section className="today-focus" aria-labelledby="today-focus-title">
-          <div className="today-focus-copy">
-            <span className="today-label">Next conversation topic</span>
-            <h3 id="today-focus-title">{nextLessonTitle}</h3>
-            <p>{nextLessonObjective}</p>
-          </div>
-          <dl className="today-snapshot" aria-label="Today’s lesson snapshot">
-            <div><dt>Time</dt><dd>{selectedDuration} min</dd></div>
-            <div>
-              <dt>Progress</dt>
-              <dd>{overview ? `${overview.completedTopicCount}/${overview.totalTopicCount}` : "—"}</dd>
-            </div>
-            <div><dt>Reviews</dt><dd>{overview ? dueReviewCount : "—"}</dd></div>
-          </dl>
-        </section>
-
-        {overview && (
-          <section className="today-reasons" aria-labelledby="today-reasons-title">
-            <h3 id="today-reasons-title">Why this is useful today</h3>
-            <ul>
-              <li>Continue with {nextLessonTitle} from your current A1 path.</li>
-              <li>
-                {dueReviewCount > 0
-                  ? `Bring back ${dueReviewCount} due review${dueReviewCount === 1 ? "" : "s"} before they fade.`
-                  : "Keep review light because nothing is due right now."}
-              </li>
-              <li>Practise listening and speaking in the same short session.</li>
-            </ul>
-          </section>
-        )}
-
-        <div className="today-actions">
-          <button className="primary-button" disabled={creating || !overview} onClick={createPlan}>
-            {creating ? "Building today’s lesson…" : "Build today’s lesson"}
-          </button>
-          <button
-            className="text-button"
-            type="button"
-            aria-expanded={changingDuration}
-            aria-controls="today-duration-options"
-            onClick={() => setChangingDuration((value) => !value)}
-          >
-            {changingDuration ? "Keep this duration" : `Change duration · ${selectedDuration} min`}
-          </button>
+        <div className="dashboard-tabs" role="tablist" aria-label="Learning dashboard">
+          {dashboardSections.map((section) => (
+            <button
+              key={section}
+              id={`dashboard-tab-${section}`}
+              type="button"
+              role="tab"
+              aria-selected={dashboardSection === section}
+              aria-controls={`dashboard-panel-${section}`}
+              tabIndex={dashboardSection === section ? 0 : -1}
+              onClick={() => setDashboardSection(section)}
+              onKeyDown={(event) => {
+                if (event.key === "ArrowRight") {
+                  event.preventDefault();
+                  moveDashboardTab(section, 1);
+                } else if (event.key === "ArrowLeft") {
+                  event.preventDefault();
+                  moveDashboardTab(section, -1);
+                } else if (event.key === "Home" || event.key === "End") {
+                  event.preventDefault();
+                  const destination = event.key === "Home" ? "today" : "progress";
+                  setDashboardSection(destination);
+                  requestAnimationFrame(() => document.getElementById(`dashboard-tab-${destination}`)?.focus());
+                }
+              }}
+            >
+              {section === "today" ? "Today" : section === "review" ? "Review" : "Progress"}
+              {section === "review" && dueReviewCount > 0 && <span>{dueReviewCount}</span>}
+            </button>
+          ))}
         </div>
 
-        {changingDuration && (
-          <div id="today-duration-options" className="duration-options planner-durations" aria-label="Lesson duration">
-            {supportedSessionDurations.map((duration) => (
-              <button
-                key={duration}
-                className={selectedDuration === duration ? "chosen" : ""}
-                aria-pressed={selectedDuration === duration}
-                onClick={() => setSelectedDuration(duration)}
-              >
-                {duration} min
+        {dashboardSection === "today" && (
+          <div id="dashboard-panel-today" role="tabpanel" aria-labelledby="dashboard-tab-today">
+            <section className="today-focus" aria-labelledby="today-focus-title">
+              <div className="today-focus-copy">
+                <span className="today-label">Next conversation topic</span>
+                <h3 id="today-focus-title">{nextLessonTitle}</h3>
+                <p>{nextLessonObjective}</p>
+              </div>
+              <dl className="today-snapshot" aria-label="Today’s lesson snapshot">
+                <div><dt>Time</dt><dd>{selectedDuration} min</dd></div>
+                <div><dt>Level</dt><dd>A1</dd></div>
+                <div><dt>Skills</dt><dd>Listen + speak</dd></div>
+              </dl>
+            </section>
+
+            {overview && (
+              <section className="today-reasons" aria-labelledby="today-reasons-title">
+                <h3 id="today-reasons-title">Why this is useful today</h3>
+                <ul>
+                  <li>Continue with {nextLessonTitle} from your current A1 path.</li>
+                  <li>
+                    {dueReviewCount > 0
+                      ? `Include ${dueReviewCount} due review${dueReviewCount === 1 ? "" : "s"} before they fade.`
+                      : "Keep review light because nothing is due right now."}
+                  </li>
+                  <li>Practise listening and speaking in the same short session.</li>
+                </ul>
+              </section>
+            )}
+
+            <div className="today-actions">
+              <button className="primary-button" disabled={creating || !overview} onClick={createPlan}>
+                {creating ? "Building today’s lesson…" : "Build today’s lesson"}
               </button>
-            ))}
+              <button
+                className="text-button"
+                type="button"
+                aria-expanded={changingDuration}
+                aria-controls="today-duration-options"
+                onClick={() => setChangingDuration((value) => !value)}
+              >
+                {changingDuration ? "Keep this duration" : `Change duration · ${selectedDuration} min`}
+              </button>
+            </div>
+
+            {changingDuration && (
+              <div id="today-duration-options" className="duration-options planner-durations" aria-label="Lesson duration">
+                {supportedSessionDurations.map((duration) => (
+                  <button
+                    key={duration}
+                    className={selectedDuration === duration ? "chosen" : ""}
+                    aria-pressed={selectedDuration === duration}
+                    onClick={() => setSelectedDuration(duration)}
+                  >
+                    {duration} min
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
         {error && <p className="feedback retry" role="alert">{error}</p>}
+        {overview && dashboardSection === "review" && (
+          <div id="dashboard-panel-review" role="tabpanel" aria-labelledby="dashboard-tab-review">
+            <LearnerOverviewCard
+              overview={overview}
+              view="review"
+              showProfile={false}
+              onChangeLearner={onChangeLearner}
+              onDeleteLearner={deleteLearner}
+              onRenameLearner={renameLearner}
+              onUpdatePreferences={updateLearnerPreferences}
+            />
+          </div>
+        )}
+        {overview && dashboardSection === "progress" && (
+          <div id="dashboard-panel-progress" role="tabpanel" aria-labelledby="dashboard-tab-progress">
+            <LearnerOverviewCard
+              overview={overview}
+              view="progress"
+              showProfile={false}
+              onChangeLearner={onChangeLearner}
+              onDeleteLearner={deleteLearner}
+              onRenameLearner={renameLearner}
+              onUpdatePreferences={updateLearnerPreferences}
+            />
+            {rhythm && <PracticeRhythmCard rhythm={rhythm} />}
+            {history && history.length > 0 && <LessonHistoryCard history={history} />}
+          </div>
+        )}
         {overview && (
           <LearnerOverviewCard
             overview={overview}
+            view="profile"
             onChangeLearner={onChangeLearner}
             onDeleteLearner={deleteLearner}
             onRenameLearner={renameLearner}
             onUpdatePreferences={updateLearnerPreferences}
           />
         )}
-        {rhythm && <PracticeRhythmCard rhythm={rhythm} />}
-        {history && history.length > 0 && <LessonHistoryCard history={history} />}
       </section>
     );
   }

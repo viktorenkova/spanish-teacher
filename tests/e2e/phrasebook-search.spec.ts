@@ -25,7 +25,7 @@ const overview = buildLearnerOverview({
   ],
 });
 
-async function openPhrasebook(
+async function openDashboard(
   page: Page,
   width: number,
   savedOverview = overview,
@@ -50,8 +50,44 @@ async function openPhrasebook(
       await route.fulfill({ json: responses[path] });
     });
     await page.goto("/");
+}
+
+async function openPhrasebook(
+  page: Page,
+  width: number,
+  savedOverview = overview,
+  transcript: string | string[] = "Un café, por favor.",
+) {
+    await openDashboard(page, width, savedOverview, transcript);
+    await page.getByRole("tab", { name: "Review" }).click();
     await page.locator("details.phrasebook > summary").click();
 }
+
+test("separates Today, Review and Progress on a mobile dashboard", async ({ page }) => {
+  await openDashboard(page, 390, { ...overview, dueReviewCount: 2 });
+
+  const todayTab = page.getByRole("tab", { name: "Today" });
+  const reviewTab = page.getByRole("tab", { name: "Review 2" });
+  const progressTab = page.getByRole("tab", { name: "Progress" });
+
+  await expect(todayTab).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("button", { name: "Build today’s lesson" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Meet someone new" })).toBeVisible();
+
+  await todayTab.focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(reviewTab).toBeFocused();
+  await expect(reviewTab).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("heading", { name: "2 phrases are ready" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Build today’s lesson" })).toBeHidden();
+
+  await page.keyboard.press("End");
+  await expect(progressTab).toBeFocused();
+  await expect(progressTab).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("heading", { name: "Your A1 progress" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Meet someone new" })).toBeHidden();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
 
 for (const width of [1280, 375]) {
   test(`returns to unfinished speaking repairs at ${width}px`, async ({ page }) => {

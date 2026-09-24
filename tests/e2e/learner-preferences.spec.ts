@@ -44,7 +44,7 @@ test("persists learning preferences and uses the default lesson duration", async
     await page.getByRole("button", { name: "Build today’s lesson" }).click();
     await expect(page.getByRole("heading", { name: /^Ready for/ }))
       .toBeVisible();
-    await expect.poll(() => loadLatestPlanTargetMinutes(learnerId), { timeout: 10_000 }).toBe(20);
+    await expect.poll(() => loadLatestPlanTargetMinutes(learnerId!), { timeout: 10_000 }).toBe(20);
     await page.getByText("See why this lesson was chosen and what it includes", { exact: true }).click();
     await expect(page.getByLabel("Learning goal alignment")).toContainText(
       "Use Spanish while travelling",

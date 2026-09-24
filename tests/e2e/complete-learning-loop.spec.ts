@@ -82,7 +82,9 @@ test("completes a lesson with listening and speaking, then adapts the next topic
     await page.getByRole("button", { name: /^Continue/ }).click();
     await expect(page.getByRole("heading", { name: "Ready for “Talk about your morning”?" })).toBeVisible();
     await page.getByRole("button", { name: "Choose another duration" }).click();
-    await expect(page.getByRole("heading", { name: "Up next: Talk about your morning" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "Today" })).toHaveAttribute("aria-selected", "true");
+    await expect(page.getByRole("heading", { name: "Talk about your morning" })).toBeVisible();
+    await page.getByRole("tab", { name: "Progress" }).click();
     await expect(page.getByRole("heading", { name: "Your practice rhythm" })).toBeVisible();
     const practiceRhythm = page.locator(".practice-rhythm");
     await expect(practiceRhythm).toContainText("You have practised today");
@@ -102,8 +104,9 @@ test("completes a lesson with listening and speaking, then adapts the next topic
     await expect(recentLesson.getByText("Done", { exact: true })).toBeVisible();
     await expect(page.getByText(`Saved progress · ${displayName}`, { exact: true })).toBeVisible();
     await expect(
-      page.getByLabel("Today’s lesson snapshot").getByText("1/12", { exact: true }),
+      page.locator(".learner-overview-progress").getByText("1/12", { exact: true }),
     ).toBeVisible();
+    await page.getByRole("tab", { name: "Review" }).click();
     await page.locator("details.phrasebook > summary").click();
     await page.getByRole("button", { name: "Practise saying Me llamo…", exact: true }).first().click();
     await expect(page.getByText(/Listening… Say the phrase/)).toBeVisible();

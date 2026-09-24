@@ -22,12 +22,16 @@ import { PhrasebookRecall } from "./phrasebook-recall";
 
 export function LearnerOverviewCard({
   overview,
+  view,
+  showProfile = true,
   onChangeLearner,
   onDeleteLearner,
   onRenameLearner,
   onUpdatePreferences,
 }: {
   overview: LearnerOverview;
+  view: "profile" | "review" | "progress";
+  showProfile?: boolean;
   onChangeLearner: () => void;
   onDeleteLearner: (confirmationDisplayName: string) => Promise<void>;
   onRenameLearner: (displayName: string) => Promise<void>;
@@ -194,49 +198,70 @@ export function LearnerOverviewCard({
   }
 
   return (
-    <section className="learner-overview" aria-labelledby="next-lesson-title">
-      <div>
-        <span className="eyebrow">Saved progress · {overview.learner.displayName}</span>
-        <h3 id="next-lesson-title">
-          {overview.curriculumComplete ? "Keep building confidence" : `Up next: ${overview.nextLesson.title}`}
-        </h3>
-        <p>{overview.nextLesson.objective}</p>
-      </div>
-      <dl>
-        <div><dt>Lessons complete</dt><dd>{overview.completedLessonCount}</dd></div>
-        <div><dt>Topics complete</dt><dd>{overview.completedTopicCount}/{overview.totalTopicCount}</dd></div>
-        <div><dt>Reviews ready</dt><dd>{overview.dueReviewCount}</dd></div>
-      </dl>
-      <small>
-        {overview.learner.overallLevel} · {overview.learner.a1Band} A1 · {overview.introducedItemCount} phrase{overview.introducedItemCount === 1 ? "" : "s"} started
-        {overview.hasCompletedSpeakingTask ? " · speaking practice saved" : " · speaking is included in every lesson"}
-      </small>
-      <details className="curriculum-map">
-        <summary>
-          <span>Your A1 learning path</span>
-          <strong>{overview.completedTopicCount}/{overview.totalTopicCount} topics</strong>
-        </summary>
-        <ol>
-          {overview.curriculum.map((topic, index) => (
-            <li key={topic.key} className={`curriculum-topic ${topic.status}`}>
-              <span className="curriculum-topic-index" aria-hidden="true">
-                {topic.status === "complete" ? "✓" : index + 1}
-              </span>
-              <div>
-                <strong>{topic.title}</strong>
-                <p>{topic.objective}</p>
-              </div>
-              <span className="curriculum-topic-status">
-                {topic.status === "complete" ? "Done" : topic.status === "current" ? "Now" : "Later"}
-              </span>
-            </li>
-          ))}
-        </ol>
-      </details>
-      {overview.phrasebook.length > 0 && (
+    <section
+      className={`learner-overview learner-overview-${view}`}
+      aria-label={view === "profile" ? "Learner profile" : undefined}
+      aria-labelledby={view === "review" ? "review-overview-title" : view === "progress" ? "progress-overview-title" : undefined}
+    >
+      {view === "progress" && (
+        <>
+          <div>
+            <span className="eyebrow">Saved progress · {overview.learner.displayName}</span>
+            <h3 id="progress-overview-title">Your A1 progress</h3>
+            <p>See what you have completed and where your learning path goes next.</p>
+          </div>
+          <dl>
+            <div><dt>Lessons complete</dt><dd>{overview.completedLessonCount}</dd></div>
+            <div><dt>Topics complete</dt><dd>{overview.completedTopicCount}/{overview.totalTopicCount}</dd></div>
+            <div><dt>Phrases started</dt><dd>{overview.introducedItemCount}</dd></div>
+          </dl>
+          <small>
+            {overview.learner.overallLevel} · {overview.learner.a1Band} A1
+            {overview.hasCompletedSpeakingTask ? " · speaking practice saved" : " · speaking is included in every lesson"}
+          </small>
+          <details className="curriculum-map">
+            <summary>
+              <span>Your A1 learning path</span>
+              <strong>{overview.completedTopicCount}/{overview.totalTopicCount} topics</strong>
+            </summary>
+            <ol>
+              {overview.curriculum.map((topic, index) => (
+                <li key={topic.key} className={`curriculum-topic ${topic.status}`}>
+                  <span className="curriculum-topic-index" aria-hidden="true">
+                    {topic.status === "complete" ? "✓" : index + 1}
+                  </span>
+                  <div>
+                    <strong>{topic.title}</strong>
+                    <p>{topic.objective}</p>
+                  </div>
+                  <span className="curriculum-topic-status">
+                    {topic.status === "complete" ? "Done" : topic.status === "current" ? "Now" : "Later"}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </details>
+        </>
+      )}
+      {view === "review" && (
+        <div className="review-overview-heading">
+          <span className="eyebrow">Review</span>
+          <h3 id="review-overview-title">
+            {overview.dueReviewCount > 0
+              ? `${overview.dueReviewCount} phrase${overview.dueReviewCount === 1 ? " is" : "s are"} ready`
+              : "Nothing is due right now"}
+          </h3>
+          <p>
+            {overview.dueReviewCount > 0
+              ? "Bring these phrases back before they fade. Your next lesson will include the due review."
+              : "You can still practise saved phrases, but today’s lesson is the recommended next step."}
+          </p>
+        </div>
+      )}
+      {view === "review" && overview.phrasebook.length > 0 && (
         <details className="phrasebook">
           <summary>
-            <span>Your useful Spanish</span>
+            <span>{overview.dueReviewCount > 0 ? "Practise saved Spanish" : "Optional phrase practice"}</span>
             <strong>{overview.phrasebook.length} phrase{overview.phrasebook.length === 1 ? "" : "s"}</strong>
           </summary>
           {recallItems && (
@@ -469,6 +494,10 @@ export function LearnerOverviewCard({
           </div>
         </details>
       )}
+      {view === "review" && overview.phrasebook.length === 0 && (
+        <p className="empty-review-note">Complete your first lesson to start building a phrase review set.</p>
+      )}
+      {showProfile && <>
       <div className="learner-profile-actions">
         <button className="text-button" type="button" onClick={onChangeLearner}>
           Change learner
@@ -611,6 +640,7 @@ export function LearnerOverviewCard({
           {error && <p className="feedback retry" role="alert">{error}</p>}
         </div>
       )}
+      </>}
     </section>
   );
 }
