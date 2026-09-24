@@ -91,9 +91,9 @@ The main success condition is that the learner always understands the current ta
 
 ## Phase 7 — Create a bounded review flow
 
-- [ ] Start review as a distinct state with a phrase count and estimated duration.
-- [ ] Present one phrase/action at a time instead of many competing listen/speak controls.
-- [ ] End review with a short result and a clear return to `Today`.
+- [x] Start review as a distinct state with a phrase count and estimated duration.
+- [x] Present one phrase/action at a time instead of many competing listen/speak controls.
+- [x] End review with a short result and a clear return to `Today`.
 
 ### Acceptance criteria
 

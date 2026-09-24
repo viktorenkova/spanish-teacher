@@ -18,12 +18,12 @@ import {
 } from "@/domain/lesson-planner";
 import { BrowserSpeechToTextProvider } from "@/stt/browser-provider";
 import { speakWithBrowser } from "@/tts/browser-provider";
-import { PhrasebookRecall } from "./phrasebook-recall";
 
 export function LearnerOverviewCard({
   overview,
   view,
   showProfile = true,
+  onStartReview,
   onChangeLearner,
   onDeleteLearner,
   onRenameLearner,
@@ -32,6 +32,7 @@ export function LearnerOverviewCard({
   overview: LearnerOverview;
   view: "profile" | "review" | "progress";
   showProfile?: boolean;
+  onStartReview?: (items: LearnerOverview["phrasebook"]) => void;
   onChangeLearner: () => void;
   onDeleteLearner: (confirmationDisplayName: string) => Promise<void>;
   onRenameLearner: (displayName: string) => Promise<void>;
@@ -54,8 +55,6 @@ export function LearnerOverviewCard({
   const [playingPhraseId, setPlayingPhraseId] = useState<string>();
   const [phraseAudioError, setPhraseAudioError] = useState<string>();
   const [phraseQuery, setPhraseQuery] = useState("");
-  const [recallItems, setRecallItems] = useState<LearnerOverview["phrasebook"]>();
-  const recallStart = useRef<HTMLButtonElement>(null);
   const [recordingPhraseId, setRecordingPhraseId] = useState<string>();
   const [phraseSpeechError, setPhraseSpeechError] = useState<string>();
   const [phraseSpeechResults, setPhraseSpeechResults] = useState<Record<string, {
@@ -259,18 +258,28 @@ export function LearnerOverviewCard({
         </div>
       )}
       {view === "review" && overview.phrasebook.length > 0 && (
+        <section className="review-launch" aria-labelledby="review-launch-title">
+          <div>
+            <span>Optional self-check</span>
+            <h4 id="review-launch-title">Practise {Math.min(5, overview.phrasebook.length)} saved phrase{Math.min(5, overview.phrasebook.length) === 1 ? "" : "s"}</h4>
+            <p>One phrase at a time · about {Math.max(1, Math.ceil(Math.min(5, overview.phrasebook.length) / 2))} min</p>
+          </div>
+          <button
+            id="phrasebook-review-start"
+            className="primary-button"
+            type="button"
+            onClick={() => onStartReview?.(overview.phrasebook.slice(0, 5))}
+          >
+            Start phrase practice
+          </button>
+        </section>
+      )}
+      {view === "review" && overview.phrasebook.length > 0 && (
         <details className="phrasebook">
           <summary>
             <span>{overview.dueReviewCount > 0 ? "Practise saved Spanish" : "Optional phrase practice"}</span>
             <strong>{overview.phrasebook.length} phrase{overview.phrasebook.length === 1 ? "" : "s"}</strong>
           </summary>
-          {recallItems && (
-            <PhrasebookRecall items={recallItems} onClose={() => {
-              setRecallItems(undefined);
-              requestAnimationFrame(() => recallStart.current?.focus());
-            }} />
-          )}
-          <div hidden={Boolean(recallItems)}>
           <p className="phrasebook-help">
             Read the Spanish first. Remember the meaning, listen, then say the phrase aloud.
           </p>
@@ -315,11 +324,10 @@ export function LearnerOverviewCard({
             </div>
           )}
           <button
-            ref={recallStart}
             className="secondary-button phrasebook-recall-start"
             type="button"
             disabled={visiblePhrases.length === 0 || Boolean(recordingPhraseId) || Boolean(playingPhraseId)}
-            onClick={() => setRecallItems([...visiblePhrases])}
+            onClick={() => onStartReview?.(visiblePhrases.slice(0, 5))}
           >
             Practise from memory
           </button>
@@ -491,7 +499,6 @@ export function LearnerOverviewCard({
           <p className="phrasebook-privacy-note">
             Audio is not saved by Spanish Coach. Browser transcription can be wrong, and this practice does not score pronunciation or change your saved progress.
           </p>
-          </div>
         </details>
       )}
       {view === "review" && overview.phrasebook.length === 0 && (

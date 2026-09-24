@@ -19,6 +19,7 @@ import { LearnerOverviewCard } from "./learner-overview-card";
 import { LessonHistoryCard } from "./lesson-history-card";
 import { LessonExperience } from "./lesson-experience";
 import { PracticeRhythmCard } from "./practice-rhythm-card";
+import { ReviewExperience } from "./review-experience";
 import type { CoachMode } from "./coach-experience";
 
 type SavedPlan = LessonPlan & { id: string; createdAt: string };
@@ -67,11 +68,12 @@ export function PlannedLessonExperience({
   const [started, setStarted] = useState(false);
   const [error, setError] = useState<string>();
   const [dashboardSection, setDashboardSection] = useState<DashboardSection>("today");
+  const [reviewItems, setReviewItems] = useState<LearnerOverview["phrasebook"]>();
 
   useEffect(() => {
-    if (started) return;
+    if (started || reviewItems) return;
     onModeChange(plan ? "plan" : "dashboard");
-  }, [onModeChange, plan, started]);
+  }, [onModeChange, plan, reviewItems, started]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -379,7 +381,8 @@ export function PlannedLessonExperience({
       ?? "The coach will choose the most useful next step from your saved progress.";
 
     return (
-      <section className="lesson-card planner-card" aria-labelledby="planner-title">
+      <>
+      <section className="lesson-card planner-card" aria-labelledby="planner-title" hidden={Boolean(reviewItems)}>
         <span className="eyebrow">Today</span>
         <h2 id="planner-title">
           {overview ? `Ready for ${selectedDuration} minutes, ${overview.learner.displayName}?` : "Preparing today’s practice…"}
@@ -487,6 +490,10 @@ export function PlannedLessonExperience({
               overview={overview}
               view="review"
               showProfile={false}
+              onStartReview={(items) => {
+                setReviewItems(items);
+                onModeChange("review");
+              }}
               onChangeLearner={onChangeLearner}
               onDeleteLearner={deleteLearner}
               onRenameLearner={renameLearner}
@@ -520,6 +527,24 @@ export function PlannedLessonExperience({
           />
         )}
       </section>
+      {reviewItems && (
+        <ReviewExperience
+          items={reviewItems}
+          onBackToReview={() => {
+            setReviewItems(undefined);
+            setDashboardSection("review");
+            onModeChange("dashboard");
+            requestAnimationFrame(() => document.getElementById("phrasebook-review-start")?.focus());
+          }}
+          onReturnToToday={() => {
+            setReviewItems(undefined);
+            setDashboardSection("today");
+            onModeChange("dashboard");
+            requestAnimationFrame(() => document.getElementById("dashboard-tab-today")?.focus());
+          }}
+        />
+      )}
+      </>
     );
   }
 

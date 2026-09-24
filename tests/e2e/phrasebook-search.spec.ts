@@ -89,6 +89,31 @@ test("separates Today, Review and Progress on a mobile dashboard", async ({ page
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
+test("runs a bounded phrase review and returns clearly to Today", async ({ page }) => {
+  await openDashboard(page, 390);
+  await page.getByRole("tab", { name: "Review" }).click();
+
+  await expect(page.getByRole("heading", { name: "Practise 3 saved phrases" })).toBeVisible();
+  await expect(page.getByText("One phrase at a time · about 2 min")).toBeVisible();
+  await page.getByRole("button", { name: "Start phrase practice" }).click();
+
+  const practice = page.getByRole("region", { name: /Say it from memory|Memory practice complete/ });
+  await expect(practice.getByRole("heading")).toHaveText("Say it from memory · 1 of 3");
+  await expect(page.locator(".dashboard-tabs")).toBeHidden();
+  await expect(page.locator(".phrasebook")).toBeHidden();
+
+  for (let index = 0; index < 3; index += 1) {
+    await practice.getByRole("button", { name: "Reveal Spanish" }).click();
+    await practice.getByRole("button", { name: "I remembered it" }).click();
+  }
+
+  await expect(practice.getByRole("heading")).toHaveText("Memory practice complete");
+  await expect(practice).toContainText("You marked 3 of 3 phrases as remembered");
+  await practice.getByRole("button", { name: "Return to Today" }).click();
+  await expect(page.getByRole("tab", { name: "Today" })).toBeFocused();
+  await expect(page.getByRole("button", { name: "Build today’s lesson" })).toBeVisible();
+});
+
 for (const width of [1280, 375]) {
   test(`returns to unfinished speaking repairs at ${width}px`, async ({ page }) => {
     await openPhrasebook(page, width, overview, ["un cafe", "me llamo", "buenos dias", "un cafe por favor"]);
@@ -166,7 +191,7 @@ for (const width of [1280, 375]) {
     await expect(page.locator("html")).toHaveAttribute("data-speaking", "false");
     await practice.getByRole("button", { name: "Reveal Spanish" }).click();
     await practice.getByRole("button", { name: "Listen to the answer" }).click();
-    await practice.getByRole("button", { name: "Back to phrasebook" }).click();
+    await practice.getByRole("button", { name: "Back to Review" }).click();
     await expect(page.locator("html")).toHaveAttribute("data-speaking", "false");
     await page.evaluate(() => {
       window.speechSynthesis.getVoices = () => [{ lang: "en-GB", name: "English" } as SpeechSynthesisVoice];
@@ -286,32 +311,24 @@ for (const width of [1280, 375]) {
       await practice.getByRole("button", { name: index === 0 ? "I needed help" : "I remembered it" }).click();
     }
     await expect(practice).toContainText("You marked 4 of 5 phrases as remembered");
-    await expect(practice).toContainText("You checked 5 of 6 phrases in this practice.");
+    await expect(practice).toContainText("You checked 5 of 5 phrases in this practice.");
     await practice.getByRole("button", { name: "Try difficult phrases again" }).click();
     await expect(practice.getByRole("heading")).toHaveText("Say it from memory · 1 of 1");
     await expect(practice).toContainText("A coffee, please.");
     await practice.getByRole("button", { name: "Reveal Spanish" }).click();
     await practice.getByRole("button", { name: "I remembered it" }).click();
     await expect(practice).toContainText("You marked 1 of 1 phrases as remembered");
-    await expect(practice).toContainText("You checked 5 of 6 phrases in this practice.");
+    await expect(practice).toContainText("You checked 5 of 5 phrases in this practice.");
     await expect(practice.getByRole("button", { name: "Try difficult phrases again" })).toHaveCount(0);
-    await practice.getByRole("button", { name: "Practise next phrase", exact: true }).click();
-    await expect(practice.getByRole("heading")).toBeFocused();
-    await expect(practice.getByRole("heading")).toHaveText("Say it from memory · 1 of 1");
-    await expect(practice).toContainText("Water, please.");
-    await expect(practice.locator("[lang=es]")).toHaveCount(0);
-    await practice.getByRole("button", { name: "Reveal Spanish" }).click();
-    await practice.getByRole("button", { name: "I remembered it" }).click();
-    await expect(practice).toContainText("You checked 6 of 6 phrases in this practice.");
     await expect(practice).toContainText("You have checked all the phrases in this set.");
     await expect(practice.getByRole("button", { name: /Practise next/ })).toHaveCount(0);
-    await practice.getByRole("button", { name: "Back to phrasebook" }).click();
-    await expect(start).toBeFocused();
+    await practice.getByRole("button", { name: "Back to Review" }).click();
+    await expect(page.getByRole("button", { name: "Start phrase practice" })).toBeFocused();
     await page.getByRole("searchbox").fill("morning");
     await start.click();
     await expect(practice).toContainText("Good morning.");
     await expect(practice.getByRole("heading")).toHaveText("Say it from memory · 1 of 1");
-    await practice.getByRole("button", { name: "Back to phrasebook" }).click();
+    await practice.getByRole("button", { name: "Back to Review" }).click();
     await expect(page.getByRole("searchbox")).toHaveValue("morning");
     await start.click();
     await expect(practice.getByRole("button", { name: "Reveal Spanish" })).toBeVisible();

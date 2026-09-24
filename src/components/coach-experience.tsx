@@ -16,7 +16,7 @@ import { LocalProfileChooser } from "./local-profile-chooser";
 import { OnboardingExperience } from "./onboarding-experience";
 import { PlannedLessonExperience } from "./planned-lesson-experience";
 
-export type CoachMode = "welcome" | "diagnostic" | "dashboard" | "plan" | "lesson" | "completion";
+export type CoachMode = "welcome" | "diagnostic" | "dashboard" | "plan" | "lesson" | "review" | "completion";
 
 export function CoachExperience({ onModeChange }: { onModeChange: (mode: CoachMode) => void }) {
   const learnerId = useSyncExternalStore(subscribeToLocalLearners, getActiveLearnerSnapshot, () => "");

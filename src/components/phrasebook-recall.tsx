@@ -11,9 +11,11 @@ import { PhraseAudioButton } from "./phrase-audio-button";
 
 type Phrase = LearnerOverview["phrasebook"][number];
 
-export function PhrasebookRecall({ items, onClose }: {
+export function PhrasebookRecall({ items, closeLabel = "Back to phrasebook", onClose, onReturnToToday }: {
   items: Phrase[];
+  closeLabel?: string;
   onClose: () => void;
+  onReturnToToday?: () => void;
 }) {
   const [round, setRound] = useState(() => items.slice(0, 5));
   const [nextBatchStart, setNextBatchStart] = useState(Math.min(5, items.length));
@@ -89,9 +91,9 @@ export function PhrasebookRecall({ items, onClose }: {
 
   return (
     <section className="phrasebook-recall" aria-labelledby="phrasebook-recall-title">
-      <h4 id="phrasebook-recall-title" ref={heading} tabIndex={-1}>
+      <h2 id="phrasebook-recall-title" ref={heading} tabIndex={-1}>
         {phrase ? `Say it from memory · ${index + 1} of ${round.length}` : "Memory practice complete"}
-      </h4>
+      </h2>
       {phrase ? (
         <>
           <p>Read the English. Try saying the Spanish aloud before you look.</p>
@@ -186,10 +188,15 @@ export function PhrasebookRecall({ items, onClose }: {
               setRevealed(false);
             }}>{items.length - nextBatchStart === 1 ? "Practise next phrase" : `Practise next ${Math.min(5, items.length - nextBatchStart)} phrases`}</button>
           )}
+          {onReturnToToday && (
+            <button type="button" className="primary-button" onClick={onReturnToToday}>
+              Return to Today
+            </button>
+          )}
         </>
       )}
       <small>This is a self-check. Nothing is recorded or saved, and your scheduled reviews stay the same.</small>
-      <button type="button" className="text-button" onClick={onClose}>Back to phrasebook</button>
+      <button type="button" className="text-button" onClick={onClose}>{closeLabel}</button>
     </section>
   );
 }
