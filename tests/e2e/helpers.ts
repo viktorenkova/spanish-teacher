@@ -16,7 +16,7 @@ export async function completeOnboarding(
   await page.getByText("Desayuno a las ocho.", { exact: true }).click();
   await page.getByRole("button", { name: "Create my learning plan" }).click();
 
-  await page.getByRole("heading", { name: "How much time do you have?" }).waitFor();
+  await page.getByRole("button", { name: "Build today’s lesson" }).waitFor();
   return page.evaluate(() => localStorage.getItem("spanish-coach:learner-id:v1") ?? undefined);
 }
 
