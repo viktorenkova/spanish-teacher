@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getLessonDefinition } from "@/domain/lesson";
 import {
   supportedSessionDurations,
   type LessonPlan,
@@ -18,6 +19,7 @@ import { LearnerOverviewCard } from "./learner-overview-card";
 import { LessonHistoryCard } from "./lesson-history-card";
 import { LessonExperience } from "./lesson-experience";
 import { PracticeRhythmCard } from "./practice-rhythm-card";
+import type { CoachMode } from "./coach-experience";
 
 type SavedPlan = LessonPlan & { id: string; createdAt: string };
 type SavedSession = {
@@ -35,12 +37,14 @@ export function PlannedLessonExperience({
   onLearnerDeleted,
   onLearnerAvailable,
   onLearnerUnavailable,
+  onModeChange,
 }: {
   learnerId: string;
   onChangeLearner: () => void;
   onLearnerDeleted: () => void;
   onLearnerAvailable: (profile: LocalLearnerProfile) => void;
   onLearnerUnavailable: () => void;
+  onModeChange: (mode: CoachMode) => void;
 }) {
   const [plan, setPlan] = useState<SavedPlan | null>();
   const [session, setSession] = useState<SavedSession | null>();
@@ -59,6 +63,11 @@ export function PlannedLessonExperience({
   const [creating, setCreating] = useState(false);
   const [started, setStarted] = useState(false);
   const [error, setError] = useState<string>();
+
+  useEffect(() => {
+    if (started) return;
+    onModeChange(plan ? "plan" : "dashboard");
+  }, [onModeChange, plan, started]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -204,8 +213,11 @@ export function PlannedLessonExperience({
       }
       setPlan(payload.plan);
       setSession(null);
+      onModeChange("plan");
+      return true;
     } catch (planError) {
       setError(planError instanceof Error ? planError.message : "The lesson plan could not be created.");
+      return false;
     } finally {
       setCreating(false);
     }
@@ -295,6 +307,7 @@ export function PlannedLessonExperience({
       setSession(payload.session);
       setPlan(payload.session.plan);
       setStarted(true);
+      onModeChange("lesson");
     } catch (startError) {
       setError(startError instanceof Error ? startError.message : "The lesson could not be started.");
     } finally {
@@ -320,6 +333,26 @@ export function PlannedLessonExperience({
     setStarted(false);
     setSession(null);
     setPlan(null);
+    onModeChange("dashboard");
+  }
+
+  async function finishLesson(destination: "next" | "dashboard") {
+    if (destination === "next") {
+      const nextPlanReady = await createPlan();
+      if (!nextPlanReady) return false;
+      setStarted(false);
+      setSession(null);
+      setOverviewRefreshKey((value) => value + 1);
+      onModeChange("plan");
+      return true;
+    }
+
+    setStarted(false);
+    setSession(null);
+    setPlan(null);
+    setOverviewRefreshKey((value) => value + 1);
+    onModeChange("dashboard");
+    return true;
   }
 
   if (plan === undefined) {
@@ -426,57 +459,61 @@ export function PlannedLessonExperience({
         lessonKey={plan.lessonKey}
         reviewExercises={plan.reviewExercises}
         onEndLesson={endLesson}
-        onFinishLesson={() => {
-          setStarted(false);
-          setSession(null);
-          setPlan(null);
-          setOverviewRefreshKey((value) => value + 1);
-        }}
+        onFinishLesson={finishLesson}
+        onModeChange={onModeChange}
       />
     );
   }
 
+  const plannedLesson = getLessonDefinition(plan.lessonKey);
+
   return (
     <section className="lesson-card planner-card" aria-labelledby="plan-title">
       <span className="eyebrow">Today’s adaptive plan · {plan.estimatedMinutes} min</span>
-      <h2 id="plan-title">A coherent path, chosen for you.</h2>
-      <aside className="goal-focus-note" aria-label="Learning goal alignment">
-        <span>
-          {plan.primaryGoal
-            ? `Your goal · ${learnerPrimaryGoalLabels[plan.primaryGoal]}`
-            : "Personal learning focus"}
-        </span>
-        <p>{plan.goalFocus}</p>
-      </aside>
-      <section className="plan-explanation" aria-labelledby="plan-explanation-title">
-        <h3 id="plan-explanation-title">Why this plan fits today</h3>
-        <ul>
-          {plan.adaptationReasons.map((reason) => <li key={reason}>{reason}</li>)}
-        </ul>
-      </section>
-      <ol className="plan-blocks">
-        {plan.blocks.map((block) => (
-          <li key={block.id}>
-            <span className={`plan-kind ${block.availability}`}>{block.kind}</span>
-            <div>
-              <strong>{block.title}</strong>
-              <p>{block.objective}</p>
-            </div>
-            <small>{Math.max(1, Math.round(block.estimatedSeconds / 60))} min</small>
-          </li>
-        ))}
-      </ol>
-      <p className="provider-note">
-        {plan.reviewExercises.length > 0
-          ? `${plan.reviewExercises.length} personalised review${plan.reviewExercises.length === 1 ? " is" : "s are"} ready before the core listening and speaking practice.`
-          : "Core listening and speaking are ready. Extended provider-pending blocks are shown but not scored yet."}
-      </p>
-      <div className="form-actions">
-        <button className="text-button" onClick={() => setPlan(null)}>Choose another duration</button>
-        <button className="text-button" onClick={onChangeLearner}>Change learner</button>
+      <h2 id="plan-title">Ready for “{plannedLesson?.title ?? "your next lesson"}”?</h2>
+      <p className="plan-objective">{plannedLesson?.objective ?? plan.goalFocus}</p>
+      <div className="plan-primary-actions">
         <button className="primary-button" disabled={creating} onClick={startLesson}>
           {creating ? "Starting your lesson…" : "Start the ready practice"}
         </button>
+      </div>
+      <details className="plan-details">
+        <summary>See why this lesson was chosen and what it includes</summary>
+        <aside className="goal-focus-note" aria-label="Learning goal alignment">
+          <span>
+            {plan.primaryGoal
+              ? `Your goal · ${learnerPrimaryGoalLabels[plan.primaryGoal]}`
+              : "Personal learning focus"}
+          </span>
+          <p>{plan.goalFocus}</p>
+        </aside>
+        <section className="plan-explanation" aria-labelledby="plan-explanation-title">
+          <h3 id="plan-explanation-title">Why this plan fits today</h3>
+          <ul>
+            {plan.adaptationReasons.map((reason) => <li key={reason}>{reason}</li>)}
+          </ul>
+        </section>
+        <ol className="plan-blocks">
+          {plan.blocks.map((block) => (
+            <li key={block.id}>
+              <span className={`plan-kind ${block.availability}`}>{block.kind}</span>
+              <div>
+                <strong>{block.title}</strong>
+                <p>{block.objective}</p>
+              </div>
+              <small>{Math.max(1, Math.round(block.estimatedSeconds / 60))} min</small>
+            </li>
+          ))}
+        </ol>
+        <p className="provider-note">
+          {plan.reviewExercises.length > 0
+            ? `${plan.reviewExercises.length} personalised review${plan.reviewExercises.length === 1 ? " is" : "s are"} ready before the core listening and speaking practice.`
+            : "Core listening and speaking are ready. Extended provider-pending blocks are shown but not scored yet."}
+        </p>
+      </details>
+      <div className="plan-secondary-actions">
+        <button className="text-button" onClick={() => setPlan(null)}>Choose another duration</button>
+        <button className="text-button" onClick={onChangeLearner}>Change learner</button>
       </div>
     </section>
   );

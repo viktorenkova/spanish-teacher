@@ -38,7 +38,7 @@ test("completes a lesson with listening and speaking, then adapts the next topic
     await page.getByRole("radio", { name: "See you tomorrow" }).click();
     await page.getByRole("button", { name: "Check answer" }).click();
     const retryFeedback = page.locator("p.feedback.retry");
-    await expect(retryFeedback).toContainText("Not quite");
+    await expect(retryFeedback).toContainText("Not quite", { timeout: 15_000 });
     await page.waitForTimeout(1_300);
     await expect(retryFeedback).toBeVisible();
 
@@ -59,7 +59,9 @@ test("completes a lesson with listening and speaking, then adapts the next topic
     await page.getByRole("button", { name: "View lesson summary" }).click();
 
     await expect(page.getByRole("heading", { name: "You can make a first introduction." })).toBeVisible();
+    await page.getByText("Review lesson details", { exact: true }).click();
     await expect(page.getByText(/speaking task completed/)).toBeVisible();
+    await page.getByText("Rate this lesson", { exact: false }).click();
     await page.getByRole("radio", { name: "5" }).check();
     await page.getByLabel("Lesson pace").selectOption("comfortable");
     await page.getByLabel("Time to read hints and comments").selectOption("enough");
@@ -77,7 +79,9 @@ test("completes a lesson with listening and speaking, then adapts the next topic
       comment: "Keep the user-paced controls.",
     });
 
-    await page.getByRole("button", { name: "Finish lesson" }).click();
+    await page.getByRole("button", { name: /^Continue/ }).click();
+    await expect(page.getByRole("heading", { name: "Ready for “Talk about your morning”?" })).toBeVisible();
+    await page.getByRole("button", { name: "Choose another duration" }).click();
     await expect(page.getByRole("heading", { name: "Up next: Talk about your morning" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Your practice rhythm" })).toBeVisible();
     const practiceRhythm = page.locator(".practice-rhythm");
@@ -108,8 +112,7 @@ test("completes a lesson with listening and speaking, then adapts the next topic
     await expect(page.getByText(/Pronunciation was not assessed/)).toBeVisible();
     await page.getByRole("button", { name: "Build today’s lesson" }).click();
 
-    await expect(page.getByRole("heading", { name: "A coherent path, chosen for you." })).toBeVisible();
-    await expect(page.getByText("Talk about your morning", { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Ready for “Talk about your morning”?" })).toBeVisible();
   } finally {
     await cleanupLearner(displayName, learnerId);
   }

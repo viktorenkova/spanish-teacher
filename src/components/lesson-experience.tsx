@@ -18,6 +18,7 @@ import type { SttTranscript } from "@/stt/provider";
 import type { TeacherFeedback } from "@/teacher/provider";
 import { speakWithBrowser } from "@/tts/browser-provider";
 import { PilotFeedbackForm } from "./pilot-feedback-form";
+import type { CoachMode } from "./coach-experience";
 
 type LessonExperienceProps = {
   learnerId: string;
@@ -26,7 +27,8 @@ type LessonExperienceProps = {
   lessonKey: LessonKey;
   reviewExercises: LessonExercise[];
   onEndLesson: () => Promise<void>;
-  onFinishLesson: () => void;
+  onFinishLesson: (destination: "next" | "dashboard") => Promise<boolean>;
+  onModeChange: (mode: CoachMode) => void;
 };
 
 type AttemptResponse = {
@@ -120,6 +122,7 @@ export function LessonExperience({
   reviewExercises,
   onEndLesson,
   onFinishLesson,
+  onModeChange,
 }: LessonExperienceProps) {
   const [progress, setProgress] = useState<LessonProgress>();
   const [progressSummary, setProgressSummary] = useState<LearnerProgressSummary>();
@@ -142,6 +145,9 @@ export function LessonExperience({
   const [endingLesson, setEndingLesson] = useState(false);
   const [endLessonError, setEndLessonError] = useState<string>();
   const [revealedRecallItems, setRevealedRecallItems] = useState<string[]>([]);
+  const [nextLessonTitle, setNextLessonTitle] = useState<string>();
+  const [leavingCompletion, setLeavingCompletion] = useState<"next" | "dashboard">();
+  const [completionError, setCompletionError] = useState<string>();
   const lesson = getLessonDefinition(lessonKey);
 
   if (!lesson) throw new Error("Unknown lesson");
@@ -229,6 +235,41 @@ export function LessonExperience({
     && exercises.every((item) => pendingProgress.completedExerciseIds.includes(item.id)),
   );
   const exerciseCoaching = exercise ? getExerciseCoaching(exercise) : undefined;
+
+  useEffect(() => {
+    if (!progress) return;
+    if (exercise) {
+      onModeChange("lesson");
+      return;
+    }
+
+    onModeChange("completion");
+    const controller = new AbortController();
+    fetch(`/api/learner/overview?learnerId=${encodeURIComponent(learnerId)}`, {
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) return undefined;
+        const payload = (await response.json()) as { overview?: { nextLesson?: { title?: string } } };
+        return payload.overview?.nextLesson?.title;
+      })
+      .then(setNextLessonTitle)
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+      });
+    return () => controller.abort();
+  }, [exercise, learnerId, onModeChange, progress]);
+
+  async function leaveCompletion(destination: "next" | "dashboard") {
+    if (leavingCompletion) return;
+    setLeavingCompletion(destination);
+    setCompletionError(undefined);
+    const movedOn = await onFinishLesson(destination);
+    if (!movedOn) {
+      setCompletionError("The next lesson could not be prepared. Your completed lesson is safe; please try again.");
+    }
+    setLeavingCompletion(undefined);
+  }
 
   async function submitAnswer() {
     if (!exercise || !selectedOption || submitting) return;
@@ -439,78 +480,104 @@ export function LessonExperience({
           <h3 id="lesson-achievement-title">{lesson.objective}</h3>
           <p>You completed the full practice path: understanding, recall, listening, and speaking.</p>
         </section>
-        <section className="lesson-language-recap" aria-labelledby="lesson-language-recap-title">
-          <h3 id="lesson-language-recap-title">Useful Spanish from this lesson</h3>
-          <ul>
-            {practisedPhrases.map((item) => (
-              <li key={item.id}>
-                <strong lang="es">{item.targetText}</strong>
-                <span>{item.supportText}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-        <section className="lesson-recall-check" aria-labelledby="lesson-recall-check-title">
-          <div className="lesson-recall-heading">
-            <div>
-              <span>Quick recall</span>
-              <h3 id="lesson-recall-check-title">Can you remember these without looking?</h3>
-            </div>
-            <small>{revealedRecallItems.length}/{recallItems.length} checked</small>
-          </div>
-          <p>Think of the Spanish first. Reveal the answer only after you have tried.</p>
-          <div className="lesson-recall-list">
-            {recallItems.map((item) => {
-              const revealed = revealedRecallItems.includes(item.id);
-              return (
-                <article className="lesson-recall-item" key={item.id}>
-                  <span>{item.supportText}</span>
-                  {revealed ? (
-                    <strong lang="es">{item.targetText}</strong>
-                  ) : (
-                    <button
-                      type="button"
-                      className="text-button"
-                      onClick={() => setRevealedRecallItems((current) => [...current, item.id])}
-                    >
-                      Reveal Spanish
-                    </button>
-                  )}
-                </article>
-              );
-            })}
-          </div>
-          <small className="lesson-recall-note">This is a memory check, not a test. Your scheduled reviews remain unchanged.</small>
-        </section>
         <dl className="summary-grid">
           <div><dt>Steps completed</dt><dd>{exercises.length}/{exercises.length}</dd></div>
           <div><dt>Attempts</dt><dd>{progress.attempts}</dd></div>
           <div><dt>Phrases started</dt><dd>{progressSummary?.introducedItemCount ?? "—"}</dd></div>
         </dl>
+        <div className="completion-actions" aria-label="Choose what to do next">
+          <button
+            className="primary-button"
+            disabled={Boolean(leavingCompletion)}
+            onClick={() => void leaveCompletion("next")}
+          >
+            {leavingCompletion === "next"
+              ? "Preparing the next lesson…"
+              : nextLessonTitle
+                ? `Continue: ${nextLessonTitle}`
+                : "Continue to the next lesson"}
+          </button>
+          <button
+            className="text-button"
+            disabled={Boolean(leavingCompletion)}
+            onClick={() => void leaveCompletion("dashboard")}
+          >
+            {leavingCompletion === "dashboard" ? "Saving…" : "Finish for today"}
+          </button>
+        </div>
+        {completionError && <p className="feedback retry" role="alert">{completionError}</p>}
         <p className="saved-progress-note">Your answers, transcript, and review schedule are saved automatically.</p>
-        {progressSummary && (
-          <div className="progress-next-step" aria-label="Your next practice step">
-            <strong>Your next useful step</strong>
-            <p>
-              {progressSummary.dueReviewCount > 0
-                ? `${progressSummary.dueReviewCount} phrase${progressSummary.dueReviewCount === 1 ? " is" : "s are"} ready to review now.`
-                : progressSummary.nextReviewAt
-                  ? `Your next scheduled review is ${new Date(progressSummary.nextReviewAt).toLocaleString()}.`
-                  : "Keep practising the current phrases to build recall."}
-            </p>
-            <small>
-              {progressSummary.reviewedTodayCount} phrase{progressSummary.reviewedTodayCount === 1 ? "" : "s"} practised today
-              {progressSummary.hasCompletedSpeakingTask ? " · speaking task completed" : ""}.
-            </small>
-          </div>
-        )}
-        {!progressSummary && nextReviewAt && (
-          <p className="review-note">Latest review scheduled for {new Date(nextReviewAt).toLocaleString()}.</p>
-        )}
-        {teacherFeedback && <TeacherFeedbackCard feedback={teacherFeedback} />}
-        {mistakeMemory && <MistakeMemoryCard memory={mistakeMemory} />}
-        <PilotFeedbackForm learnerId={learnerId} sessionId={sessionId} />
-        <button className="primary-button" onClick={onFinishLesson}>Finish lesson</button>
+        <details className="completion-details">
+          <summary>Review lesson details</summary>
+          <section className="lesson-language-recap" aria-labelledby="lesson-language-recap-title">
+            <h3 id="lesson-language-recap-title">Useful Spanish from this lesson</h3>
+            <ul>
+              {practisedPhrases.map((item) => (
+                <li key={item.id}>
+                  <strong lang="es">{item.targetText}</strong>
+                  <span>{item.supportText}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section className="lesson-recall-check" aria-labelledby="lesson-recall-check-title">
+            <div className="lesson-recall-heading">
+              <div>
+                <span>Quick recall</span>
+                <h3 id="lesson-recall-check-title">Can you remember these without looking?</h3>
+              </div>
+              <small>{revealedRecallItems.length}/{recallItems.length} checked</small>
+            </div>
+            <p>Think of the Spanish first. Reveal the answer only after you have tried.</p>
+            <div className="lesson-recall-list">
+              {recallItems.map((item) => {
+                const revealed = revealedRecallItems.includes(item.id);
+                return (
+                  <article className="lesson-recall-item" key={item.id}>
+                    <span>{item.supportText}</span>
+                    {revealed ? (
+                      <strong lang="es">{item.targetText}</strong>
+                    ) : (
+                      <button
+                        type="button"
+                        className="text-button"
+                        onClick={() => setRevealedRecallItems((current) => [...current, item.id])}
+                      >
+                        Reveal Spanish
+                      </button>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+            <small className="lesson-recall-note">This is a memory check, not a test. Your scheduled reviews remain unchanged.</small>
+          </section>
+          {progressSummary && (
+            <div className="progress-next-step" aria-label="Your next practice step">
+              <strong>Your review schedule</strong>
+              <p>
+                {progressSummary.dueReviewCount > 0
+                  ? `${progressSummary.dueReviewCount} phrase${progressSummary.dueReviewCount === 1 ? " is" : "s are"} ready to review now.`
+                  : progressSummary.nextReviewAt
+                    ? `Your next scheduled review is ${new Date(progressSummary.nextReviewAt).toLocaleString()}.`
+                    : "Keep practising the current phrases to build recall."}
+              </p>
+              <small>
+                {progressSummary.reviewedTodayCount} phrase{progressSummary.reviewedTodayCount === 1 ? "" : "s"} practised today
+                {progressSummary.hasCompletedSpeakingTask ? " · speaking task completed" : ""}.
+              </small>
+            </div>
+          )}
+          {!progressSummary && nextReviewAt && (
+            <p className="review-note">Latest review scheduled for {new Date(nextReviewAt).toLocaleString()}.</p>
+          )}
+          {teacherFeedback && <TeacherFeedbackCard feedback={teacherFeedback} />}
+          {mistakeMemory && <MistakeMemoryCard memory={mistakeMemory} />}
+        </details>
+        <details className="completion-details feedback-details">
+          <summary>Rate this lesson <span>Optional</span></summary>
+          <PilotFeedbackForm learnerId={learnerId} sessionId={sessionId} />
+        </details>
       </section>
     );
   }

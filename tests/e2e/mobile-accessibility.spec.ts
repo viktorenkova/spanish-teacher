@@ -30,6 +30,8 @@ test("keeps onboarding usable on mobile with semantic labels and reduced motion"
   await nameInput.fill("Mobile learner");
   await page.getByRole("button", { name: "Continue to a short check" }).click();
   await expect(page.getByRole("heading", { name: "Show what is already familiar." })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Learn Spanish that feels good to use." })).toBeHidden();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   await expect(page.getByRole("radio")).toHaveCount(12);
   await expect(page.locator("fieldset > legend")).toHaveCount(4);
 

@@ -8,7 +8,7 @@ test("resumes the active lesson at the first incomplete exercise", async ({ page
   try {
     learnerId = await completeOnboarding(page, displayName);
     await page.getByRole("button", { name: "Build today’s lesson" }).click();
-    await expect(page.getByRole("heading", { name: "A coherent path, chosen for you." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /^Ready for/ })).toBeVisible();
     await page.getByRole("button", { name: "Start the ready practice" }).click();
 
     await expect(page.getByRole("heading", { name: /What does Lucía mean/ })).toBeVisible();

@@ -14,6 +14,7 @@ type OnboardingExperienceProps = {
   notice?: string;
   onCancel?: () => void;
   onComplete: (profile: LocalLearnerProfile) => void;
+  onStepChange?: (step: "profile" | "diagnostic") => void;
 };
 
 function subscribeToHydration() {
@@ -28,7 +29,7 @@ function getServerSnapshot() {
   return false;
 }
 
-export function OnboardingExperience({ notice, onCancel, onComplete }: OnboardingExperienceProps) {
+export function OnboardingExperience({ notice, onCancel, onComplete, onStepChange }: OnboardingExperienceProps) {
   const hydrated = useSyncExternalStore(
     subscribeToHydration,
     getHydratedSnapshot,
@@ -102,7 +103,10 @@ export function OnboardingExperience({ notice, onCancel, onComplete }: Onboardin
           className="profile-form"
           onSubmit={(event) => {
             event.preventDefault();
-            if (displayName.trim()) setStep("diagnostic");
+            if (displayName.trim()) {
+              setStep("diagnostic");
+              onStepChange?.("diagnostic");
+            }
           }}
         >
           <label>
@@ -187,7 +191,16 @@ export function OnboardingExperience({ notice, onCancel, onComplete }: Onboardin
         ))}
         {error && <p className="feedback retry" role="alert">{error}</p>}
         <div className="form-actions">
-          <button className="text-button" type="button" onClick={() => setStep("profile")}>Back</button>
+          <button
+            className="text-button"
+            type="button"
+            onClick={() => {
+              setStep("profile");
+              onStepChange?.("profile");
+            }}
+          >
+            Back
+          </button>
           <button className="primary-button" type="submit" disabled={submitting}>
             {submitting ? "Saving your profile…" : "Create my learning plan"}
           </button>

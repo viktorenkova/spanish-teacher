@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import {
   activateLocalLearner,
   clearActiveLocalLearner,
@@ -16,7 +16,9 @@ import { LocalProfileChooser } from "./local-profile-chooser";
 import { OnboardingExperience } from "./onboarding-experience";
 import { PlannedLessonExperience } from "./planned-lesson-experience";
 
-export function CoachExperience() {
+export type CoachMode = "welcome" | "diagnostic" | "dashboard" | "plan" | "lesson" | "completion";
+
+export function CoachExperience({ onModeChange }: { onModeChange: (mode: CoachMode) => void }) {
   const learnerId = useSyncExternalStore(subscribeToLocalLearners, getActiveLearnerSnapshot, () => "");
   const profilesSnapshot = useSyncExternalStore(
     subscribeToLocalLearners,
@@ -29,6 +31,10 @@ export function CoachExperience() {
   );
   const [recoveryNotice, setRecoveryNotice] = useState<string>();
   const [creatingProfile, setCreatingProfile] = useState(false);
+
+  useEffect(() => {
+    if (learnerId || profiles.length > 0) onModeChange("dashboard");
+  }, [learnerId, onModeChange, profiles.length]);
 
   const recoverMissingLearner = useCallback((missingLearnerId: string) => {
     forgetLocalLearnerProfile(missingLearnerId);
@@ -62,6 +68,7 @@ export function CoachExperience() {
     return (
       <OnboardingExperience
         notice={recoveryNotice}
+        onStepChange={(step) => onModeChange(step === "profile" ? "welcome" : "diagnostic")}
         onCancel={profiles.length > 0 ? () => setCreatingProfile(false) : undefined}
         onComplete={(profile) => {
           rememberLocalLearnerProfile(profile);
@@ -75,6 +82,7 @@ export function CoachExperience() {
   return (
     <PlannedLessonExperience
       learnerId={learnerId}
+      onModeChange={onModeChange}
       onChangeLearner={() => {
         setRecoveryNotice(undefined);
         clearActiveLocalLearner();

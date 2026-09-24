@@ -63,6 +63,10 @@ main { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding-bottom: 80
 }
 .install-app-button:hover { background: #e4dcff; }
 
+.app-mode { padding-bottom: 48px; }
+.app-mode .site-header { min-height: 70px; }
+.app-mode > .lesson-card { margin-top: 28px; }
+
 .level-chip {
   display: flex;
   gap: 8px;
@@ -209,6 +213,14 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .summary-grid div { background: var(--cream); border-radius: 14px; padding: 16px; }
 .summary-grid dt { color: var(--muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; }
 .summary-grid dd { margin: 5px 0 0; font: 700 1.35rem Georgia, serif; }
+.completion-actions { display: grid; gap: 6px; margin-top: 22px; }
+.completion-actions .primary-button { margin: 0; }
+.completion-actions .text-button { justify-self: center; min-height: 44px; }
+.completion-details { margin-top: 18px; border-top: 1px solid rgba(23, 59, 55, .1); padding-top: 18px; }
+.completion-details > summary { cursor: pointer; color: var(--coral-dark); font-size: .86rem; font-weight: 800; }
+.completion-details > summary span { margin-left: 6px; color: var(--muted); font-size: .68rem; font-weight: 650; text-transform: uppercase; letter-spacing: .05em; }
+.completion-details[open] > summary { margin-bottom: 12px; }
+.feedback-details .pilot-feedback-card { margin-top: 14px; }
 .pilot-feedback-card { margin-top: 22px; border: 1px solid rgba(23, 59, 55, .14); border-radius: 18px; padding: 20px; background: #fffaf7; }
 .pilot-feedback-card h3 { margin: 8px 0; font: 700 1.25rem Georgia, serif; }
 .pilot-feedback-card.saved { background: var(--green-soft); }
@@ -273,6 +285,13 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .text-button:hover { color: var(--ink); }
 .planner-durations { margin: 28px 0 8px; }
 .planner-durations button { cursor: pointer; }
+.plan-objective { max-width: 650px; margin: -5px 0 22px; color: var(--muted); font-size: 1rem; line-height: 1.65; }
+.plan-primary-actions { margin: 0 0 20px; }
+.plan-primary-actions .primary-button { margin: 0; }
+.plan-details { margin-top: 12px; border-top: 1px solid rgba(23, 59, 55, .1); padding-top: 18px; }
+.plan-details > summary { cursor: pointer; color: var(--coral-dark); font-size: .84rem; font-weight: 800; line-height: 1.45; }
+.plan-details[open] > summary { margin-bottom: 18px; }
+.plan-secondary-actions { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
 .today-focus { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px 28px; margin: 26px 0 14px; padding: 22px; border: 1px solid rgba(118, 85, 232, .12); border-radius: 20px; background: linear-gradient(135deg, var(--lavender-soft), #fff); }
 .today-focus-copy h3 { margin: 6px 0 8px; font: 700 1.45rem Georgia, serif; }
 .today-focus-copy p { margin: 0; color: var(--muted); line-height: 1.55; }
@@ -510,7 +529,9 @@ h1 { max-width: 700px; font-size: clamp(2.7rem, 6vw, 4.75rem); line-height: 1; m
   main { width: min(100% - 24px, 1120px); }
   .site-header { min-height: 74px; }
   .header-actions { gap: 7px; }
-  .install-app-button { min-height: 36px; padding-inline: 11px; }
+  .install-app-button { min-height: 44px; padding-inline: 11px; }
+  .app-mode .site-header { min-height: 64px; }
+  .app-mode > .lesson-card { margin-top: 18px; }
   .hero { grid-template-columns: 1fr; padding: 48px 0 30px; gap: 24px; }
   .coach-note { display: none; }
   .lesson-card { border-radius: 20px; }
@@ -549,6 +570,8 @@ h1 { max-width: 700px; font-size: clamp(2.7rem, 6vw, 4.75rem); line-height: 1; m
   .end-lesson-actions button { width: 100%; }
   .plan-blocks li { grid-template-columns: 1fr auto; }
   .plan-kind { grid-column: 1 / -1; }
+  .plan-secondary-actions { align-items: stretch; flex-direction: column; }
+  .plan-secondary-actions .text-button { min-height: 44px; width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
