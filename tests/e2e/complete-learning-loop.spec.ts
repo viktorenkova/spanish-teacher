@@ -97,7 +97,7 @@ test("completes a lesson with listening and speaking, then adapts the next topic
     await expect(recentLesson.getByText("Speaking", { exact: true })).toBeVisible();
     await expect(recentLesson.getByText("Done", { exact: true })).toBeVisible();
     await expect(page.getByText(`Saved progress · ${displayName}`, { exact: true })).toBeVisible();
-    await expect(page.getByText("1/3", { exact: true })).toBeVisible();
+    await expect(page.getByText("1/12", { exact: true })).toBeVisible();
     await page.locator("details.phrasebook > summary").click();
     await page.getByRole("button", { name: "Practise saying Me llamo…", exact: true }).first().click();
     await expect(page.getByText(/Listening… Say the phrase/)).toBeVisible();
