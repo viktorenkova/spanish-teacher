@@ -7,7 +7,7 @@ test("resumes the active lesson at the first incomplete exercise", async ({ page
 
   try {
     learnerId = await completeOnboarding(page, displayName);
-    await page.getByRole("button", { name: "Build my lesson" }).click();
+    await page.getByRole("button", { name: "Build today’s lesson" }).click();
     await expect(page.getByRole("heading", { name: "A coherent path, chosen for you." })).toBeVisible();
     await page.getByRole("button", { name: "Start the ready practice" }).click();
 
@@ -30,10 +30,10 @@ test("resumes the active lesson at the first incomplete exercise", async ({ page
 
     await page.getByRole("button", { name: "End this lesson" }).click();
     await page.getByRole("button", { name: "End lesson now" }).click();
-    await expect(page.getByRole("heading", { name: "How much time do you have?" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Build today’s lesson" })).toBeVisible();
 
     await page.reload();
-    await expect(page.getByRole("heading", { name: "How much time do you have?" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Build today’s lesson" })).toBeVisible();
   } finally {
     await cleanupLearner(displayName, learnerId);
   }

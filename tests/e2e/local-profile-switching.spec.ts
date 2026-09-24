@@ -18,7 +18,7 @@ test("switches between learner profiles saved in the same browser", async ({ pag
 
     secondLearnerId = await completeOnboarding(page, secondName, { navigate: false });
     await expect(page.getByText(`Saved progress · ${secondName}`, { exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "Build my lesson" }).click();
+    await page.getByRole("button", { name: "Build today’s lesson" }).click();
     await expect(page.getByRole("heading", { name: "A coherent path, chosen for you." })).toBeVisible();
     await page.getByRole("button", { name: "Change learner" }).click();
 

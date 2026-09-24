@@ -32,7 +32,7 @@ test("completes a lesson with listening and speaking, then adapts the next topic
     await installMediaMocks(page, "Me llamo Katia. Soy de Madrid.");
     learnerId = await completeOnboarding(page, displayName);
     if (!learnerId) throw new Error("Onboarding did not persist a learner ID.");
-    await page.getByRole("button", { name: "Build my lesson" }).click();
+    await page.getByRole("button", { name: "Build today’s lesson" }).click();
     await page.getByRole("button", { name: "Start the ready practice" }).click();
 
     await page.getByRole("radio", { name: "See you tomorrow" }).click();
@@ -104,7 +104,7 @@ test("completes a lesson with listening and speaking, then adapts the next topic
     await page.getByRole("button", { name: "Stop practising Me llamo…", exact: true }).click();
     await expect(page.getByText("Me llamo Katia. Soy de Madrid.", { exact: true })).toBeVisible();
     await expect(page.getByText(/Pronunciation was not assessed/)).toBeVisible();
-    await page.getByRole("button", { name: "Build my lesson" }).click();
+    await page.getByRole("button", { name: "Build today’s lesson" }).click();
 
     await expect(page.getByRole("heading", { name: "A coherent path, chosen for you." })).toBeVisible();
     await expect(page.getByText("Talk about your morning", { exact: true })).toBeVisible();

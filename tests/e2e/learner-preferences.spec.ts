@@ -38,9 +38,10 @@ test("persists learning preferences and uses the default lesson duration", async
     });
 
     await page.reload();
-    const defaultDuration = page.getByRole("button", { name: "20 min" });
+    await page.getByRole("button", { name: "Change duration · 20 min" }).click();
+    const defaultDuration = page.getByRole("button", { name: "20 min", exact: true });
     await expect(defaultDuration).toHaveAttribute("aria-pressed", "true");
-    await page.getByRole("button", { name: "Build my lesson" }).click();
+    await page.getByRole("button", { name: "Build today’s lesson" }).click();
     await expect(page.getByRole("heading", { name: "A coherent path, chosen for you." }))
       .toBeVisible();
     expect(await loadLatestPlanTargetMinutes(learnerId)).toBe(20);
