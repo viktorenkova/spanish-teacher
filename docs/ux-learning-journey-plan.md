@@ -30,9 +30,9 @@ The main success condition is that the learner always understands the current ta
 
 ## Phase 2 — Simplify onboarding and diagnostic
 
-- [ ] Keep the first screen focused on profile setup and one primary CTA.
-- [ ] Keep the diagnostic reassuring and show its length before the questions.
-- [ ] Preserve semantic fieldsets, keyboard access, and clear error feedback.
+- [x] Keep the first screen focused on profile setup and one primary CTA.
+- [x] Keep the diagnostic reassuring and show its length before the questions.
+- [x] Preserve semantic fieldsets, keyboard access, and clear error feedback.
 
 ### Acceptance criteria
 
@@ -44,7 +44,7 @@ The main success condition is that the learner always understands the current ta
 - [x] Put the lesson objective, duration, and primary `Start` action before detailed blocks.
 - [x] Move adaptation reasons and the full block list into optional details.
 - [x] Keep duration change available as a secondary action.
-- [ ] Consider a sticky mobile action only if the short plan still exceeds one viewport.
+- [x] Check whether a sticky mobile action is needed; the `Start` action fits in the first viewport at `390×844`.
 
 ### Acceptance criteria
 
@@ -102,11 +102,19 @@ The main success condition is that the learner always understands the current ta
 
 ## Phase 8 — Verification and measurement
 
-- [ ] Add end-to-end coverage for the full journey and both post-lesson choices.
-- [ ] Test at desktop `1440×900` and mobile `390×844`.
-- [ ] Check keyboard order, focus visibility, headings, labels, live regions, and touch targets of at least `44×44` CSS pixels.
-- [ ] Check reduced motion, horizontal overflow, console errors, and preserved progress.
+- [x] Add end-to-end coverage for the full journey and both post-lesson choices.
+- [x] Test at desktop `1440×900` and mobile `390×844`.
+- [x] Check keyboard order, focus visibility, headings, labels, live regions, and touch targets of at least `44×44` CSS pixels along the tested route.
+- [x] Check reduced motion, horizontal overflow, console errors, and preserved progress.
 - [ ] Measure completion-to-next-lesson continuation and completion-to-review selection when product analytics is introduced.
+
+### Verification record · 24 September 2026
+
+- Desktop: onboarding → diagnostic → plan → listening and speaking lesson → completion → next plan → Progress and Review.
+- Mobile: onboarding → diagnostic → plan → lesson → completion → Finish for today → reload → Progress → bounded phrase practice → Today.
+- Browser checks cover first-viewport actions, keyboard focus, semantic controls, visible status feedback, touch targets, reduced motion, overflow, browser errors, and saved progress after reload.
+- The mobile audit found a buried first-entry CTA and completion actions; both were moved above optional detail. It also found undersized controls, which were enlarged on the tested route.
+- Product analytics is not present yet. The two continuation measures remain a separate follow-up; no unverified conversion numbers are claimed.
 
 ## Implementation order
 

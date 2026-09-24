@@ -475,16 +475,6 @@ export function LessonExperience({
         <span className="eyebrow">Lesson complete</span>
         <h2 id="lesson-complete">{lesson.completionTitle}</h2>
         <p>{lesson.completionSummary}</p>
-        <section className="lesson-achievement" aria-labelledby="lesson-achievement-title">
-          <span>You can now</span>
-          <h3 id="lesson-achievement-title">{lesson.objective}</h3>
-          <p>You completed the full practice path: understanding, recall, listening, and speaking.</p>
-        </section>
-        <dl className="summary-grid">
-          <div><dt>Steps completed</dt><dd>{exercises.length}/{exercises.length}</dd></div>
-          <div><dt>Attempts</dt><dd>{progress.attempts}</dd></div>
-          <div><dt>Phrases started</dt><dd>{progressSummary?.introducedItemCount ?? "—"}</dd></div>
-        </dl>
         <div className="completion-actions" aria-label="Choose what to do next">
           <button
             className="primary-button"
@@ -505,6 +495,16 @@ export function LessonExperience({
             {leavingCompletion === "dashboard" ? "Saving…" : "Finish for today"}
           </button>
         </div>
+        <section className="lesson-achievement" aria-labelledby="lesson-achievement-title">
+          <span>You can now</span>
+          <h3 id="lesson-achievement-title">{lesson.objective}</h3>
+          <p>You completed the full practice path: understanding, recall, listening, and speaking.</p>
+        </section>
+        <dl className="summary-grid">
+          <div><dt>Steps completed</dt><dd>{exercises.length}/{exercises.length}</dd></div>
+          <div><dt>Attempts</dt><dd>{progress.attempts}</dd></div>
+          <div><dt>Phrases started</dt><dd>{progressSummary?.introducedItemCount ?? "—"}</dd></div>
+        </dl>
         {completionError && <p className="feedback retry" role="alert">{completionError}</p>}
         <p className="saved-progress-note">Your answers, transcript, and review schedule are saved automatically.</p>
         <details className="completion-details">

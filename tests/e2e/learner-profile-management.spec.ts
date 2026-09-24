@@ -28,7 +28,7 @@ test("renames a learner and protects permanent deletion with the exact name", as
     await page.getByRole("button", { name: "Save name" }).click();
 
     await expect(page.getByRole("status")).toHaveText("Learner name updated.");
-    await expect(page.getByText(`Saved progress · ${renamedName}`, { exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { name: `Ready for 10 minutes, ${renamedName}?` })).toBeVisible();
     expect(await loadLearnerDisplayName(learnerId)).toBe(renamedName);
 
     await page.getByRole("button", { name: "Delete profile and progress" }).click();

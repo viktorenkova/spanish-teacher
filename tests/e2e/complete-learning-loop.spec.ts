@@ -25,6 +25,10 @@ async function answerChoice(
 }
 
 test("completes a lesson with listening and speaking, then adapts the next topic", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const browserErrors: string[] = [];
+  page.on("pageerror", (error) => browserErrors.push(error.message));
   const displayName = `E2E Full Loop ${Date.now()}`;
   let learnerId: string | undefined;
 
@@ -32,7 +36,9 @@ test("completes a lesson with listening and speaking, then adapts the next topic
     await installMediaMocks(page, "Me llamo Katia. Soy de Madrid.");
     learnerId = await completeOnboarding(page, displayName);
     if (!learnerId) throw new Error("Onboarding did not persist a learner ID.");
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     await page.getByRole("button", { name: "Build today’s lesson" }).click();
+    await expect(page.getByRole("button", { name: "Start the ready practice" })).toBeInViewport();
     await page.getByRole("button", { name: "Start the ready practice" }).click();
 
     await page.getByRole("radio", { name: "See you tomorrow" }).click();
@@ -59,6 +65,7 @@ test("completes a lesson with listening and speaking, then adapts the next topic
     await page.getByRole("button", { name: "View lesson summary" }).click();
 
     await expect(page.getByRole("heading", { name: "You can make a first introduction." })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Continue/ })).toBeInViewport();
     await page.getByText("Review lesson details", { exact: true }).click();
     await expect(page.getByText(/speaking task completed/)).toBeVisible();
     await page.getByText("Rate this lesson", { exact: false }).click();
@@ -107,15 +114,144 @@ test("completes a lesson with listening and speaking, then adapts the next topic
       page.locator(".learner-overview-progress").getByText("1/12", { exact: true }),
     ).toBeVisible();
     await page.getByRole("tab", { name: "Review" }).click();
+    await expect(page.getByRole("heading", { name: "Practise 5 saved phrases" })).toBeVisible();
     await page.locator("details.phrasebook > summary").click();
     await page.getByRole("button", { name: "Practise saying Me llamo…", exact: true }).first().click();
     await expect(page.getByText(/Listening… Say the phrase/)).toBeVisible();
     await page.getByRole("button", { name: "Stop practising Me llamo…", exact: true }).click();
     await expect(page.getByText("Me llamo Katia. Soy de Madrid.", { exact: true })).toBeVisible();
     await expect(page.getByText(/Pronunciation was not assessed/)).toBeVisible();
+    await page.getByRole("tab", { name: "Today" }).click();
     await page.getByRole("button", { name: "Build today’s lesson" }).click();
 
     await expect(page.getByRole("heading", { name: "Ready for “Talk about your morning”?" })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    expect(browserErrors).toEqual([]);
+  } finally {
+    await cleanupLearner(displayName, learnerId);
+  }
+});
+
+test("mobile learner finishes for today, reviews phrases, and keeps saved progress", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const displayName = `E2E Mobile Journey ${Date.now()}`;
+  const browserErrors: string[] = [];
+  const undersizedTargets: string[] = [];
+  page.on("pageerror", (error) => browserErrors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") browserErrors.push(message.text());
+  });
+  let learnerId: string | undefined;
+
+  async function auditScreen(stage: string) {
+    const audit = await page.evaluate(() => ({
+      overflow: document.documentElement.scrollWidth > window.innerWidth,
+      duplicateIds: Array.from(document.querySelectorAll("[id]"))
+        .map((element) => element.id)
+        .filter((id, index, ids) => ids.indexOf(id) !== index),
+      headingCount: Array.from(document.querySelectorAll("main h2"))
+        .filter((heading) => heading.getClientRects().length > 0).length,
+      undersizedTargets: Array.from(document.querySelectorAll("main button, main a, main summary, main select, main label:has(input[type=radio])"))
+        .filter((element) => {
+          const style = getComputedStyle(element);
+          return element.getClientRects().length > 0 && style.visibility !== "hidden";
+        })
+        .filter((element) => {
+          const box = element.getBoundingClientRect();
+          return box.width < 44 || box.height < 44;
+        })
+        .map((element) => `${element.tagName.toLowerCase()} "${element.textContent?.trim().slice(0, 45)}"`),
+    }));
+    expect(audit.overflow).toBe(false);
+    expect(audit.duplicateIds).toEqual([]);
+    expect(audit.headingCount).toBeGreaterThan(0);
+    undersizedTargets.push(...audit.undersizedTargets.map((target) => `${stage}: ${target}`));
+  }
+
+  async function assertFirstViewportAction(name: string) {
+    const action = page.getByRole("button", { name });
+    await expect(action).toBeInViewport();
+    const box = await action.boundingBox();
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+    expect(box?.width).toBeGreaterThanOrEqual(44);
+  }
+
+  try {
+    await installMediaMocks(page, "Me llamo Katia. Soy de Madrid.");
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1, name: "Learn Spanish that feels good to use." })).toBeVisible();
+    await auditScreen("welcome");
+    await assertFirstViewportAction("Continue to a short check");
+    await page.locator(".onboarding-preferences > summary").click();
+    await expect(page.getByLabel("Your main goal")).toBeVisible();
+    await page.locator(".onboarding-preferences > summary").click();
+    const nameInput = page.getByLabel("What should the coach call you?");
+    await nameInput.focus();
+    expect(await nameInput.evaluate((element) => getComputedStyle(element).outlineStyle)).not.toBe("none");
+    await nameInput.fill(displayName);
+    await page.getByRole("button", { name: "Continue to a short check" }).click();
+    await expect(page.getByRole("heading", { name: "Show what is already familiar." })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Learn Spanish that feels good to use." })).toBeHidden();
+    await auditScreen("diagnostic");
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).scrollBehavior)).toBe("auto");
+    await expect(page.getByText("Four quick questions, with no pass or fail.", { exact: false })).toBeVisible();
+    await expect(page.locator("fieldset > legend")).toHaveCount(4);
+    await page.getByText("Buenos días", { exact: true }).click();
+    await page.getByText("llamo", { exact: true }).click();
+    await page.getByText("In Madrid", { exact: true }).click();
+    await page.getByText("Desayuno a las ocho.", { exact: true }).click();
+    await page.getByRole("button", { name: "Create my learning plan" }).click();
+    await page.getByRole("button", { name: "Build today’s lesson" }).waitFor();
+    learnerId = await page.evaluate(() => localStorage.getItem("spanish-coach:learner-id:v1") ?? undefined);
+    if (!learnerId) throw new Error("Onboarding did not persist a learner ID.");
+    await auditScreen("dashboard");
+    await page.getByRole("button", { name: "Build today’s lesson" }).click();
+    await expect(page.getByRole("heading", { name: "Ready for “Meet someone new”?" })).toBeVisible();
+    await auditScreen("plan");
+    const start = page.getByRole("button", { name: "Start the ready practice" });
+    await assertFirstViewportAction("Start the ready practice");
+    await start.click();
+    await expect(page.getByRole("heading", { name: /What does Lucía mean/ })).toBeVisible();
+    await auditScreen("lesson");
+
+    await answerChoice(page, "Pleased to meet you", /Choose the natural answer/);
+    await answerChoice(page, "Me llamo Kate.", /Where is Lucía from/);
+    await answerChoice(page, "Madrid", /Which answer matches/);
+    await answerChoice(page, "Soy de Inglaterra.", /Introduce yourself aloud/);
+    await page.getByRole("button", { name: /Start microphone/ }).click();
+    await page.getByRole("button", { name: /Stop listening/ }).click();
+    await page.getByRole("button", { name: "Check spoken answer" }).click();
+    await page.getByRole("button", { name: "View lesson summary" }).click();
+
+    await expect(page.getByRole("heading", { name: "You can make a first introduction." })).toBeVisible();
+    await assertFirstViewportAction("Finish for today");
+    await assertFirstViewportAction("Continue: Talk about your morning");
+    await auditScreen("completion");
+    await page.getByRole("button", { name: "Finish for today" }).click();
+    await expect(page.getByRole("button", { name: "Build today’s lesson" })).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("heading", { name: "Talk about your morning" })).toBeVisible();
+    await page.getByRole("tab", { name: "Progress" }).click();
+    await expect(page.getByRole("heading", { name: "Recent lessons" })).toBeVisible();
+    await expect(page.locator(".learner-overview-progress").getByText("1/12", { exact: true })).toBeVisible();
+    await page.getByRole("tab", { name: "Review" }).click();
+    await page.getByRole("button", { name: "Start phrase practice" }).click();
+    const practice = page.getByRole("region", { name: /Say it from memory|Memory practice complete/ });
+    await expect(practice.getByRole("heading")).toHaveText("Say it from memory · 1 of 5");
+    await expect(page.locator(".dashboard-tabs")).toBeHidden();
+    await auditScreen("review");
+    for (let index = 0; index < 5; index += 1) {
+      await practice.getByRole("button", { name: "Reveal Spanish" }).click();
+      await practice.getByRole("button", { name: "I remembered it" }).click();
+    }
+    await expect(practice.getByRole("heading")).toHaveText("Memory practice complete");
+    await practice.getByRole("button", { name: "Return to Today" }).click();
+    await expect(page.getByRole("tab", { name: "Today" })).toBeFocused();
+    await expect(page.getByRole("button", { name: "Build today’s lesson" })).toBeVisible();
+    await expect(browserErrors).toEqual([]);
+    expect(undersizedTargets).toEqual([]);
   } finally {
     await cleanupLearner(displayName, learnerId);
   }

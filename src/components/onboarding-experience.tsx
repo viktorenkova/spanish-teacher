@@ -120,44 +120,49 @@ export function OnboardingExperience({ notice, onCancel, onComplete, onStepChang
               placeholder="Your name"
             />
           </label>
-          <label>
-            Your main goal
-            <select
-              disabled={!hydrated}
-              value={primaryGoal}
-              onChange={(event) => setPrimaryGoal(event.target.value as LearnerPrimaryGoal)}
-            >
-              {learnerPrimaryGoals.map((goal) => (
-                <option key={goal} value={goal}>{learnerPrimaryGoalLabels[goal]}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Previous Spanish experience
-            <select disabled={!hydrated} value={priorExperience} onChange={(event) => setPriorExperience(event.target.value)}>
-              <option value="new">Almost completely new</option>
-              <option value="some-basics">I know some basic Spanish</option>
-              <option value="returning">I am returning after a break</option>
-            </select>
-          </label>
-          <fieldset>
-            <legend>Preferred lesson length</legend>
-            <div className="duration-options">
-              {supportedSessionDurations.map((minutes) => (
-                <label key={minutes} className={preferredSessionMinutes === minutes ? "chosen" : ""}>
-                  <input
-                    type="radio"
-                    name="duration"
-                    disabled={!hydrated}
-                    checked={preferredSessionMinutes === minutes}
-                    onChange={() => setPreferredSessionMinutes(minutes)}
-                  />
-                  {minutes} min
-                </label>
-              ))}
-            </div>
-          </fieldset>
           <button className="primary-button" type="submit" disabled={!hydrated}>Continue to a short check</button>
+          <details className="onboarding-preferences">
+            <summary>Personalise your plan (optional)</summary>
+            <div className="onboarding-preferences-fields">
+              <label>
+                Your main goal
+                <select
+                  disabled={!hydrated}
+                  value={primaryGoal}
+                  onChange={(event) => setPrimaryGoal(event.target.value as LearnerPrimaryGoal)}
+                >
+                  {learnerPrimaryGoals.map((goal) => (
+                    <option key={goal} value={goal}>{learnerPrimaryGoalLabels[goal]}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Previous Spanish experience
+                <select disabled={!hydrated} value={priorExperience} onChange={(event) => setPriorExperience(event.target.value)}>
+                  <option value="new">Almost completely new</option>
+                  <option value="some-basics">I know some basic Spanish</option>
+                  <option value="returning">I am returning after a break</option>
+                </select>
+              </label>
+              <fieldset>
+                <legend>Preferred lesson length</legend>
+                <div className="duration-options">
+                  {supportedSessionDurations.map((minutes) => (
+                    <label key={minutes} className={preferredSessionMinutes === minutes ? "chosen" : ""}>
+                      <input
+                        type="radio"
+                        name="duration"
+                        disabled={!hydrated}
+                        checked={preferredSessionMinutes === minutes}
+                        onChange={() => setPreferredSessionMinutes(minutes)}
+                      />
+                      {minutes} min
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            </div>
+          </details>
         </form>
       </section>
     );
@@ -168,7 +173,7 @@ export function OnboardingExperience({ notice, onCancel, onComplete, onStepChang
       <span className="eyebrow">Step 2 of 2 · Short A1 check</span>
       <h2 id="diagnostic-title">Show what is already familiar.</h2>
       <p className="support-copy">
-        This is not an exam. It only places you within A1. Speaking and listening will be checked later with real audio.
+        Four quick questions, with no pass or fail. They help place you within A1. Speaking and listening will be checked later with real audio.
       </p>
       <form className="diagnostic-form" onSubmit={submitDiagnostic}>
         {diagnosticQuestions.map((question, index) => (
