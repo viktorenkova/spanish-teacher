@@ -1,12 +1,16 @@
 name: Deploy closed pilot
 
 on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       release_ref:
         description: Git ref to deploy
         required: true
-        default: master
+        default: main
         type: string
 
 permissions:
@@ -18,6 +22,9 @@ concurrency:
 
 jobs:
   deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: pilot-deploy
@@ -34,7 +41,7 @@ jobs:
       - name: Check out requested release
         uses: actions/checkout@v7
         with:
-          ref: ${{ inputs.release_ref }}
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || inputs.release_ref }}
 
       - name: Resolve and validate release configuration
         id: release
@@ -121,3 +128,4 @@ jobs:
           release_dir="$PILOT_DEPLOY_ROOT/releases/$RELEASE_SHA"
           ssh -i ~/.ssh/id_pilot -o IdentitiesOnly=yes "$remote" \
             "cd '$release_dir' && docker compose --env-file .env.pilot -f compose.pilot.yaml ps && docker compose --env-file .env.pilot -f compose.pilot.yaml logs --tail 200 app migrate" || true
+
