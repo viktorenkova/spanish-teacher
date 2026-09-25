@@ -6,6 +6,48 @@ Route: first entry → diagnostic → Today → lesson plan → lesson → compl
 
 The live desktop and `390×844` mobile audit covered onboarding, diagnostic, Today, plan, four choice exercises, the listening exercise, the speaking screen, lesson exit, and a four-phrase self-check. The production completion and next-lesson transition were **not** reached: microphone permission was not granted. Existing E2E coverage is evidence of functional behavior, not a substitute for observing this live path. A temporary `CJM test` learner remains on production pending explicit confirmation of its permanent deletion.
 
+## Additional findings from manual lesson testing
+
+The following are **learner-reported observations, not yet independently reproduced or diagnosed**. Preserve the examples and expected behavior when investigating. Priorities below follow the manual test report; they do not imply that a root cause has been established.
+
+### P0 — Speech recognition repeats words and marks a correct answer wrong
+
+- [ ] Reproduce the reported case: saying `Me levanto.` once can yield a transcript resembling `Me me me me levanto levanto levanto...` and an incorrect result.
+- [ ] Locate the first point where duplication appears: microphone/capture → browser STT events → raw transcript → normalization → answer comparison → saved assessment. Do not hide an upstream STT defect by only relaxing comparison rules.
+- [ ] Check short and long phrases, normal and slow speech, similar/repeated Spanish sounds, pauses, and mobile browsers.
+- [ ] Prevent false negative scoring from recognition artifacts while preserving the distinction between task completion and pronunciation assessment.
+
+Acceptance: a correctly spoken phrase is not rejected because interim or final STT segments were duplicated; the displayed transcript and saved assessment agree. If temporary diagnostics are needed, capture only the minimum raw/normalized transcript, expected answer, comparison, and result in a protected test context, remove or disable them afterward, and never expose them in learner UI or retain raw audio by default.
+
+### P1 — A nominal 30-minute lesson finishes in about 5–7 minutes
+
+- [ ] Measure actual time across several lessons and durations, then compare it with the planner's block estimates, exercise count, required stages, and material volume.
+- [ ] Make the displayed duration and the useful learning workload agree; do not add filler simply to meet a timer.
+
+Acceptance: a 30-minute choice no longer produces a 5–7-minute lesson without a clear explanation or corrected duration estimate.
+
+### P1 — New language is tested before it is taught
+
+- [ ] Audit each lesson for words or constructions first required in an exercise but not introduced beforehand. The reported café example includes `con` / `sin`, `con leche`, and `sin azúcar`.
+- [ ] Introduce essential language with meaning, a contextual example, optional pronunciation/listening, and a short comprehension check before requiring retrieval or production.
+- [ ] Preserve the progression: contextual objective → introduction → controlled practice → independent use → consolidation.
+
+Acceptance: an A1 learner can attempt the café tasks without already knowing language first presented in that same lesson; speaking and listening remain in the lesson. Exact teaching content and sequencing require a learning-methodology decision before implementation.
+
+### P1 — Correct and incorrect sounds are too quiet and too similar
+
+- [ ] Make success and retry cues acoustically distinct and audible relative to the rest of the interface; keep the retry cue calm and non-punitive.
+- [ ] Test on mobile and desktop browsers, with the saved sound setting on/off and while Spanish playback or microphone recording is active.
+
+Acceptance: users can reliably distinguish success from retry by sound at a normal device volume; visible feedback remains sufficient when muted or sound is unavailable.
+
+### P2 — Technical text leaks into lesson-completion cards
+
+- [ ] Identify the reported internal weight/score commentary and other developer-facing parameters across completion and summary screens.
+- [ ] Replace them with learner-facing results, progress, mistakes, and useful language, or remove them where they add no learning value.
+
+Acceptance: no internal weights, service labels, raw scoring fields, or other technical diagnostics appear on learner-facing completion screens. First reproduce and identify the exact strings before changing them.
+
 ## Phase 1 — Put Today's action first (high priority)
 
 - [x] Place `Build today's lesson` immediately after the next-topic card, before adaptation reasons.
@@ -54,11 +96,14 @@ Acceptance: refreshing during diagnostic restores the draft and selected answers
 - [ ] Cover no-microphone, denied-permission, and failed-transcription paths once Phase 2 is defined.
 - [ ] Check first-viewport actions, keyboard/focus order, live regions, `44×44` touch targets, reduced motion, overflow, and persisted progress.
 - [ ] Revisit the live completion → next lesson route with an authorised microphone or a defined fallback; record what was actually observed.
+- [ ] Re-test several lessons for actual duration, introduction of new language, sound contrast and volume, speech transcript/assessment, and learner-facing completion copy.
 
 ## Implementation order
 
-1. Today's primary action and mobile regression.
-2. Speaking fallback decision, implementation, and failure-path tests.
-3. Feedback and phrase self-check simplification.
-4. Diagnostic draft persistence.
-5. End-to-end CJM and accessibility verification.
+1. Today's primary action and mobile regression (done locally).
+2. Reproduce and diagnose the reported STT duplication (P0); protect correct answers from recognition artifacts.
+3. Audit lesson duration and prerequisite vocabulary; agree on the learning-design changes before implementation.
+4. Distinguish and calibrate success/retry sounds; remove confirmed technical copy from completion.
+5. Decide and implement a speaking fallback without misrepresenting spoken evidence.
+6. Simplify exercise feedback and phrase self-check; preserve the interrupted diagnostic.
+7. Re-test multiple lessons and the full desktop/mobile CJM, including completion and next lesson.
