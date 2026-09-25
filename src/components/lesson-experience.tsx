@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   createEmptyProgress,
   getExerciseCoaching,
@@ -18,6 +18,7 @@ import type { SttTranscript } from "@/stt/provider";
 import type { TeacherFeedback } from "@/teacher/provider";
 import { speakWithBrowser } from "@/tts/browser-provider";
 import { PilotFeedbackForm } from "./pilot-feedback-form";
+import { useUiSounds } from "./ui-sound-provider";
 import type { CoachMode } from "./coach-experience";
 
 type LessonExperienceProps = {
@@ -148,6 +149,8 @@ export function LessonExperience({
   const [nextLessonTitle, setNextLessonTitle] = useState<string>();
   const [leavingCompletion, setLeavingCompletion] = useState<"next" | "dashboard">();
   const [completionError, setCompletionError] = useState<string>();
+  const { play: playUiSound, setAudioBusy } = useUiSounds();
+  const audioOwner = useId();
   const lesson = getLessonDefinition(lessonKey);
 
   if (!lesson) throw new Error("Unknown lesson");
@@ -155,6 +158,11 @@ export function LessonExperience({
     () => [...reviewExercises, ...lesson.exercises],
     [lesson.exercises, reviewExercises],
   );
+
+  useEffect(() => {
+    setAudioBusy(audioOwner, playingAudio || recognizing);
+    return () => setAudioBusy(audioOwner, false);
+  }, [audioOwner, playingAudio, recognizing, setAudioBusy]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -297,6 +305,7 @@ export function LessonExperience({
       if (payload.mistakeMemory) setMistakeMemory(payload.mistakeMemory);
       setNextReviewAt(payload.nextReviewAt);
       setFeedback({ correct: payload.correct, message: payload.feedback });
+      playUiSound(payload.correct ? "correct" : "retry");
       if (payload.correct) {
         setPendingProgress(payload.progress);
       } else {
@@ -390,6 +399,7 @@ export function LessonExperience({
       void refreshProgressSummary();
       setNextReviewAt(payload.nextReviewAt);
       setFeedback({ correct: payload.correct, message: payload.feedback });
+      playUiSound(payload.correct ? "correct" : "retry");
       setTeacherFeedback(payload.teacherFeedback);
       setMistakeMemory(payload.mistakeMemory);
       if (payload.correct) {
@@ -641,6 +651,7 @@ export function LessonExperience({
         <div className="audio-control">
           <button
             className="secondary-button"
+            data-ui-sound="off"
             disabled={playingAudio}
             onClick={playListeningAudio}
             type="button"
@@ -655,6 +666,7 @@ export function LessonExperience({
         <div className="speaking-control">
           <button
             className="secondary-button microphone-button"
+            data-ui-sound="off"
             disabled={submitting || Boolean(pendingProgress)}
             onClick={() => {
               if (recognizing) speechProvider.current.stop();

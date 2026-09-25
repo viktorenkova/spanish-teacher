@@ -59,7 +59,7 @@ export function PhraseAudioButton({
           <option value={1}>Fast</option>
         </select>
       </label>
-      <button type="button" className="secondary-button" disabled={disabled} onClick={() => void play()}>
+      <button type="button" className="secondary-button" data-ui-sound="off" disabled={disabled} onClick={() => void play()}>
         {playing ? "Stop audio" : idleLabel}
       </button>
       {playing && <span aria-live="polite" className="phrase-audio-status">Speaking Spanish…</span>}

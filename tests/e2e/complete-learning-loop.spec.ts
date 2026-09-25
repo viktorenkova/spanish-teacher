@@ -34,6 +34,35 @@ test("completes a lesson with listening and speaking, then adapts the next topic
   let learnerId: string | undefined;
 
   try {
+    await page.addInitScript(() => {
+      const state = window as typeof window & { __cueFrequencies?: number[] };
+      state.__cueFrequencies = [];
+      Object.defineProperty(window, "AudioContext", {
+        configurable: true,
+        value: class {
+          state = "running";
+          currentTime = 0;
+          destination = {};
+          createOscillator() {
+            const frequency = { value: 0 };
+            return {
+              type: "sine",
+              frequency,
+              connect() {},
+              start() { state.__cueFrequencies?.push(frequency.value); },
+              stop() {},
+            };
+          }
+          createGain() {
+            return {
+              gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} },
+              connect() {},
+            };
+          }
+          close() { return Promise.resolve(); }
+        },
+      });
+    });
     await installMediaMocks(page, "Me llamo Katia. Soy de Madrid.");
     learnerId = await completeOnboarding(page, displayName);
     if (!learnerId) throw new Error("Onboarding did not persist a learner ID.");
@@ -52,10 +81,14 @@ test("completes a lesson with listening and speaking, then adapts the next topic
     await page.getByRole("button", { name: "Check answer" }).click();
     const retryFeedback = page.locator("p.feedback.retry");
     await expect(retryFeedback).toContainText("Not quite", { timeout: 15_000 });
+    expect(await page.evaluate(() => (window as typeof window & { __cueFrequencies?: number[] }).__cueFrequencies))
+      .toEqual(expect.arrayContaining([392, 349]));
     await page.waitForTimeout(1_300);
     await expect(retryFeedback).toBeVisible();
 
     await answerChoice(page, "Pleased to meet you", /Choose the natural answer/, true);
+    expect(await page.evaluate(() => (window as typeof window & { __cueFrequencies?: number[] }).__cueFrequencies))
+      .toEqual(expect.arrayContaining([523, 659]));
     await answerChoice(page, "Me llamo Kate.", /Where is Lucía from/);
 
     await page.getByRole("button", { name: /Play Spanish audio/ }).click();

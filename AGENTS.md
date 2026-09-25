@@ -38,6 +38,9 @@ for an A1 learner. Speaking should normally be present in every lesson.
 - Use deterministic code for scheduling, persistence, timing, and scoring when
   possible; reserve AI for conversation, explanations, and language reasoning.
 - Do not claim pronunciation scoring from transcription alone.
+- Keep subtle interface sounds in new learning flows: acknowledge actions and
+  correct/retry outcomes, honour the saved sound setting, retain visual feedback,
+  and suppress cues during Spanish playback or microphone recording.
 
 ## MVP-0
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { LearnerOverview } from "@/domain/learner-overview";
 import {
   assessPhraseRehearsal,
@@ -8,6 +8,7 @@ import {
 } from "@/domain/phrase-rehearsal";
 import { BrowserSpeechToTextProvider } from "@/stt/browser-provider";
 import { PhraseAudioButton } from "./phrase-audio-button";
+import { useUiSounds } from "./ui-sound-provider";
 
 type Phrase = LearnerOverview["phrasebook"][number];
 
@@ -25,6 +26,8 @@ export function PhrasebookRecall({ items, closeLabel = "Back to phrasebook", onC
   const [needsHelp, setNeedsHelp] = useState<Phrase[]>([]);
   const [playingAudio, setPlayingAudio] = useState(false);
   const [recording, setRecording] = useState(false);
+  const { setAudioBusy } = useUiSounds();
+  const audioOwner = useId();
   const [speechError, setSpeechError] = useState<string>();
   const [speechResult, setSpeechResult] = useState<{
     transcript: string;
@@ -43,6 +46,10 @@ export function PhrasebookRecall({ items, closeLabel = "Back to phrasebook", onC
   useEffect(() => { heading.current?.focus(); }, [index, round]);
   useEffect(() => { if (revealed) answer.current?.focus(); }, [revealed]);
   useEffect(() => () => speechProvider.current.abort(), []);
+  useEffect(() => {
+    setAudioBusy(audioOwner, recording || playingAudio);
+    return () => setAudioBusy(audioOwner, false);
+  }, [audioOwner, recording, playingAudio, setAudioBusy]);
 
   function resetSpeechPractice() {
     speechProvider.current.abort();
@@ -116,6 +123,7 @@ export function PhrasebookRecall({ items, closeLabel = "Back to phrasebook", onC
                 <button
                   type="button"
                   className="phrasebook-speak"
+                  data-ui-sound="off"
                   disabled={playingAudio}
                   onClick={() => void practiseSpeaking()}
                 >

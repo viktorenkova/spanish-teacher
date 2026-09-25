@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useId, useRef, useState } from "react";
 import type { LearnerOverview } from "@/domain/learner-overview";
 import { filterPhrasebook } from "@/domain/phrasebook-search";
 import {
@@ -18,6 +18,7 @@ import {
 } from "@/domain/lesson-planner";
 import { BrowserSpeechToTextProvider } from "@/stt/browser-provider";
 import { speakWithBrowser } from "@/tts/browser-provider";
+import { useUiSounds } from "./ui-sound-provider";
 
 export function LearnerOverviewCard({
   overview,
@@ -66,6 +67,8 @@ export function LearnerOverviewCard({
   const [spokenPhraseIds, setSpokenPhraseIds] = useState<string[]>([]);
   const [speakingFilter, setSpeakingFilter] = useState<"all" | "repair" | "unchecked">("all");
   const phraseSpeechProvider = useRef(new BrowserSpeechToTextProvider());
+  const { setAudioBusy } = useUiSounds();
+  const audioOwner = useId();
   const searchedPhrases = filterPhrasebook(overview.phrasebook, phraseQuery);
   const visiblePhrases = speakingFilter === "repair"
     ? searchedPhrases.filter((item) => phraseRepairState[item.id] === "needs-repair")
@@ -76,6 +79,10 @@ export function LearnerOverviewCard({
   const pendingRepairCount = Object.values(phraseRepairState).filter((status) => status === "needs-repair").length;
 
   useEffect(() => () => phraseSpeechProvider.current.abort(), []);
+  useEffect(() => {
+    setAudioBusy(audioOwner, Boolean(playingPhraseId || recordingPhraseId));
+    return () => setAudioBusy(audioOwner, false);
+  }, [audioOwner, playingPhraseId, recordingPhraseId, setAudioBusy]);
 
   async function playPhrase(
     item: LearnerOverview["phrasebook"][number],
@@ -411,6 +418,7 @@ export function LearnerOverviewCard({
                   <strong lang="es">{item.targetText}</strong>
                   <button
                     className="phrasebook-listen"
+                    data-ui-sound="off"
                     type="button"
                     disabled={Boolean(recordingPhraseId) || playingPhraseId === item.id}
                     aria-label={`Listen to ${item.targetText} in Spanish`}
@@ -427,6 +435,7 @@ export function LearnerOverviewCard({
                 )}
                 <button
                   className="phrasebook-speak"
+                  data-ui-sound="off"
                   type="button"
                   disabled={Boolean(recordingPhraseId && recordingPhraseId !== item.id)}
                   aria-label={recordingPhraseId === item.id
@@ -477,6 +486,7 @@ export function LearnerOverviewCard({
                     <span>Listen to these words, then say the whole phrase again.</span>
                     <button
                       className="phrasebook-listen"
+                      data-ui-sound="off"
                       type="button"
                       disabled={Boolean(recordingPhraseId) || playingPhraseId === item.id}
                       onClick={() => void playPhrase(item, repairWords.join(" "))}

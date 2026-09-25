@@ -1,5 +1,6 @@
 import { CoachShell } from "@/components/coach-shell";
+import { UiSoundProvider } from "@/components/ui-sound-provider";
 
 export default function Home() {
-  return <CoachShell />;
+  return <UiSoundProvider><CoachShell /></UiSoundProvider>;
 }

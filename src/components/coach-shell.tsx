@@ -3,17 +3,28 @@
 import { useEffect, useState } from "react";
 import { CoachExperience, type CoachMode } from "./coach-experience";
 import { PwaInstallButton } from "./pwa-install-button";
+import { useUiSounds } from "./ui-sound-provider";
 
 export function CoachShell() {
   const [mode, setMode] = useState<CoachMode>("welcome");
   const showHero = mode === "welcome";
+  const sounds = useUiSounds();
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [mode]);
 
   return (
-    <main id="top" className={showHero ? "welcome-mode" : `app-mode ${mode}-mode`}>
+    <main
+      id="top"
+      className={showHero ? "welcome-mode" : `app-mode ${mode}-mode`}
+      onClickCapture={(event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+        const button = target.closest("button");
+        if (button && !button.disabled && !button.closest('[data-ui-sound="off"]')) sounds.play("tap");
+      }}
+    >
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Spanish Coach home">
           <span className="brand-mark" aria-hidden="true">¡</span>
@@ -22,6 +33,17 @@ export function CoachShell() {
         </a>
         <div className="header-actions">
           <PwaInstallButton />
+          <button
+            className="sound-toggle"
+            data-ui-sound="off"
+            type="button"
+            aria-label={sounds.enabled ? "Turn interface sounds off" : "Turn interface sounds on"}
+            aria-pressed={sounds.enabled}
+            title={sounds.enabled ? "Interface sounds on" : "Interface sounds off"}
+            onClick={sounds.toggle}
+          >
+            <span aria-hidden="true">♪</span>
+          </button>
           <div className="level-chip" aria-label="Spanish level A1, English support B1">
             <span>ES</span> A1 <i /> <span>EN</span> B1
           </div>
