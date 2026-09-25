@@ -8,11 +8,13 @@ The live desktop and `390×844` mobile audit covered onboarding, diagnostic, Tod
 
 ## Phase 1 — Put Today's action first (high priority)
 
-- [ ] Place `Build today's lesson` immediately after the next-topic card, before adaptation reasons.
-- [ ] Move `Why this is useful today` into optional details or below the primary action.
-- [ ] Keep duration change secondary and keep Today/Review/Progress navigation clear.
+- [x] Place `Build today's lesson` immediately after the next-topic card, before adaptation reasons.
+- [x] Move `Why this is useful today` into optional details or below the primary action.
+- [x] Keep duration change secondary and keep Today/Review/Progress navigation clear.
 
 Acceptance: at `390×844`, a new and a returning learner can see the topic and primary action in the first viewport; there is one dominant CTA and no horizontal overflow.
+
+Verification: mobile and desktop full-loop E2E, including first-viewport action and optional-detail checks; lint and production build passed locally.
 
 ## Phase 2 — Make speaking recoverable (high priority)
 

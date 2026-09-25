@@ -466,21 +466,6 @@ export function PlannedLessonExperience({
               </dl>
             </section>
 
-            {overview && (
-              <section className="today-reasons" aria-labelledby="today-reasons-title">
-                <h3 id="today-reasons-title">Why this is useful today</h3>
-                <ul>
-                  <li>Continue with {nextLessonTitle} from your current A1 path.</li>
-                  <li>
-                    {dueReviewCount > 0
-                      ? `Include ${dueReviewCount} due review${dueReviewCount === 1 ? "" : "s"} before they fade.`
-                      : "Keep review light because nothing is due right now."}
-                  </li>
-                  <li>Practise listening and speaking in the same short session.</li>
-                </ul>
-              </section>
-            )}
-
             <div className="today-actions">
               <button className="primary-button" disabled={creating || !overview} onClick={createPlan}>
                 {creating ? "Building today’s lesson…" : "Build today’s lesson"}
@@ -509,6 +494,21 @@ export function PlannedLessonExperience({
                   </button>
                 ))}
               </div>
+            )}
+
+            {overview && (
+              <details className="today-reasons">
+                <summary>Why this is useful today</summary>
+                <ul>
+                  <li>Continue with {nextLessonTitle} from your current A1 path.</li>
+                  <li>
+                    {dueReviewCount > 0
+                      ? `Include ${dueReviewCount} due review${dueReviewCount === 1 ? "" : "s"} before they fade.`
+                      : "Keep review light because nothing is due right now."}
+                  </li>
+                  <li>Practise listening and speaking in the same short session.</li>
+                </ul>
+              </details>
             )}
           </div>
         )}

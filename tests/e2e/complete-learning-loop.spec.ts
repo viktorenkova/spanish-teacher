@@ -259,6 +259,15 @@ test("mobile learner finishes for today, reviews phrases, and keeps saved progre
     learnerId = await page.evaluate(() => localStorage.getItem("spanish-coach:learner-id:v1") ?? undefined);
     if (!learnerId) throw new Error("Onboarding did not persist a learner ID.");
     await auditScreen("dashboard");
+    await assertFirstViewportAction("Build today’s lesson");
+    const todayActionBottom = await page.getByRole("button", { name: "Build today’s lesson" })
+      .evaluate((button) => button.getBoundingClientRect().bottom);
+    expect(todayActionBottom).toBeLessThanOrEqual(844 - 24);
+    await expect(page.getByText("Why this is useful today")).toBeVisible();
+    await expect(page.getByText("Practise listening and speaking in the same short session.")).toBeHidden();
+    await page.locator("details.today-reasons > summary").click();
+    await expect(page.getByText("Practise listening and speaking in the same short session.")).toBeVisible();
+    await page.locator("details.today-reasons > summary").click();
     await page.getByRole("button", { name: "Build today’s lesson" }).click();
     await expect(page.getByRole("heading", { name: "Ready for “Meet someone new”?" })).toBeVisible();
     await auditScreen("plan");
@@ -304,6 +313,7 @@ test("mobile learner finishes for today, reviews phrases, and keeps saved progre
     await practice.getByRole("button", { name: "Return to Today" }).click();
     await expect(page.getByRole("tab", { name: "Today" })).toBeFocused();
     await expect(page.getByRole("button", { name: "Build today’s lesson" })).toBeVisible();
+    await assertFirstViewportAction("Build today’s lesson");
     await expect(browserErrors).toEqual([]);
     expect(undersizedTargets).toEqual([]);
   } finally {
