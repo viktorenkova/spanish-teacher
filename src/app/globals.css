@@ -554,11 +554,20 @@ h1 { max-width: 700px; font-size: clamp(2.7rem, 6vw, 4.75rem); line-height: 1; m
 @media (max-width: 760px) {
   main { width: min(100% - 24px, 1120px); }
   .site-header { min-height: 74px; }
+  .welcome-mode .site-header { min-height: 64px; }
   .header-actions { gap: 7px; }
   .install-app-button { min-height: 44px; padding-inline: 11px; }
   .app-mode .site-header { min-height: 64px; }
   .app-mode > .lesson-card { margin-top: 18px; }
   .hero { grid-template-columns: 1fr; padding: 48px 0 30px; gap: 24px; }
+  .welcome-mode .hero { padding: 18px 0 12px; }
+  .welcome-mode h1 { font-size: clamp(2rem, 9vw, 2.5rem); line-height: 1.05; margin: 8px 0 10px; }
+  .welcome-mode .hero-copy > p { font-size: .9rem; line-height: 1.45; margin: 0; }
+  .welcome-mode .lesson-meta { display: none; }
+  .welcome-mode .onboarding-card { padding: 20px; }
+  .welcome-mode .onboarding-card h2 { margin: 6px 0 8px; }
+  .welcome-mode .onboarding-card .support-copy { margin: 0; font-size: .85rem; line-height: 1.45; }
+  .welcome-mode .profile-form { gap: 14px; margin-top: 18px; }
   .coach-note { display: none; }
   .lesson-card { border-radius: 20px; }
   .summary-grid { grid-template-columns: 1fr; }

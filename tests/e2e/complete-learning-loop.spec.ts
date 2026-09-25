@@ -200,6 +200,9 @@ test("mobile learner finishes for today, reviews phrases, and keeps saved progre
     await expect(page.getByRole("heading", { level: 1, name: "Learn Spanish that feels good to use." })).toBeVisible();
     await auditScreen("welcome");
     await assertFirstViewportAction("Continue to a short check");
+    const firstActionBottom = await page.getByRole("button", { name: "Continue to a short check" })
+      .evaluate((button) => button.getBoundingClientRect().bottom);
+    expect(firstActionBottom).toBeLessThanOrEqual(844 - 48);
     await page.locator(".onboarding-preferences > summary").click();
     await expect(page.getByLabel("Your main goal")).toBeVisible();
     await page.locator(".onboarding-preferences > summary").click();
