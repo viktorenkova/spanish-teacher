@@ -638,7 +638,7 @@ export function PlannedLessonExperience({
         <p className="provider-note">
           {plan.reviewExercises.length > 0
             ? `${plan.reviewExercises.length} personalised review${plan.reviewExercises.length === 1 ? " is" : "s are"} ready before the core listening and speaking practice.`
-            : "Core listening and speaking are ready. Extended provider-pending blocks are shown but not scored yet."}
+            : "Core listening and speaking are ready. Longer practice ideas are not active exercises yet."}
         </p>
       </details>
       <div className="plan-secondary-actions">

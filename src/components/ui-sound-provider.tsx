@@ -56,16 +56,16 @@ export function UiSoundProvider({ children }: { children: React.ReactNode }) {
       contextRef.current = audio;
       if (audio.state === "suspended") void audio.resume().catch(() => {});
       const now = audio.currentTime;
-      const notes = cue === "correct" ? [523, 659] : cue === "retry" ? [392, 349] : [520];
+      const notes = cue === "correct" ? [523, 659, 784] : cue === "retry" ? [330, 294] : [520];
       notes.forEach((frequency, index) => {
-        const start = now + index * (cue === "tap" ? 0 : 0.09);
-        const duration = cue === "tap" ? 0.045 : 0.13;
+        const start = now + index * (cue === "correct" ? 0.085 : cue === "retry" ? 0.15 : 0);
+        const duration = cue === "tap" ? 0.045 : cue === "correct" ? 0.16 : 0.19;
         const oscillator = audio.createOscillator();
         const volume = audio.createGain();
-        oscillator.type = "sine";
+        oscillator.type = cue === "correct" ? "triangle" : "sine";
         oscillator.frequency.value = frequency;
         volume.gain.setValueAtTime(0.0001, start);
-        volume.gain.exponentialRampToValueAtTime(cue === "tap" ? 0.025 : 0.045, start + 0.012);
+        volume.gain.exponentialRampToValueAtTime(cue === "tap" ? 0.025 : cue === "correct" ? 0.09 : 0.075, start + 0.012);
         volume.gain.exponentialRampToValueAtTime(0.0001, start + duration);
         oscillator.connect(volume);
         volume.connect(audio.destination);

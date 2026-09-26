@@ -44,12 +44,16 @@ Acceptance: an A1 learner can attempt the café tasks without already knowing la
 - [ ] Make success and retry cues acoustically distinct and audible relative to the rest of the interface; keep the retry cue calm and non-punitive.
 - [ ] Test on mobile and desktop browsers, with the saved sound setting on/off and while Spanish playback or microphone recording is active.
 
+Sound implementation now uses a brighter three-note success cue and a slower, lower two-note retry cue at moderate gain. Browser/device loudness still needs perceptual validation; saved-setting and busy-audio behavior remains in place.
+
 Acceptance: users can reliably distinguish success from retry by sound at a normal device volume; visible feedback remains sufficient when muted or sound is unavailable.
 
 ### P2 — Technical text leaks into lesson-completion cards
 
 - [ ] Identify the reported internal weight/score commentary and other developer-facing parameters across completion and summary screens.
 - [ ] Replace them with learner-facing results, progress, mistakes, and useful language, or remove them where they add no learning value.
+
+Removed teacher provider/version identifiers, TTS engine/cache details, and provider-pending wording from learner-facing lesson UI. Exact manually reported weight/score string has not been reproduced and remains to be located if it reappears.
 
 Acceptance: no internal weights, service labels, raw scoring fields, or other technical diagnostics appear on learner-facing completion screens. First reproduce and identify the exact strings before changing them.
 

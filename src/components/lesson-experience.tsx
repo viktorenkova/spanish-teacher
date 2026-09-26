@@ -66,7 +66,7 @@ function TeacherFeedbackCard({ feedback }: { feedback: TeacherFeedback }) {
       <div className="teacher-feedback-heading">
         <span className="coach-mark">C</span>
         <div>
-          <small>{feedback.generationMode === "deterministic" ? "Local teacher" : "AI teacher"}</small>
+          <small>Your coach</small>
           <h3 id="teacher-feedback-title">{feedback.summary}</h3>
         </div>
       </div>
@@ -82,9 +82,7 @@ function TeacherFeedbackCard({ feedback }: { feedback: TeacherFeedback }) {
         </ul>
       )}
       <p className="teacher-next-step"><strong>Next:</strong> {feedback.nextStep}</p>
-      <small className="teacher-provider">
-        {feedback.providerId} · {feedback.providerVersion} · pronunciation not assessed
-      </small>
+      <small className="teacher-provider">This checks the words you used, not your pronunciation.</small>
     </aside>
   );
 }
@@ -339,14 +337,13 @@ export function LessonExperience({
             audio.onerror = () => reject(new Error("The Spanish audio could not be played."));
             void audio.play().catch(reject);
           });
-          const cacheStatus = response.headers.get("X-TTS-Cache") ?? "unknown";
-          setAudioStatus(`Played with local Piper audio · cache ${cacheStatus}.`);
+          setAudioStatus("Spanish audio played.");
         } finally {
           URL.revokeObjectURL(objectUrl);
         }
       } else {
-        const result = await speakWithBrowser(clip);
-        setAudioStatus(`Played with the browser’s Spanish voice: ${result.voiceId}.`);
+        await speakWithBrowser(clip);
+        setAudioStatus("Spanish audio played.");
       }
     } catch (error) {
       setAudioStatus(error instanceof Error ? error.message : "Spanish audio is unavailable.");
