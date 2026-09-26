@@ -80,7 +80,7 @@ test("completes a lesson with listening and speaking, then adapts the next topic
     await page.getByRole("radio", { name: "See you tomorrow" }).click();
     await page.getByRole("button", { name: "Check answer" }).click();
     const retryFeedback = page.locator("p.feedback.retry");
-    await expect(retryFeedback).toContainText("Not quite", { timeout: 15_000 });
+    await expect(retryFeedback).toContainText("Try again.", { timeout: 15_000 });
     expect(await page.evaluate(() => (window as typeof window & { __cueFrequencies?: number[] }).__cueFrequencies))
       .toEqual(expect.arrayContaining([330, 294]));
     await page.waitForTimeout(1_300);

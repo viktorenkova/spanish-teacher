@@ -141,6 +141,7 @@ export function LessonExperience({
   const [teacherFeedback, setTeacherFeedback] = useState<TeacherFeedback>();
   const [mistakeMemory, setMistakeMemory] = useState<MistakeMemory>();
   const speechProvider = useRef(new BrowserSpeechToTextProvider());
+  const feedbackRef = useRef<HTMLParagraphElement>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [confirmingEnd, setConfirmingEnd] = useState(false);
   const [endingLesson, setEndingLesson] = useState(false);
@@ -243,6 +244,12 @@ export function LessonExperience({
     && exercises.every((item) => pendingProgress.completedExerciseIds.includes(item.id)),
   );
   const exerciseCoaching = exercise ? getExerciseCoaching(exercise) : undefined;
+
+  useEffect(() => {
+    if (!feedback) return;
+    feedbackRef.current?.focus({ preventScroll: true });
+    feedbackRef.current?.scrollIntoView({ block: "nearest" });
+  }, [feedback]);
 
   useEffect(() => {
     if (!progress) return;
@@ -743,10 +750,12 @@ export function LessonExperience({
 
       {feedback && (
         <p
+          ref={feedbackRef}
+          tabIndex={-1}
           className={`feedback ${feedback.correct ? "correct" : "retry"}`}
           role={feedback.correct ? "status" : "alert"}
         >
-          {feedback.message}
+          {exercise.speakingTask ? feedback.message : feedback.correct ? "Correct." : "Try again."}
         </p>
       )}
       {feedback && exerciseCoaching && (
@@ -754,24 +763,12 @@ export function LessonExperience({
           {feedback.correct ? (
             <>
               <small>Use it again</small>
-              <h3>Move the phrase to a new situation</h3>
               <p>{exerciseCoaching.transferPrompt}</p>
-              <div className="coaching-target">
-                <span>Useful Spanish</span>
-                <strong lang="es">{exerciseCoaching.targetPhrase}</strong>
-              </div>
             </>
           ) : (
             <>
               <small>Coach hint</small>
-              <h3>Notice this before you try again</h3>
               <p>{exerciseCoaching.notice}</p>
-              <div className="coaching-target">
-                <span>Target phrase</span>
-                <strong lang="es">{exerciseCoaching.targetPhrase}</strong>
-              </div>
-              <p className="coaching-explanation">{exerciseCoaching.explanation}</p>
-              <strong className="coaching-action">Choose again and check the meaning.</strong>
             </>
           )}
         </aside>

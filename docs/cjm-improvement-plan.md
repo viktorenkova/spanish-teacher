@@ -83,6 +83,8 @@ Acceptance: a learner can finish the lesson without browser speech recognition, 
 - [ ] Lead with one actionable hint on a wrong answer and one concise transfer prompt on a correct answer.
 - [ ] Bring feedback into view and maintain sensible keyboard and screen-reader focus without surprising auto-advance.
 
+Exercise feedback now shows one short result plus either one coach hint or one transfer prompt. The result receives focus and scrolls into view after checking; advancing still requires the learner's action. Mobile/browser focus behavior needs E2E confirmation.
+
 Acceptance: after checking an answer on mobile, the learner can immediately see what happened, what to do next, and the relevant action; text remains accessible without sound.
 
 ## Phase 4 — Calm the phrase self-check (medium priority)
