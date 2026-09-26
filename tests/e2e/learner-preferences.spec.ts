@@ -38,7 +38,7 @@ test("persists learning preferences and uses the default lesson duration", async
     });
 
     await page.reload();
-    await page.getByRole("button", { name: "Change duration · 20 min" }).click();
+    await page.getByRole("button", { name: "Change practice window · up to 20 min" }).click();
     const defaultDuration = page.getByRole("button", { name: "20 min", exact: true });
     await expect(defaultDuration).toHaveAttribute("aria-pressed", "true");
     await page.getByRole("button", { name: "Build today’s lesson" }).click();

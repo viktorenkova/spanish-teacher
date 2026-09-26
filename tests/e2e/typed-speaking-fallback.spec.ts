@@ -27,6 +27,7 @@ test("a mobile learner can finish with a typed answer without receiving speaking
     await expect(page.getByRole("status")).toContainText("Speaking was not checked");
     await page.getByRole("button", { name: "View lesson summary" }).click();
     await expect(page.getByText(/speaking is still to practise/)).toBeVisible();
+    await page.getByRole("button", { name: "Finish for today" }).click();
     await page.getByRole("tab", { name: "Progress" }).click();
     await expect(page.locator(".lesson-history-entry").getByText("Not yet")).toBeVisible();
   } finally {
