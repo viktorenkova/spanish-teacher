@@ -99,11 +99,13 @@ Acceptance: at `390×844`, the learner can reveal a phrase and find both self-ch
 
 ## Phase 5 — Preserve an interrupted diagnostic (lower priority)
 
-- [ ] Save only the temporary profile name, preferences, and diagnostic selections locally until account creation.
-- [ ] Restore them after reload, and clear the draft after successful creation or an explicit reset.
-- [ ] Do not mistake a local draft for a created learner or transmit it before submission.
+- [x] Save only the temporary profile name, preferences, and diagnostic selections locally until account creation.
+- [x] Restore them after reload, and clear the draft after successful creation or an explicit reset.
+- [x] Do not mistake a local draft for a created learner or transmit it before submission.
 
 Acceptance: refreshing during diagnostic restores the draft and selected answers without creating duplicate profiles.
+
+Verified by a local Chromium E2E reload/reset run without submitting or creating a learner. A successful-submission cleanup assertion still needs the database-backed E2E environment.
 
 ## Verification
 

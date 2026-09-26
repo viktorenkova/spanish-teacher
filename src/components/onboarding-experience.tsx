@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState, useSyncExternalStore } from "react";
+import { FormEvent, useEffect, useState, useSyncExternalStore } from "react";
 import { diagnosticQuestions } from "@/domain/diagnostic";
 import type { LocalLearnerProfile } from "@/browser/local-learner-profiles";
 import {
@@ -9,6 +9,14 @@ import {
   type LearnerPrimaryGoal,
 } from "@/domain/learner-profile";
 import { supportedSessionDurations } from "@/domain/lesson-planner";
+import {
+  clearOnboardingDraft,
+  getOnboardingDraftSnapshot,
+  parseOnboardingDraft,
+  saveOnboardingDraft,
+  subscribeToOnboardingDraft,
+  type OnboardingDraft,
+} from "@/browser/onboarding-draft";
 
 type OnboardingExperienceProps = {
   notice?: string;
@@ -35,14 +43,23 @@ export function OnboardingExperience({ notice, onCancel, onComplete, onStepChang
     getHydratedSnapshot,
     getServerSnapshot,
   );
-  const [step, setStep] = useState<"profile" | "diagnostic">("profile");
-  const [displayName, setDisplayName] = useState("");
-  const [primaryGoal, setPrimaryGoal] = useState<LearnerPrimaryGoal>("conversation");
-  const [priorExperience, setPriorExperience] = useState("some-basics");
-  const [preferredSessionMinutes, setPreferredSessionMinutes] = useState(10);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const draftSnapshot = useSyncExternalStore(
+    subscribeToOnboardingDraft,
+    getOnboardingDraftSnapshot,
+    () => null,
+  );
+  const draft = parseOnboardingDraft(draftSnapshot);
+  const { step, displayName, primaryGoal, priorExperience, preferredSessionMinutes, answers } = draft;
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string>();
+
+  function updateDraft(changes: Partial<OnboardingDraft>) {
+    saveOnboardingDraft({ ...draft, ...changes });
+  }
+
+  useEffect(() => {
+    if (hydrated) onStepChange?.(step);
+  }, [hydrated, onStepChange, step]);
 
   async function submitDiagnostic(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -72,6 +89,7 @@ export function OnboardingExperience({ notice, onCancel, onComplete, onStepChang
       if (!response.ok || !payload.learner) {
         throw new Error(payload.error ?? "The profile could not be saved.");
       }
+      clearOnboardingDraft();
       onComplete({
         learnerId: payload.learner.id,
         displayName: payload.learner.displayName,
@@ -104,7 +122,7 @@ export function OnboardingExperience({ notice, onCancel, onComplete, onStepChang
           onSubmit={(event) => {
             event.preventDefault();
             if (displayName.trim()) {
-              setStep("diagnostic");
+              updateDraft({ step: "diagnostic" });
               onStepChange?.("diagnostic");
             }
           }}
@@ -116,7 +134,7 @@ export function OnboardingExperience({ notice, onCancel, onComplete, onStepChang
               disabled={!hydrated}
               maxLength={80}
               value={displayName}
-              onChange={(event) => setDisplayName(event.target.value)}
+              onChange={(event) => updateDraft({ displayName: event.target.value })}
               placeholder="Your name"
             />
           </label>
@@ -129,7 +147,7 @@ export function OnboardingExperience({ notice, onCancel, onComplete, onStepChang
                 <select
                   disabled={!hydrated}
                   value={primaryGoal}
-                  onChange={(event) => setPrimaryGoal(event.target.value as LearnerPrimaryGoal)}
+                  onChange={(event) => updateDraft({ primaryGoal: event.target.value as LearnerPrimaryGoal })}
                 >
                   {learnerPrimaryGoals.map((goal) => (
                     <option key={goal} value={goal}>{learnerPrimaryGoalLabels[goal]}</option>
@@ -138,7 +156,7 @@ export function OnboardingExperience({ notice, onCancel, onComplete, onStepChang
               </label>
               <label>
                 Previous Spanish experience
-                <select disabled={!hydrated} value={priorExperience} onChange={(event) => setPriorExperience(event.target.value)}>
+                <select disabled={!hydrated} value={priorExperience} onChange={(event) => updateDraft({ priorExperience: event.target.value as OnboardingDraft["priorExperience"] })}>
                   <option value="new">Almost completely new</option>
                   <option value="some-basics">I know some basic Spanish</option>
                   <option value="returning">I am returning after a break</option>
@@ -154,7 +172,7 @@ export function OnboardingExperience({ notice, onCancel, onComplete, onStepChang
                         name="duration"
                         disabled={!hydrated}
                         checked={preferredSessionMinutes === minutes}
-                        onChange={() => setPreferredSessionMinutes(minutes)}
+                        onChange={() => updateDraft({ preferredSessionMinutes: minutes })}
                       />
                       {minutes} min
                     </label>
@@ -163,6 +181,7 @@ export function OnboardingExperience({ notice, onCancel, onComplete, onStepChang
               </fieldset>
             </div>
           </details>
+          <button className="text-button" type="button" onClick={clearOnboardingDraft}>Start over</button>
         </form>
       </section>
     );
@@ -186,7 +205,7 @@ export function OnboardingExperience({ notice, onCancel, onComplete, onStepChang
                     type="radio"
                     name={question.id}
                     checked={answers[question.id] === option.id}
-                    onChange={() => setAnswers((current) => ({ ...current, [question.id]: option.id }))}
+                    onChange={() => updateDraft({ answers: { ...answers, [question.id]: option.id } })}
                   />
                   {option.label}
                 </label>
@@ -200,7 +219,7 @@ export function OnboardingExperience({ notice, onCancel, onComplete, onStepChang
             className="text-button"
             type="button"
             onClick={() => {
-              setStep("profile");
+              updateDraft({ step: "profile" });
               onStepChange?.("profile");
             }}
           >
@@ -209,6 +228,10 @@ export function OnboardingExperience({ notice, onCancel, onComplete, onStepChang
           <button className="primary-button" type="submit" disabled={submitting}>
             {submitting ? "Saving your profile…" : "Create my learning plan"}
           </button>
+          <button className="text-button" type="button" onClick={() => {
+            clearOnboardingDraft();
+            onStepChange?.("profile");
+          }}>Start over</button>
         </div>
       </form>
     </section>
