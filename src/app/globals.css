@@ -369,6 +369,10 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .phrasebook-recall-answer select { min-height: 36px; margin: 0 0 8px; padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(24, 72, 56, .18); background: var(--paper); color: var(--ink); }
 .phrasebook-recall-answer > strong { font-size: 1.2rem; }
 .phrasebook-recall-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.phrasebook-recall-actions .secondary-button { min-height: 44px; }
+.phrasebook-extra-practice { border-top: 1px solid rgba(24, 72, 56, .18); padding-top: 8px; }
+.phrasebook-extra-practice > summary { cursor: pointer; min-height: 44px; padding: 10px 0; font-weight: 700; }
+.phrasebook-extra-practice[open] { display: grid; gap: 10px; }
 .phrasebook-recall button, .phrasebook-recall-start { min-height: 44px; white-space: normal; }
 .phrasebook-recall :focus-visible { outline: 3px solid var(--coral); outline-offset: 3px; }
 .phrasebook ul { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }

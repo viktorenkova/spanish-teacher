@@ -93,6 +93,8 @@ Acceptance: after checking an answer on mobile, the learner can immediately see 
 - [ ] Make extra listening and speaking practice optional, without hiding their availability.
 - [ ] Retain the one-phrase-at-a-time flow and clear `Return to Today` result.
 
+The revealed phrase now puts both self-check choices immediately under the answer. Listening and microphone rehearsal are available in an optional disclosure below. Existing keyboard-focus behavior is retained; mobile viewport validation remains to run.
+
 Acceptance: at `390×844`, the learner can reveal a phrase and find both self-check choices without scrolling through secondary instructions or media controls.
 
 ## Phase 5 — Preserve an interrupted diagnostic (lower priority)

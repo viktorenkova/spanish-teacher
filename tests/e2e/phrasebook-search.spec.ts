@@ -167,6 +167,7 @@ for (const width of [1280, 375]) {
     const practice = page.locator(".phrasebook-recall");
     await expect(practice.getByRole("button", { name: "Listen to the answer" })).toHaveCount(0);
     await practice.getByRole("button", { name: "Reveal Spanish" }).click();
+    await practice.getByText("Optional listening and speaking practice").click();
     await practice.getByRole("button", { name: "Listen to the answer" }).click();
     await expect(page.locator("html")).toHaveAttribute("data-spoken-text", "Un café, por favor.");
     await practice.getByRole("button", { name: "Stop audio" }).click();
@@ -190,6 +191,7 @@ for (const width of [1280, 375]) {
     await practice.getByRole("button", { name: "I remembered it" }).click();
     await expect(page.locator("html")).toHaveAttribute("data-speaking", "false");
     await practice.getByRole("button", { name: "Reveal Spanish" }).click();
+    await practice.getByText("Optional listening and speaking practice").click();
     await practice.getByRole("button", { name: "Listen to the answer" }).click();
     await practice.getByRole("button", { name: "Back to Review" }).click();
     await expect(page.locator("html")).toHaveAttribute("data-speaking", "false");
@@ -198,6 +200,7 @@ for (const width of [1280, 375]) {
     });
     await page.getByRole("button", { name: "Practise from memory" }).click();
     await practice.getByRole("button", { name: "Reveal Spanish" }).click();
+    await practice.getByText("Optional listening and speaking practice").click();
     await practice.getByRole("button", { name: "Listen to the answer" }).click();
     await expect(practice.getByRole("alert")).toContainText("No Spanish voice");
     await practice.getByRole("button", { name: "I needed help" }).click();

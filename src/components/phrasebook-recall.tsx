@@ -113,6 +113,12 @@ export function PhrasebookRecall({ items, closeLabel = "Back to phrasebook", onC
             <>
               <div className="phrasebook-recall-answer" ref={answer} tabIndex={-1}>
                 <strong lang="es">{phrase.targetText}</strong>
+                <div className="phrasebook-recall-actions">
+                  <button type="button" className="secondary-button" disabled={recording} onClick={() => next(true)}>I remembered it</button>
+                  <button type="button" className="secondary-button" disabled={recording} onClick={() => next(false)}>I needed help</button>
+                </div>
+                <details className="phrasebook-extra-practice">
+                  <summary>Optional listening and speaking practice</summary>
                 <PhraseAudioButton
                   key={phrase.id}
                   text={repairText || phrase.targetText}
@@ -160,10 +166,7 @@ export function PhrasebookRecall({ items, closeLabel = "Back to phrasebook", onC
                 {speechError && <p className="phrasebook-audio-error" role="alert">{speechError}</p>}
                 <p>Listen, then say the phrase again.</p>
                 <p>Compare your words. Another Spanish answer may also be correct. For a phrase with …, add your own details.</p>
-              </div>
-              <div className="phrasebook-recall-actions">
-                <button type="button" className="secondary-button" disabled={recording} onClick={() => next(true)}>I remembered it</button>
-                <button type="button" className="secondary-button" disabled={recording} onClick={() => next(false)}>I needed help</button>
+                </details>
               </div>
             </>
           )}
