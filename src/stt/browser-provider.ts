@@ -61,13 +61,7 @@ export class BrowserSpeechToTextProvider implements SpeechToTextProvider {
     if (!Constructor) throw new Error("Speech recognition is not supported in this browser.");
     if (this.recognition) throw new Error("The microphone is already listening.");
 
-    const recognition = new Constructor();
-    this.recognition = recognition;
     this.stopRequested = false;
-    recognition.lang = request.locale;
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
 
     return new Promise<SttTranscript>((resolve, reject) => {
       let settled = false;
@@ -86,15 +80,15 @@ export class BrowserSpeechToTextProvider implements SpeechToTextProvider {
         callback();
       };
 
-      const appendCurrentRun = () => {
-        const currentText = (currentFinalText || currentInterimText).trim();
+      const appendCurrentRun = (includeInterim: boolean) => {
+        const currentText = (currentFinalText || (includeInterim ? currentInterimText : "")).trim();
         if (currentText) completedText = `${completedText} ${currentText}`.trim();
         currentFinalText = "";
         currentInterimText = "";
       };
 
       const resolveTranscript = () => {
-        appendCurrentRun();
+        appendCurrentRun(true);
         if (!completedText) {
           finish(() => reject(new Error("No transcript was produced. Speak before stopping the microphone.")));
           return;
@@ -102,19 +96,8 @@ export class BrowserSpeechToTextProvider implements SpeechToTextProvider {
         finish(() => resolve({ text: completedText, providerId: this.id, confidence }));
       };
 
-      const restartAfterBrowserPause = () => {
-        window.setTimeout(() => {
-          if (settled || this.stopRequested) return;
-          try {
-            recognition.start();
-          } catch (error) {
-            finish(() => reject(error));
-          }
-        }, 100);
-      };
-
       const timeout = window.setTimeout(() => {
-        recognition.abort();
+        this.recognition?.abort();
         finish(() => reject(new Error("Recording reached its time limit. Start again and stop the microphone when you finish.")));
       }, request.maxDurationMs);
 
@@ -122,7 +105,7 @@ export class BrowserSpeechToTextProvider implements SpeechToTextProvider {
         finish(() => reject(new Error("The microphone recording was cancelled.")));
       this.completeActive = resolveTranscript;
 
-      recognition.onresult = (event) => {
+      const onResult = (event: SpeechRecognitionEventLike) => {
         const results = resultsFrom(event);
         currentFinalText = results
           .filter((result) => result?.isFinal)
@@ -145,32 +128,56 @@ export class BrowserSpeechToTextProvider implements SpeechToTextProvider {
           confidence = finalAlternative.confidence;
         }
       };
-      recognition.onerror = (event) => {
+      const onError = (event: SpeechRecognitionErrorLike) => {
         if (event.error === "no-speech" && !this.stopRequested) return;
         finish(() => reject(new Error(browserErrorMessage(event.error))));
       };
-      recognition.onnomatch = () => undefined;
-      recognition.onend = () => {
+      const onEnd = () => {
         if (settled) return;
         if (this.stopRequested) {
           resolveTranscript();
           return;
         }
-        appendCurrentRun();
-        restartAfterBrowserPause();
+        this.recognition = undefined;
+        // Interim hypotheses are not committed across recognition sessions: the
+        // next session may return the same words as a final result.
+        appendCurrentRun(false);
+        window.setTimeout(() => {
+          if (!settled && !this.stopRequested) startRecognition();
+        }, 100);
       };
 
-      try {
-        recognition.start();
-      } catch (error) {
-        finish(() => reject(error));
-      }
+      const startRecognition = () => {
+        try {
+          // A new instance prevents a browser from replaying the previous
+          // session's cumulative result list after an automatic pause.
+          const recognition = new Constructor();
+          this.recognition = recognition;
+          recognition.lang = request.locale;
+          recognition.continuous = true;
+          recognition.interimResults = true;
+          recognition.maxAlternatives = 1;
+          recognition.onresult = onResult;
+          recognition.onerror = onError;
+          recognition.onnomatch = () => undefined;
+          recognition.onend = onEnd;
+          recognition.start();
+        } catch (error) {
+          finish(() => reject(error));
+        }
+      };
+
+      startRecognition();
     });
   }
 
   stop() {
-    if (!this.recognition) return;
+    if (!this.completeActive) return;
     this.stopRequested = true;
+    if (!this.recognition) {
+      this.completeActive();
+      return;
+    }
     try {
       this.recognition.stop();
     } catch {

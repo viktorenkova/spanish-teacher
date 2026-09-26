@@ -14,6 +14,7 @@ The following are **learner-reported observations, not yet independently reprodu
 
 - [ ] Reproduce the reported case: saying `Me levanto.` once can yield a transcript resembling `Me me me me levanto levanto levanto...` and an incorrect result.
 - [ ] Locate the first point where duplication appears: microphone/capture → browser STT events → raw transcript → normalization → answer comparison → saved assessment. Do not hide an upstream STT defect by only relaxing comparison rules.
+- [x] Fix the reproducible browser-pause artifact: do not append an interim hypothesis before a later final result, and use a fresh recognition instance after an automatic pause. Unit tests cover `Me levanto.` across the pause and cumulative interim/final events. The learner-reported device/browser case is still unverified.
 - [ ] Check short and long phrases, normal and slow speech, similar/repeated Spanish sounds, pauses, and mobile browsers.
 - [ ] Prevent false negative scoring from recognition artifacts while preserving the distinction between task completion and pronunciation assessment.
 
