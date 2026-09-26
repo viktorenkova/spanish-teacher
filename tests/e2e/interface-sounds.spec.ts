@@ -41,6 +41,8 @@ test("interface sounds can be turned off and stay off after reload", async ({ pa
   await expect(page.getByRole("button", { name: "Turn interface sounds on" })).toHaveAttribute("aria-pressed", "false");
   await page.reload();
   await expect(page.getByRole("button", { name: "Turn interface sounds on" })).toHaveAttribute("aria-pressed", "false");
+  await expect(page.getByRole("heading", { name: "Show what is already familiar." })).toBeVisible();
+  await page.getByRole("button", { name: "Back", exact: true }).click();
   await page.getByLabel("What should the coach call you?").fill("Sound learner");
   await page.getByRole("button", { name: "Continue to a short check" }).click();
   expect(await page.evaluate(() => (window as typeof window & { __cueStarts?: number }).__cueStarts)).toBe(0);

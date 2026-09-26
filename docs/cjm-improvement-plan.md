@@ -69,9 +69,9 @@ Verification: mobile and desktop full-loop E2E, including first-viewport action 
 
 ## Phase 2 — Make speaking recoverable (high priority)
 
-- [ ] Define an accessible fallback when microphone permission is denied, speech recognition is unsupported, or transcription fails.
-- [ ] Keep the speaking task in every lesson; do not equate typed text with spoken evidence or claim pronunciation scoring.
-- [ ] Preserve progress and explain what the fallback does and does not assess.
+- [x] Define an accessible fallback when microphone permission is denied, speech recognition is unsupported, or transcription fails.
+- [x] Keep the speaking task in every lesson; do not equate typed text with spoken evidence or claim pronunciation scoring.
+- [x] Preserve progress and explain what the fallback does and does not assess.
 
 Decision approved: a typed Spanish answer may complete the lesson but never earns speaking credit. Implemented as a clearly labelled fallback available from the speaking step. Saved attempts use `typed-fallback` evidence; speaking indicators in progress and lesson history exclude it, while answer content can still be checked. Unit tests pass; the new mobile E2E regression awaits a local database to run.
 
@@ -79,9 +79,9 @@ Acceptance: a learner can finish the lesson without browser speech recognition, 
 
 ## Phase 3 — Shorten exercise feedback (medium priority)
 
-- [ ] Remove repeated wording between the status message and coaching card.
-- [ ] Lead with one actionable hint on a wrong answer and one concise transfer prompt on a correct answer.
-- [ ] Bring feedback into view and maintain sensible keyboard and screen-reader focus without surprising auto-advance.
+- [x] Remove repeated wording between the status message and coaching card.
+- [x] Lead with one actionable hint on a wrong answer and one concise transfer prompt on a correct answer.
+- [x] Bring feedback into view and maintain sensible keyboard and screen-reader focus without surprising auto-advance.
 
 Exercise feedback now shows one short result plus either one coach hint or one transfer prompt. The result receives focus and scrolls into view after checking; advancing still requires the learner's action. Mobile/browser focus behavior needs E2E confirmation.
 
@@ -89,9 +89,9 @@ Acceptance: after checking an answer on mobile, the learner can immediately see 
 
 ## Phase 4 — Calm the phrase self-check (medium priority)
 
-- [ ] Keep the phrase and `I remembered it` / `I needed help` near the top after reveal.
-- [ ] Make extra listening and speaking practice optional, without hiding their availability.
-- [ ] Retain the one-phrase-at-a-time flow and clear `Return to Today` result.
+- [x] Keep the phrase and `I remembered it` / `I needed help` near the top after reveal.
+- [x] Make extra listening and speaking practice optional, without hiding their availability.
+- [x] Retain the one-phrase-at-a-time flow and clear `Return to Today` result.
 
 The revealed phrase now puts both self-check choices immediately under the answer. Listening and microphone rehearsal are available in an optional disclosure below. Existing keyboard-focus behavior is retained; mobile viewport validation remains to run.
 
@@ -108,6 +108,8 @@ Acceptance: refreshing during diagnostic restores the draft and selected answers
 Verified by a local Chromium E2E reload/reset run without submitting or creating a learner. A successful-submission cleanup assertion still needs the database-backed E2E environment.
 
 ## Verification
+
+Local verification: 94 unit tests, ESLint, and production build pass. Chromium E2E passes for diagnostic draft restore/reset and the saved sound setting. The database-backed E2E suite and live microphone/device checks are not verified because local PostgreSQL is unavailable and the live microphone path was not authorised in the audit. A new typed-fallback E2E is in the suite for that environment.
 
 - [ ] Re-run the full new-learner and returning-learner routes at desktop `1440×900` and mobile `390×844`.
 - [ ] Cover no-microphone, denied-permission, and failed-transcription paths once Phase 2 is defined.
