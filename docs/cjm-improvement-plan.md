@@ -31,11 +31,11 @@ Acceptance: a 30-minute choice no longer produces a 5–7-minute lesson without 
 
 ### P1 — New language is tested before it is taught
 
-- [ ] Audit each lesson for words or constructions first required in an exercise but not introduced beforehand. The reported café example includes `con` / `sin`, `con leche`, and `sin azúcar`.
-- [ ] Introduce essential language with meaning, a contextual example, optional pronunciation/listening, and a short comprehension check before requiring retrieval or production.
-- [ ] Preserve the progression: contextual objective → introduction → controlled practice → independent use → consolidation.
+- [x] Audit each lesson for words or constructions first required in an exercise but not introduced beforehand. The reported café example includes `con` / `sin`, `con leche`, and `sin azúcar`.
+- [x] Introduce essential language with meaning, a contextual example, optional pronunciation/listening, and a short comprehension check before requiring retrieval or production.
+- [x] Preserve the progression: contextual objective → introduction → controlled practice → independent use → consolidation.
 
-The café lesson now introduces `con` / `sin` with an English meaning, contextual example, optional audio, and a comprehension question before the listening and spoken order. A full prerequisite audit across the other lessons remains open.
+All 12 lessons now declare teaching modules and pass a structural order check. The café lesson introduces `con` / `sin` in a second module before listening. The [lesson teaching audit](lesson-teaching-audit.md) records the key prerequisite language checked in each existing lesson. Human review remains necessary when new content is added; order alone cannot prove semantic coverage.
 
 Acceptance: an A1 learner can attempt the café tasks without already knowing language first presented in that same lesson; speaking and listening remain in the lesson. Exact teaching content and sequencing require a learning-methodology decision before implementation.
 

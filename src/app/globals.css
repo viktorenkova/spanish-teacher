@@ -125,6 +125,16 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .exercise-stage p { margin: 0; font-size: .78rem; line-height: 1.45; }
 .progress-track span { display: block; height: 100%; background: var(--coral); border-radius: inherit; transition: width .35s ease; }
 .context { white-space: pre-line; color: var(--muted); line-height: 1.75; background: var(--cream); border-radius: 16px; padding: 18px 20px; margin: 0 0 22px; }
+.lesson-teaching { display: grid; gap: 10px; margin: 0 0 22px; padding: 17px 19px; border: 1px solid rgba(23, 59, 55, .14); border-radius: 16px; background: var(--green-soft); }
+.lesson-teaching h3, .lesson-teaching p, .lesson-teaching dl { margin: 0; }
+.lesson-teaching h3 { font: 700 1.15rem Georgia, serif; }
+.lesson-teaching dl { display: grid; gap: 6px; }
+.lesson-teaching dl div { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.lesson-teaching dt { font-weight: 800; }
+.lesson-teaching dd { margin: 0; color: var(--muted); font-size: .86rem; }
+.lesson-teaching p { font-size: .88rem; line-height: 1.5; }
+.lesson-teaching p span, .lesson-teaching small { color: var(--muted); }
+.lesson-teaching .text-button { justify-self: start; min-height: 44px; padding: 8px 0; color: var(--coral-dark); font-weight: 700; }
 .options { display: grid; gap: 10px; }
 .option { cursor: pointer; text-align: left; padding: 16px 18px; border: 1px solid rgba(23, 59, 55, .16); border-radius: 13px; background: white; transition: border-color .15s, background .15s, transform .15s; }
 .option:hover { border-color: var(--coral); transform: translateY(-1px); }

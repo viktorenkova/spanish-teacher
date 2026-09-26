@@ -7,6 +7,7 @@ import {
   getLessonRecallItems,
   introductionLesson,
   lessonCatalog,
+  lessonTeachingSequenceIssues,
   recordAnswer,
 } from "./lesson";
 import { getListeningClip } from "./listening";
@@ -46,10 +47,48 @@ describe("lesson progress", () => {
     const introduction = cafeOrderingLesson[introductionIndex];
     expect(introductionIndex).toBeGreaterThanOrEqual(0);
     expect(introductionIndex).toBeLessThan(listeningIndex);
-    expect(introduction.context).toContain("con means ‘with’");
-    expect(introduction.context).toContain("sin means ‘without’");
+    const teaching = lessonCatalog["cafe-ordering-v1"].teachingModules.find(({ beforeExerciseId }) =>
+      beforeExerciseId === introduction.id);
+    expect(teaching?.phrases).toEqual(expect.arrayContaining([
+      { spanish: "Con leche", english: "With milk." },
+      { spanish: "Sin azúcar", english: "Without sugar." },
+    ]));
+    expect(teaching?.example.spanish).toBe(introduction.learningItem.targetText);
     expect(introduction.options).toHaveLength(3);
     expect(getListeningClip(introduction.listeningClipId ?? "")?.text).toBe(introduction.learningItem.targetText);
+  });
+
+  it("introduces language and checks understanding before retrieval and production in every lesson", () => {
+    for (const lesson of Object.values(lessonCatalog)) {
+      expect(lessonTeachingSequenceIssues(lesson), lesson.key).toEqual([]);
+      expect(lesson.teachingModules[0].beforeExerciseId).toBe(lesson.exercises[0].id);
+    }
+  });
+
+  it("detects missing or late teaching before a recall exercise", () => {
+    const lesson = lessonCatalog["introductions-v1"];
+    expect(lessonTeachingSequenceIssues({ ...lesson, teachingModules: [] }))
+      .toContain("A new lesson needs a teaching module.");
+    expect(lessonTeachingSequenceIssues({
+      ...lesson,
+      teachingModules: [{ ...lesson.teachingModules[0], beforeExerciseId: "retrieve-name" }],
+    })).toContain("Introduce useful language before the first exercise.");
+  });
+
+  it("rejects a module without a valid recognition check or useful content", () => {
+    const lesson = lessonCatalog["introductions-v1"];
+    const invalid = {
+      ...lesson,
+      teachingModules: [{
+        ...lesson.teachingModules[0],
+        beforeExerciseId: "retrieve-name",
+        phrases: [{ spanish: "", english: "" }],
+      }],
+    };
+    expect(lessonTeachingSequenceIssues(invalid)).toEqual(expect.arrayContaining([
+      "Teaching module first-meeting needs a valid comprehension check.",
+      "Teaching module first-meeting needs meaning and a contextual example.",
+    ]));
   });
 
   it("keeps listening, speaking, provenance, and valid audio references in every lesson", () => {

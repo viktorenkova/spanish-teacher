@@ -24,6 +24,14 @@ export type LessonExercise = {
   retryFeedback: string;
 };
 
+export type LessonTeachingModule = {
+  id: string;
+  beforeExerciseId: string;
+  focus: string;
+  phrases: { spanish: string; english: string }[];
+  example: { spanish: string; english: string };
+};
+
 export type ExerciseCoaching = {
   notice: string;
   targetPhrase: string;
@@ -94,6 +102,7 @@ export type LessonDefinition = {
     speakingObjective: string;
     progressionReason: string;
   };
+  teachingModules: LessonTeachingModule[];
   exercises: LessonExercise[];
 };
 
@@ -611,7 +620,7 @@ export const cafeOrderingLesson: LessonExercise[] = [
     listeningClipId: "cafe-con-sin",
     eyebrow: "Learn before you listen",
     prompt: "What does the customer want in the coffee?",
-    context: "In a café, con means ‘with’ and sin means ‘without’. For example: ‘Un café con leche, sin azúcar’ means ‘A coffee with milk, without sugar’. Listen if you like, then check your understanding.",
+    context: "A customer orders a coffee with one addition and without another. Choose what they want.",
     options: [
       { id: "milk-no-sugar", label: "Milk, but no sugar" },
       { id: "sugar-no-milk", label: "Sugar, but no milk" },
@@ -1380,6 +1389,144 @@ export const weatherLesson = createCompactLesson({
   },
 });
 
+const lessonTeachingModules: Record<LessonKey, LessonTeachingModule[]> = {
+  "introductions-v1": [{
+    id: "first-meeting", beforeExerciseId: "meaning-encantada",
+    focus: "A first meeting: give your name and respond politely.",
+    phrases: [
+      { spanish: "Me llamo…", english: "My name is…" },
+      { spanish: "Soy de…", english: "I am from…" },
+      { spanish: "Encantada.", english: "Pleased to meet you (said by a woman)." },
+    ],
+    example: { spanish: "Me llamo Lucía. Soy de Madrid. Encantada.", english: "My name is Lucía. I am from Madrid. Pleased to meet you." },
+  }],
+  "daily-routines-v1": [{
+    id: "morning-actions", beforeExerciseId: "meaning-me-levanto",
+    focus: "Say two simple things you do in the morning.",
+    phrases: [
+      { spanish: "Me levanto a las siete.", english: "I get up at seven." },
+      { spanish: "Desayuno.", english: "I have breakfast." },
+      { spanish: "Y", english: "And; it joins two actions." },
+    ],
+    example: { spanish: "Me levanto a las siete y desayuno.", english: "I get up at seven and have breakfast." },
+  }],
+  "cafe-ordering-v1": [
+    {
+      id: "polite-order", beforeExerciseId: "meaning-quiero-cafe",
+      focus: "Ask for something politely in a café.",
+      phrases: [
+        { spanish: "Quiero un café.", english: "I would like a coffee." },
+        { spanish: "Por favor.", english: "Please." },
+        { spanish: "Agua", english: "Water." },
+      ],
+      example: { spanish: "Quiero un café, por favor.", english: "I would like a coffee, please." },
+    },
+    {
+      id: "with-without", beforeExerciseId: "understand-cafe-without",
+      focus: "Say what you want with or without something.",
+      phrases: [
+        { spanish: "Con leche", english: "With milk." },
+        { spanish: "Sin azúcar", english: "Without sugar." },
+      ],
+      example: { spanish: "Un café con leche, sin azúcar.", english: "A coffee with milk, without sugar." },
+    },
+  ],
+  "shopping-v1": [{
+    id: "shop-quantity-price", beforeExerciseId: "meaning-medio-kilo",
+    focus: "Ask for a quantity, then ask the price.",
+    phrases: [
+      { spanish: "Medio kilo de…", english: "Half a kilo of…" },
+      { spanish: "¿Cuánto cuesta?", english: "How much does it cost?" },
+      { spanish: "Tres euros", english: "Three euros." },
+    ],
+    example: { spanish: "Medio kilo de tomates, por favor. ¿Cuánto cuesta?", english: "Half a kilo of tomatoes, please. How much does it cost?" },
+  }],
+  "directions-v1": [{
+    id: "ask-and-follow-directions", beforeExerciseId: "meaning-todo-recto",
+    focus: "Ask where a place is and understand a simple direction.",
+    phrases: [
+      { spanish: "¿Dónde está…?", english: "Where is…?" },
+      { spanish: "Todo recto.", english: "Straight ahead." },
+      { spanish: "A la derecha.", english: "On the right." },
+    ],
+    example: { spanish: "¿Dónde está la estación? Todo recto y a la derecha.", english: "Where is the station? Straight ahead and to the right." },
+  }],
+  "transport-v1": [{
+    id: "ticket-and-journey", beforeExerciseId: "meaning-ida-vuelta",
+    focus: "Choose a journey and ask for a ticket.",
+    phrases: [
+      { spanish: "Ida y vuelta", english: "There and back; a return journey." },
+      { spanish: "Un billete para…", english: "One ticket to…" },
+      { spanish: "A las nueve y media", english: "At half past nine (9:30)." },
+    ],
+    example: { spanish: "Un billete de ida y vuelta para Toledo, por favor.", english: "One return ticket to Toledo, please." },
+  }],
+  "hotel-checkin-v1": [{
+    id: "hotel-booking", beforeExerciseId: "meaning-reserva",
+    focus: "Say you have a booking and give the name.",
+    phrases: [
+      { spanish: "Tengo una reserva.", english: "I have a reservation." },
+      { spanish: "A nombre de…", english: "Under the name…" },
+      { spanish: "Habitación", english: "Room." },
+      { spanish: "Doscientos catorce", english: "Two hundred and fourteen (214)." },
+    ],
+    example: { spanish: "Tengo una reserva a nombre de García.", english: "I have a reservation under the name García." },
+  }],
+  "restaurant-v1": [{
+    id: "meal-and-bill", beforeExerciseId: "meaning-la-cuenta",
+    focus: "Order a dish and ask for the bill.",
+    phrases: [
+      { spanish: "Para mí…", english: "For me…; use it to choose your dish." },
+      { spanish: "La cuenta, por favor.", english: "The bill, please." },
+      { spanish: "Ensalada y agua", english: "Salad and water." },
+    ],
+    example: { spanish: "Para mí, la tortilla. La cuenta, por favor.", english: "For me, the tortilla. The bill, please." },
+  }],
+  "family-v1": [{
+    id: "family-detail", beforeExerciseId: "meaning-family-sevilla",
+    focus: "Name a family member and add one detail.",
+    phrases: [
+      { spanish: "Mi hermana", english: "My sister." },
+      { spanish: "Vive en…", english: "Lives in…" },
+      { spanish: "Se llama…", english: "Is called…; use it for a person's name." },
+      { spanish: "Trabaja en un hospital.", english: "Works in a hospital." },
+    ],
+    example: { spanish: "Mi hermana se llama Ana y vive en Sevilla.", english: "My sister is called Ana and lives in Seville." },
+  }],
+  "free-time-v1": [{
+    id: "leisure-frequency", beforeExerciseId: "meaning-free-time-reading",
+    focus: "Talk about an activity and when you do it.",
+    phrases: [
+      { spanish: "A veces", english: "Sometimes." },
+      { spanish: "Leo", english: "I read." },
+      { spanish: "Los fines de semana", english: "At weekends." },
+      { spanish: "Corro por la mañana.", english: "I run in the morning." },
+    ],
+    example: { spanish: "A veces leo por la tarde.", english: "Sometimes I read in the afternoon." },
+  }],
+  "making-plans-v1": [{
+    id: "availability-and-time", beforeExerciseId: "meaning-plan-saturday",
+    focus: "Ask if a day works and suggest a time.",
+    phrases: [
+      { spanish: "¿Te va bien…?", english: "Is … good for you?" },
+      { spanish: "Puedo…", english: "I can…" },
+      { spanish: "Quedamos…", english: "Let's meet…" },
+      { spanish: "A las seis", english: "At six o'clock." },
+    ],
+    example: { spanish: "¿Te va bien el sábado? Puedo por la tarde.", english: "Is Saturday good for you? I can do the afternoon." },
+  }],
+  "weather-v1": [{
+    id: "weather-and-feeling", beforeExerciseId: "meaning-weather-cold",
+    focus: "Describe the weather and add a personal comment.",
+    phrases: [
+      { spanish: "Hace frío.", english: "It is cold." },
+      { spanish: "Hace sol.", english: "It is sunny." },
+      { spanish: "Tengo frío.", english: "I feel cold." },
+    ],
+    example: { spanish: "Hace frío. Tengo frío.", english: "It is cold. I feel cold." },
+  }],
+};
+
 export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
   "introductions-v1": {
     key: "introductions-v1",
@@ -1396,6 +1543,7 @@ export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
       progressionReason: "Introductions are the first practical A1 topic in your path.",
     },
     exercises: introductionLesson,
+    teachingModules: lessonTeachingModules["introductions-v1"],
   },
   "daily-routines-v1": {
     key: "daily-routines-v1",
@@ -1412,6 +1560,7 @@ export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
       progressionReason: "Introductions are complete, so your next topic is daily routines.",
     },
     exercises: dailyRoutineLesson,
+    teachingModules: lessonTeachingModules["daily-routines-v1"],
   },
   "cafe-ordering-v1": {
     key: "cafe-ordering-v1",
@@ -1428,6 +1577,7 @@ export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
       progressionReason: "Daily routines are complete, so your next topic is ordering in a cafe.",
     },
     exercises: cafeOrderingLesson,
+    teachingModules: lessonTeachingModules["cafe-ordering-v1"],
   },
   "shopping-v1": {
     key: "shopping-v1",
@@ -1444,6 +1594,7 @@ export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
       progressionReason: "Cafe ordering is complete, so the path moves to buying food in a shop.",
     },
     exercises: shoppingLesson,
+    teachingModules: lessonTeachingModules["shopping-v1"],
   },
   "directions-v1": {
     key: "directions-v1",
@@ -1460,6 +1611,7 @@ export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
       progressionReason: "Shopping is complete, so the path moves to finding places around town.",
     },
     exercises: directionsLesson,
+    teachingModules: lessonTeachingModules["directions-v1"],
   },
   "transport-v1": {
     key: "transport-v1",
@@ -1476,6 +1628,7 @@ export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
       progressionReason: "Directions are complete, so the path moves to practical public transport.",
     },
     exercises: transportLesson,
+    teachingModules: lessonTeachingModules["transport-v1"],
   },
   "hotel-checkin-v1": {
     key: "hotel-checkin-v1",
@@ -1492,6 +1645,7 @@ export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
       progressionReason: "Transport is complete, so the path moves to checking in at accommodation.",
     },
     exercises: hotelCheckinLesson,
+    teachingModules: lessonTeachingModules["hotel-checkin-v1"],
   },
   "restaurant-v1": {
     key: "restaurant-v1",
@@ -1508,6 +1662,7 @@ export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
       progressionReason: "Hotel check-in is complete, so the path moves to eating in a restaurant.",
     },
     exercises: restaurantLesson,
+    teachingModules: lessonTeachingModules["restaurant-v1"],
   },
   "family-v1": {
     key: "family-v1",
@@ -1524,6 +1679,7 @@ export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
       progressionReason: "Restaurant language is complete, so the path moves to talking about people close to you.",
     },
     exercises: familyLesson,
+    teachingModules: lessonTeachingModules["family-v1"],
   },
   "free-time-v1": {
     key: "free-time-v1",
@@ -1540,6 +1696,7 @@ export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
       progressionReason: "Family language is complete, so the path moves to everyday interests and hobbies.",
     },
     exercises: freeTimeLesson,
+    teachingModules: lessonTeachingModules["free-time-v1"],
   },
   "making-plans-v1": {
     key: "making-plans-v1",
@@ -1556,6 +1713,7 @@ export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
       progressionReason: "Free-time language is complete, so the path moves to making plans with other people.",
     },
     exercises: makingPlansLesson,
+    teachingModules: lessonTeachingModules["making-plans-v1"],
   },
   "weather-v1": {
     key: "weather-v1",
@@ -1572,8 +1730,53 @@ export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
       progressionReason: "Making plans is complete, so the path adds weather language for everyday small talk.",
     },
     exercises: weatherLesson,
+    teachingModules: lessonTeachingModules["weather-v1"],
   },
 };
+
+export function lessonTeachingSequenceIssues(lesson: LessonDefinition): string[] {
+  const issues: string[] = [];
+  const ids = new Set<string>();
+  const positions = new Map(lesson.exercises.map((exercise, index) => [exercise.id, index]));
+  let lastPosition = -1;
+
+  if (lesson.teachingModules.length === 0) issues.push("A new lesson needs a teaching module.");
+  for (const teaching of lesson.teachingModules) {
+    const position = positions.get(teaching.beforeExerciseId);
+    if (ids.has(teaching.id)) issues.push(`Duplicate teaching module: ${teaching.id}.`);
+    ids.add(teaching.id);
+    if (position === undefined) {
+      issues.push(`Teaching module ${teaching.id} has no matching exercise.`);
+      continue;
+    }
+    if (position < lastPosition) issues.push(`Teaching module ${teaching.id} is out of order.`);
+    lastPosition = position;
+    const check = lesson.exercises[position];
+    if (check.modality !== "recognition" || check.options.length < 2
+      || !check.options.some(({ id }) => id === check.correctOptionId)) {
+      issues.push(`Teaching module ${teaching.id} needs a valid comprehension check.`);
+    }
+    if (!teaching.focus.trim() || teaching.phrases.length === 0
+      || teaching.phrases.some(({ spanish, english }) => !spanish.trim() || !english.trim())
+      || !teaching.example.spanish.trim() || !teaching.example.english.trim()) {
+      issues.push(`Teaching module ${teaching.id} needs meaning and a contextual example.`);
+    }
+  }
+
+  const firstPosition = positions.get(lesson.teachingModules[0]?.beforeExerciseId ?? "");
+  if (firstPosition !== 0) issues.push("Introduce useful language before the first exercise.");
+  for (const [index, exercise] of lesson.exercises.entries()) {
+    if (exercise.modality === "recognition") continue;
+    if (!lesson.teachingModules.some((module) => (positions.get(module.beforeExerciseId) ?? Infinity) < index)) {
+      issues.push(`${exercise.id} needs an earlier introduction and comprehension check.`);
+    }
+    if (exercise.modality === "production"
+      && !lesson.exercises.slice(0, index).some(({ modality }) => modality === "listening")) {
+      issues.push(`${exercise.id} needs listening practice before speaking.`);
+    }
+  }
+  return issues;
+}
 
 export function getLessonDefinition(key: string): LessonDefinition | undefined {
   return lessonCatalog[key as LessonKey];

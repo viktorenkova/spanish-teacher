@@ -28,6 +28,22 @@ listening, and grammar.
 Use Spanish first, with visible and easy-to-reach English scaffolding suitable
 for an A1 learner. Speaking should normally be present in every lesson.
 
+## Teach before testing
+
+- Introduce essential new words and constructions before asking the learner to
+  retrieve, use, or recognise them in listening or speaking. Do not assume that
+  an A1 learner knows language introduced by the same lesson.
+- A new lesson needs a short, contextual teaching module with useful Spanish,
+  clear B1-level English meanings, one example, and optional Spanish audio.
+  Follow it with a simple comprehension check before independent recall or
+  production. Add a later module when a genuinely new pattern appears mid-lesson.
+- Keep modules focused and non-repetitive. Previously taught language may move
+  straight to scheduled review; do not turn each familiar word into a new card.
+- Declare teaching modules in the lesson definition, anchor each to its check
+  exercise, and keep `lessonTeachingSequenceIssues` passing for every lesson.
+  Review new lesson content for semantic prerequisites as well as structural
+  order: a passing order test cannot prove that every unfamiliar phrase is taught.
+
 ## Product principles
 
 - The app decides what is most useful next.

@@ -132,6 +132,7 @@ export function LessonExperience({
   const [submitting, setSubmitting] = useState(false);
   const [loadError, setLoadError] = useState<string>();
   const [audioStatus, setAudioStatus] = useState<string>();
+  const [teachingAudioStatus, setTeachingAudioStatus] = useState<string>();
   const [playingAudio, setPlayingAudio] = useState(false);
   const [recognizing, setRecognizing] = useState(false);
   const [speechResult, setSpeechResult] = useState<SttTranscript>();
@@ -141,6 +142,7 @@ export function LessonExperience({
   const [teacherFeedback, setTeacherFeedback] = useState<TeacherFeedback>();
   const [mistakeMemory, setMistakeMemory] = useState<MistakeMemory>();
   const speechProvider = useRef(new BrowserSpeechToTextProvider());
+  const teachingPlayback = useRef<AbortController | null>(null);
   const feedbackRef = useRef<HTMLParagraphElement>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [confirmingEnd, setConfirmingEnd] = useState(false);
@@ -222,7 +224,10 @@ export function LessonExperience({
 
   useEffect(() => {
     const provider = speechProvider.current;
-    return () => provider.abort();
+    return () => {
+      provider.abort();
+      teachingPlayback.current?.abort();
+    };
   }, []);
 
   const currentProgress = progress ?? createEmptyProgress();
@@ -244,6 +249,7 @@ export function LessonExperience({
     && exercises.every((item) => pendingProgress.completedExerciseIds.includes(item.id)),
   );
   const exerciseCoaching = exercise ? getExerciseCoaching(exercise) : undefined;
+  const teachingModules = lesson.teachingModules.filter((module) => module.beforeExerciseId === exercise?.id);
 
   useEffect(() => {
     if (!feedback) return;
@@ -361,6 +367,27 @@ export function LessonExperience({
     }
   }
 
+  async function playTeachingExample(text: string) {
+    if (playingAudio || recognizing) return;
+    const controller = new AbortController();
+    teachingPlayback.current = controller;
+    setPlayingAudio(true);
+    setTeachingAudioStatus("Playing Spanish example…");
+    try {
+      await speakWithBrowser({ text, locale: "es-ES", rate: 0.86 }, controller.signal);
+      setTeachingAudioStatus("Spanish example played.");
+    } catch (error) {
+      if (!controller.signal.aborted) {
+        setTeachingAudioStatus(error instanceof Error ? error.message : "Spanish audio is unavailable.");
+      }
+    } finally {
+      if (teachingPlayback.current === controller) {
+        teachingPlayback.current = null;
+        setPlayingAudio(false);
+      }
+    }
+  }
+
   async function startSpeaking() {
     if (!exercise?.speakingTask || recognizing) return;
     setRecognizing(true);
@@ -423,6 +450,10 @@ export function LessonExperience({
 
   function continueAfterFeedback() {
     if (!pendingProgress) return;
+    teachingPlayback.current?.abort();
+    teachingPlayback.current = null;
+    setPlayingAudio(false);
+    setTeachingAudioStatus(undefined);
     const completesLesson = exercises.every((item) =>
       pendingProgress.completedExerciseIds.includes(item.id));
     setProgress(pendingProgress);
@@ -654,6 +685,27 @@ export function LessonExperience({
         <span>{modalityLabels[exercise.modality].label}</span>
         <p>{modalityLabels[exercise.modality].guidance}</p>
       </div>
+      {teachingModules.map((module) => (
+        <section className="lesson-teaching" aria-label="Learn before practising" key={module.id}>
+          <span className="eyebrow">First, learn the useful language</span>
+          <h3>{module.focus}</h3>
+          <dl>
+            {module.phrases.map((phrase) => (
+              <div key={phrase.spanish}>
+                <dt lang="es">{phrase.spanish}</dt>
+                <dd>{phrase.english}</dd>
+              </div>
+            ))}
+          </dl>
+          <p><strong lang="es">{module.example.spanish}</strong> <span>{module.example.english}</span></p>
+          <button className="text-button" data-ui-sound="off" disabled={playingAudio || recognizing}
+            onClick={() => void playTeachingExample(module.example.spanish)} type="button">
+            ▶ Listen to this example
+          </button>
+          {teachingAudioStatus && <small aria-live="polite">{teachingAudioStatus}</small>}
+          <small>Now check what you understood below.</small>
+        </section>
+      ))}
       <span className="eyebrow">{exercise.eyebrow}</span>
       <h2 id="exercise-title">{exercise.prompt}</h2>
       <p className="context">{exercise.context}</p>
