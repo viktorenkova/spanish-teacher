@@ -122,6 +122,7 @@ export type LessonProgress = {
   correctAnswers: number;
   attempts: number;
   completedAt?: string;
+  hasSpokenEvidence?: boolean;
 };
 
 function projectAuthoredItem(

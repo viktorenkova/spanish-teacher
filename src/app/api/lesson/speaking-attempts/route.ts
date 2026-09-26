@@ -11,7 +11,7 @@ const speakingAttemptSchema = z.object({
   lessonKey: z.enum(lessonKeys),
   exerciseId: z.string().min(1).max(100),
   transcript: z.string().trim().min(1).max(500),
-  evidenceProvider: z.string().min(1).max(100),
+  evidenceProvider: z.enum(["browser-speech-recognition", "typed-fallback"]),
   providerConfidence: z.number().min(0).max(1).optional(),
 });
 

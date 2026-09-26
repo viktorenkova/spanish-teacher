@@ -26,7 +26,7 @@ export async function submitSpeakingAttemptWithTeacher(input: {
   if (!exercise?.speakingTask) throw new Error("Unknown speaking exercise");
 
   const attempt = await recordSpeakingAttempt(input);
-  const generated = await provider.generateFeedback({
+  const generatedFeedback = await provider.generateFeedback({
     transcript: input.transcript,
     objective: exercise.prompt,
     assessment: attempt.assessment,
@@ -35,6 +35,20 @@ export async function submitSpeakingAttemptWithTeacher(input: {
     supportLanguage: "en",
     supportLevel: "B1",
   });
+  const generated: TeacherFeedback = input.evidenceProvider === "typed-fallback"
+    ? {
+        ...generatedFeedback,
+        summary: attempt.correct ? "Your typed answer is complete." : "Your typed answer needs one more detail.",
+        praise: "You practised putting useful Spanish into a sentence.",
+        corrections: generatedFeedback.corrections.map((correction) => ({
+          ...correction,
+          issue: correction.issue.replaceAll("transcript", "typed answer"),
+        })),
+        nextStep: attempt.correct
+          ? "Say this answer aloud when your microphone is available. Speaking was not checked."
+          : "Edit your typed answer using the hint, then try again.",
+      }
+    : generatedFeedback;
 
   await getDatabase().insert(teacherFeedback).values({
     learnerId: input.learnerId,

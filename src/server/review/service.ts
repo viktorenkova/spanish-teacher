@@ -22,6 +22,7 @@ export type PersistedLessonProgress = {
   correctAnswers: number;
   attempts: number;
   completedAt?: string;
+  hasSpokenEvidence: boolean;
 };
 
 export async function loadLessonProgress(
@@ -37,6 +38,7 @@ export async function loadLessonProgress(
       exerciseId: exerciseAttempts.exerciseId,
       correct: exerciseAttempts.correct,
       occurredAt: exerciseAttempts.occurredAt,
+      evidenceProvider: exerciseAttempts.evidenceProvider,
     })
     .from(exerciseAttempts)
     .where(and(
@@ -58,6 +60,10 @@ export async function loadLessonProgress(
     correctAnswers: completedCoreExerciseIds.length,
     attempts: attempts.length,
     completedAt: isComplete ? attempts.at(-1)?.occurredAt.toISOString() : undefined,
+    hasSpokenEvidence: attempts.some((attempt) =>
+      attempt.correct && lesson.exercises.some((exercise) =>
+        exercise.id === attempt.exerciseId && exercise.modality === "production")
+      && attempt.evidenceProvider !== "typed-fallback"),
   };
 }
 
@@ -77,6 +83,7 @@ export async function loadLearnerProgressSummary(
         modality: exerciseAttempts.modality,
         correct: exerciseAttempts.correct,
         occurredAt: exerciseAttempts.occurredAt,
+        evidenceProvider: exerciseAttempts.evidenceProvider,
       })
       .from(exerciseAttempts)
       .where(eq(exerciseAttempts.learnerId, learnerId)),
@@ -164,7 +171,9 @@ async function persistExerciseAttempt(
           ? { recallEvidence: (existing?.recallEvidence ?? 0) + 1 }
           : exercise.modality === "listening"
             ? { listeningEvidence: (existing?.listeningEvidence ?? 0) + 1 }
-            : { productionEvidence: (existing?.productionEvidence ?? 0) + 1 };
+            : input.evidenceProvider === "typed-fallback"
+              ? {}
+              : { productionEvidence: (existing?.productionEvidence ?? 0) + 1 };
 
     await transaction
       .insert(learnerItemStates)
@@ -275,7 +284,11 @@ export async function recordSpeakingAttempt(input: {
     },
     exercise,
     assessment.complete,
-    assessment.feedback,
+    input.evidenceProvider === "typed-fallback"
+      ? assessment.complete
+        ? "Your typed answer includes the needed Spanish. Speaking was not checked."
+        : assessment.feedback.replaceAll("transcript", "typed answer")
+      : assessment.feedback,
   );
   return { ...result, assessment };
 }

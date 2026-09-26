@@ -57,4 +57,13 @@ describe("lesson history", () => {
       "You moved from meet someone new to talk about your morning.",
     );
   });
+
+  it("records lesson completion without marking a typed fallback as speaking", () => {
+    const history = buildLessonHistory([lesson({
+      id: "typed",
+      completedAt: new Date("2026-08-29T10:10:00.000Z"),
+      attempts: [{ correct: true, modality: "production", evidenceProvider: "typed-fallback" }],
+    })]);
+    expect(history[0]).toMatchObject({ accuracyPercent: 100, speakingCompleted: false });
+  });
 });

@@ -154,6 +154,8 @@ h1 { font-size: clamp(2.8rem, 7vw, 5.5rem); line-height: .96; margin: 14px 0 24p
 .audio-control .secondary-button { flex: 0 0 auto; margin: 0; }
 .audio-control small { color: var(--muted); line-height: 1.45; }
 .speaking-control { display: grid; gap: 12px; }
+.typed-speaking-fallback { display: grid; gap: 12px; }
+.typed-speaking-fallback textarea { width: 100%; min-height: 112px; resize: vertical; border: 1px solid #e2dcec; border-radius: 14px; background: white; padding: 11px 12px; color: var(--ink); font: inherit; line-height: 1.5; }
 .speaking-control .secondary-button { justify-self: start; margin: 0; min-width: 190px; }
 .microphone-button { background: var(--ink); }
 .microphone-button:hover:not(:disabled) { background: #0b2e2a; }

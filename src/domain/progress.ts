@@ -3,6 +3,7 @@ export type ProgressEvidence = {
   modality: "recognition" | "recall" | "listening" | "production";
   occurredAt: Date;
   correct: boolean;
+  evidenceProvider?: string | null;
 };
 
 export type ReviewStateSnapshot = {
@@ -45,7 +46,7 @@ export function summariseLearnerProgress(input: {
     dueReviewCount: input.itemStates.filter((item) => item.due.getTime() <= input.now.getTime()).length,
     nextReviewAt: futureReviews[0]?.toISOString(),
     hasCompletedSpeakingTask: input.evidence.some(
-      (attempt) => attempt.modality === "production" && attempt.correct,
+      (attempt) => attempt.modality === "production" && attempt.correct && attempt.evidenceProvider !== "typed-fallback",
     ),
   };
 }

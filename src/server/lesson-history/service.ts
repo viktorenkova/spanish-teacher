@@ -29,6 +29,7 @@ export async function loadLessonHistory(learnerId: string) {
       lessonSessionId: exerciseAttempts.lessonSessionId,
       correct: exerciseAttempts.correct,
       modality: exerciseAttempts.modality,
+      evidenceProvider: exerciseAttempts.evidenceProvider,
     })
     .from(exerciseAttempts)
     .where(inArray(exerciseAttempts.lessonSessionId, sessions.map(({ id }) => id)));
@@ -42,7 +43,7 @@ export async function loadLessonHistory(learnerId: string) {
       completedAt: session.completedAt,
       attempts: attempts
         .filter(({ lessonSessionId }) => lessonSessionId === session.id)
-        .map(({ correct, modality }) => ({ correct, modality })),
+        .map(({ correct, modality, evidenceProvider }) => ({ correct, modality, evidenceProvider })),
     }];
   }));
 }

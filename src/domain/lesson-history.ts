@@ -3,6 +3,7 @@ import { getLessonDefinition, type LessonKey } from "./lesson";
 export type LessonHistoryAttempt = {
   correct: boolean;
   modality: "recognition" | "recall" | "listening" | "production";
+  evidenceProvider?: string | null;
 };
 
 export type LessonHistoryEvidence = {
@@ -75,7 +76,8 @@ export function buildLessonHistory(evidence: LessonHistoryEvidence[]): LessonHis
       correctCount,
       accuracyPercent,
       speakingCompleted: session.attempts.some(
-        ({ correct, modality }) => correct && modality === "production",
+        ({ correct, modality, evidenceProvider }) =>
+          correct && modality === "production" && evidenceProvider !== "typed-fallback",
       ),
       ...(previous ? { accuracyChange: accuracyPercent - previous.accuracyPercent } : {}),
     };

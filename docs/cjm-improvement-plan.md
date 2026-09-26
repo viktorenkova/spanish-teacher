@@ -73,6 +73,8 @@ Verification: mobile and desktop full-loop E2E, including first-viewport action 
 - [ ] Keep the speaking task in every lesson; do not equate typed text with spoken evidence or claim pronunciation scoring.
 - [ ] Preserve progress and explain what the fallback does and does not assess.
 
+Decision approved: a typed Spanish answer may complete the lesson but never earns speaking credit. Implemented as a clearly labelled fallback available from the speaking step. Saved attempts use `typed-fallback` evidence; speaking indicators in progress and lesson history exclude it, while answer content can still be checked. Unit tests pass; the new mobile E2E regression awaits a local database to run.
+
 Acceptance: a learner can finish the lesson without browser speech recognition, while saved evidence and feedback accurately distinguish speech from a fallback. This phase needs a product decision on the exact fallback and its effect on scoring before implementation.
 
 ## Phase 3 — Shorten exercise feedback (medium priority)

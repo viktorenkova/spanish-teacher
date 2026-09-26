@@ -25,4 +25,14 @@ describe("learner progress summary", () => {
       hasCompletedSpeakingTask: true,
     });
   });
+
+  it("does not count a correct typed fallback as spoken evidence", () => {
+    const now = new Date("2026-08-28T12:00:00.000Z");
+    const summary = summariseLearnerProgress({
+      now,
+      itemStates: [],
+      evidence: [{ learningItemId: "phrase:order", modality: "production", correct: true, evidenceProvider: "typed-fallback", occurredAt: now }],
+    });
+    expect(summary.hasCompletedSpeakingTask).toBe(false);
+  });
 });

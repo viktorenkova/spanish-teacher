@@ -136,6 +136,8 @@ export function LessonExperience({
   const [recognizing, setRecognizing] = useState(false);
   const [speechResult, setSpeechResult] = useState<SttTranscript>();
   const [speechError, setSpeechError] = useState<string>();
+  const [typedFallback, setTypedFallback] = useState(false);
+  const [typedAnswer, setTypedAnswer] = useState("");
   const [teacherFeedback, setTeacherFeedback] = useState<TeacherFeedback>();
   const [mistakeMemory, setMistakeMemory] = useState<MistakeMemory>();
   const speechProvider = useRef(new BrowserSpeechToTextProvider());
@@ -370,7 +372,8 @@ export function LessonExperience({
   }
 
   async function submitSpeakingAttempt() {
-    if (!exercise?.speakingTask || !speechResult || submitting) return;
+    const transcript = typedFallback ? typedAnswer.trim() : speechResult?.text;
+    if (!exercise?.speakingTask || !transcript || submitting) return;
     setSubmitting(true);
     setLoadError(undefined);
     try {
@@ -383,9 +386,9 @@ export function LessonExperience({
           sessionId,
           lessonKey,
           exerciseId: exercise.id,
-          transcript: speechResult.text,
-          evidenceProvider: speechResult.providerId,
-          providerConfidence: speechResult.confidence,
+          transcript,
+          evidenceProvider: typedFallback ? "typed-fallback" : speechResult?.providerId,
+          providerConfidence: typedFallback ? undefined : speechResult?.confidence,
         }),
       });
       const payload = (await response.json()) as AttemptResponse & { error?: string };
@@ -419,6 +422,8 @@ export function LessonExperience({
     setPendingProgress(undefined);
     setSelectedOption(undefined);
     setSpeechResult(undefined);
+    setTypedFallback(false);
+    setTypedAnswer("");
     setFeedback(undefined);
     setSpeechError(undefined);
     if (!completesLesson) setTeacherFeedback(undefined);
@@ -505,7 +510,9 @@ export function LessonExperience({
         <section className="lesson-achievement" aria-labelledby="lesson-achievement-title">
           <span>You can now</span>
           <h3 id="lesson-achievement-title">{lesson.objective}</h3>
-          <p>You completed the full practice path: understanding, recall, listening, and speaking.</p>
+          <p>{progress.hasSpokenEvidence
+            ? "You practised understanding, recall, listening, and a spoken answer. Pronunciation was not assessed."
+            : "You practised understanding, recall, and listening. Your typed answer helped you finish; speaking is still to practise."}</p>
         </section>
         <dl className="summary-grid">
           <div><dt>Steps completed</dt><dd>{exercises.length}/{exercises.length}</dd></div>
@@ -513,7 +520,7 @@ export function LessonExperience({
           <div><dt>Phrases started</dt><dd>{progressSummary?.introducedItemCount ?? "—"}</dd></div>
         </dl>
         {completionError && <p className="feedback retry" role="alert">{completionError}</p>}
-        <p className="saved-progress-note">Your answers, transcript, and review schedule are saved automatically.</p>
+        <p className="saved-progress-note">Your answers and review schedule are saved automatically. {progress.hasSpokenEvidence ? "Your speech transcript is saved; audio is not." : "A typed fallback is not counted as speaking."}</p>
         <details className="completion-details">
           <summary>Review lesson details</summary>
           <section className="lesson-language-recap" aria-labelledby="lesson-language-recap-title">
@@ -661,7 +668,9 @@ export function LessonExperience({
 
       {exercise.speakingTask ? (
         <div className="speaking-control">
-          <button
+          {!typedFallback && (
+            <>
+              <button
             className="secondary-button microphone-button"
             data-ui-sound="off"
             disabled={submitting || Boolean(pendingProgress)}
@@ -672,22 +681,43 @@ export function LessonExperience({
             type="button"
           >
             {recognizing ? "■ Stop listening" : "● Start microphone"}
-          </button>
-          <p className="recording-guidance" aria-live="polite">
+              </button>
+              <p className="recording-guidance" aria-live="polite">
             {recognizing
               ? "Listening… Say the whole answer, then press Stop listening. Transcription starts only after you stop."
               : "Press Start microphone, say the complete answer, then stop the microphone yourself."}
-          </p>
-          <p className="privacy-note">
+              </p>
+              <p className="privacy-note">
             Audio is not stored by Spanish Coach. Your browser may use its speech service to create
             the transcript.
-          </p>
-          {speechError && <p className="feedback retry" role="alert">{speechError}</p>}
-          {speechResult && (
-            <div className="transcript" aria-live="polite">
-              <small>Transcript from the browser</small>
-              <p lang="es">{speechResult.text}</p>
-              <span>Check the words before saving; transcription can be wrong.</span>
+              </p>
+              {speechError && <p className="feedback retry" role="alert">{speechError}</p>}
+              {speechResult && (
+                <div className="transcript" aria-live="polite">
+                  <small>Transcript from the browser</small>
+                  <p lang="es">{speechResult.text}</p>
+                  <span>Check the words before saving; transcription can be wrong.</span>
+                </div>
+              )}
+            </>
+          )}
+          {!typedFallback && !recognizing && (
+            <button className="text-button" type="button" onClick={() => {
+              setTypedFallback(true);
+              setSpeechResult(undefined);
+              setSpeechError(undefined);
+            }}>Use a typed answer instead</button>
+          )}
+          {typedFallback && (
+            <div className="typed-speaking-fallback">
+              <label htmlFor="typed-speaking-answer">Type your answer in Spanish</label>
+              <textarea id="typed-speaking-answer" lang="es" maxLength={500} value={typedAnswer}
+                onChange={(event) => setTypedAnswer(event.target.value)}
+                disabled={submitting || Boolean(pendingProgress)} />
+              <p>This lets you finish the lesson, but it does not count as speaking. If possible, say your answer aloud too; the app cannot check it.</p>
+              <button className="text-button" type="button" onClick={() => { setTypedFallback(false); setTypedAnswer(""); }}>
+                Try the microphone again
+              </button>
             </div>
           )}
         </div>
@@ -755,7 +785,7 @@ export function LessonExperience({
         disabled={pendingProgress
           ? submitting
           : exercise.speakingTask
-            ? !speechResult || recognizing || submitting
+            ? (typedFallback ? !typedAnswer.trim() : !speechResult || recognizing) || submitting
             : !selectedOption || submitting}
         onClick={pendingProgress
           ? continueAfterFeedback
@@ -767,7 +797,7 @@ export function LessonExperience({
           ? "Saving…"
           : pendingProgress
             ? pendingCompletesLesson ? "View lesson summary" : "Continue"
-            : exercise.speakingTask ? "Check spoken answer" : "Check answer"}
+            : exercise.speakingTask ? typedFallback ? "Check typed answer" : "Check spoken answer" : "Check answer"}
       </button>
     </section>
   );
