@@ -40,6 +40,18 @@ describe("lesson progress", () => {
     expect(cafeOrderingLesson.some(({ modality }) => modality === "production")).toBe(true);
   });
 
+  it("teaches con and sin with optional audio before the cafe listening question", () => {
+    const introductionIndex = cafeOrderingLesson.findIndex(({ id }) => id === "understand-cafe-without");
+    const listeningIndex = cafeOrderingLesson.findIndex(({ id }) => id === "listen-cafe-order");
+    const introduction = cafeOrderingLesson[introductionIndex];
+    expect(introductionIndex).toBeGreaterThanOrEqual(0);
+    expect(introductionIndex).toBeLessThan(listeningIndex);
+    expect(introduction.context).toContain("con means ‘with’");
+    expect(introduction.context).toContain("sin means ‘without’");
+    expect(introduction.options).toHaveLength(3);
+    expect(getListeningClip(introduction.listeningClipId ?? "")?.text).toBe(introduction.learningItem.targetText);
+  });
+
   it("keeps listening, speaking, provenance, and valid audio references in every lesson", () => {
     for (const lesson of Object.values(lessonCatalog)) {
       expect(lesson.exercises.some(({ modality }) => modality === "listening")).toBe(true);

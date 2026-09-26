@@ -477,12 +477,12 @@ export function PlannedLessonExperience({
                 aria-controls="today-duration-options"
                 onClick={() => setChangingDuration((value) => !value)}
               >
-                {changingDuration ? "Keep this duration" : `Change duration · ${selectedDuration} min`}
+                {changingDuration ? "Keep this practice window" : `Change practice window · up to ${selectedDuration} min`}
               </button>
             </div>
 
             {changingDuration && (
-              <div id="today-duration-options" className="duration-options planner-durations" aria-label="Lesson duration">
+              <div id="today-duration-options" className="duration-options planner-durations" aria-label="Available practice time">
                 {supportedSessionDurations.map((duration) => (
                   <button
                     key={duration}
@@ -495,6 +495,7 @@ export function PlannedLessonExperience({
                 ))}
               </div>
             )}
+            {changingDuration && <p className="provider-note">The core lesson usually takes about 5–8 minutes. A longer window adds due phrase reviews when available; it does not yet add a full 30-minute lesson.</p>}
 
             {overview && (
               <details className="today-reasons">
@@ -597,9 +598,10 @@ export function PlannedLessonExperience({
 
   return (
     <section className="lesson-card planner-card" aria-labelledby="plan-title">
-      <span className="eyebrow">Today’s adaptive plan · {plan.estimatedMinutes} min</span>
+      <span className="eyebrow">Today’s adaptive plan · up to {plan.targetMinutes} min available</span>
       <h2 id="plan-title">Ready for “{plannedLesson?.title ?? "your next lesson"}”?</h2>
       <p className="plan-objective">{plannedLesson?.objective ?? plan.goalFocus}</p>
+      <p className="provider-note">The {plannedLesson?.exercises.length ?? 0}-step core lesson usually takes about 5–8 minutes{plan.reviewExercises.length > 0 ? `, plus ${plan.reviewExercises.length} due phrase review${plan.reviewExercises.length === 1 ? "" : "s"}` : ""}. The longer window is not a promise of a longer lesson yet.</p>
       <div className="plan-primary-actions">
         <button className="primary-button" disabled={creating} onClick={startLesson}>
           {creating ? "Starting your lesson…" : "Start the ready practice"}

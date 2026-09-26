@@ -36,6 +36,15 @@ export const listeningClips = {
     license: "Project-authored",
     attribution: "Spanish Coach",
   },
+  "cafe-con-sin": {
+    id: "cafe-con-sin",
+    text: "Un café con leche, sin azúcar.",
+    locale: "es-ES",
+    rate: 0.9,
+    sourceReference: "internal:mvp-cafe-ordering-v1",
+    license: "Project-authored",
+    attribution: "Spanish Coach",
+  },
   "market-apples": {
     id: "market-apples",
     text: "Un kilo de manzanas cuesta tres euros.",

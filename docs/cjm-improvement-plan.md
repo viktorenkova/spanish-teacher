@@ -25,6 +25,8 @@ Acceptance: a correctly spoken phrase is not rejected because interim or final S
 - [ ] Measure actual time across several lessons and durations, then compare it with the planner's block estimates, exercise count, required stages, and material volume.
 - [ ] Make the displayed duration and the useful learning workload agree; do not add filler simply to meet a timer.
 
+Code audit: a 30-minute plan contains estimated blocks, including provider-pending blocks, but the actual lesson renders only its core exercises and scheduled due reviews. The UI now labels 30 minutes as an available practice window and states the core is usually about 5–8 minutes. Actual timed runs across several lessons and a genuine extended curriculum remain to be done.
+
 Acceptance: a 30-minute choice no longer produces a 5–7-minute lesson without a clear explanation or corrected duration estimate.
 
 ### P1 — New language is tested before it is taught
@@ -32,6 +34,8 @@ Acceptance: a 30-minute choice no longer produces a 5–7-minute lesson without 
 - [ ] Audit each lesson for words or constructions first required in an exercise but not introduced beforehand. The reported café example includes `con` / `sin`, `con leche`, and `sin azúcar`.
 - [ ] Introduce essential language with meaning, a contextual example, optional pronunciation/listening, and a short comprehension check before requiring retrieval or production.
 - [ ] Preserve the progression: contextual objective → introduction → controlled practice → independent use → consolidation.
+
+The café lesson now introduces `con` / `sin` with an English meaning, contextual example, optional audio, and a comprehension question before the listening and spoken order. A full prerequisite audit across the other lessons remains open.
 
 Acceptance: an A1 learner can attempt the café tasks without already knowing language first presented in that same lesson; speaking and listening remain in the lesson. Exact teaching content and sequencing require a learning-methodology decision before implementation.
 

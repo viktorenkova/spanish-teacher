@@ -594,6 +594,33 @@ export const cafeOrderingLesson: LessonExercise[] = [
     retryFeedback: "Choose the answer that names the drink and adds “please”.",
   },
   {
+    id: "understand-cafe-without",
+    learningItem: {
+      id: "construction:cafe-con-sin",
+      kind: "construction",
+      targetText: "Un café con leche, sin azúcar.",
+      supportText: "A coffee with milk, without sugar.",
+      sourceType: "curated",
+      sourceReference: "internal:mvp-cafe-ordering-v1",
+      license: "Project-authored",
+      attribution: "Spanish Coach",
+      qaStatus: "reviewed",
+    },
+    modality: "recognition",
+    listeningClipId: "cafe-con-sin",
+    eyebrow: "Learn before you listen",
+    prompt: "What does the customer want in the coffee?",
+    context: "In a café, con means ‘with’ and sin means ‘without’. For example: ‘Un café con leche, sin azúcar’ means ‘A coffee with milk, without sugar’. Listen if you like, then check your understanding.",
+    options: [
+      { id: "milk-no-sugar", label: "Milk, but no sugar" },
+      { id: "sugar-no-milk", label: "Sugar, but no milk" },
+      { id: "milk-and-sugar", label: "Milk and sugar" },
+    ],
+    correctOptionId: "milk-no-sugar",
+    successFeedback: "Yes. Con leche means with milk; sin azúcar means without sugar.",
+    retryFeedback: "Con means with; sin means without. Look at the example once more.",
+  },
+  {
     id: "listen-cafe-order",
     learningItem: {
       id: "listening:cafe-order-ana",
