@@ -59,7 +59,7 @@ export function CoachShell() {
               Short, calm practice for real conversations — with clear English support whenever you need it.
             </p>
             <ul className="lesson-meta" aria-label="Lesson details">
-              <li><span aria-hidden="true">◷</span> 5–30 minutes</li>
+              <li><span aria-hidden="true">◷</span> About 5–8 minutes per core lesson</li>
               <li><span aria-hidden="true">✦</span> Spain Spanish</li>
               <li><span aria-hidden="true">◌</span> Speak from day one</li>
             </ul>

@@ -25,7 +25,7 @@ Acceptance: a correctly spoken phrase is not rejected because interim or final S
 - [ ] Measure actual time across several lessons and durations, then compare it with the planner's block estimates, exercise count, required stages, and material volume.
 - [ ] Make the displayed duration and the useful learning workload agree; do not add filler simply to meet a timer.
 
-Code audit: a 30-minute plan contains estimated blocks, including provider-pending blocks, but the actual lesson renders only its core exercises and scheduled due reviews. The UI now labels 30 minutes as an available practice window and states the core is usually about 5–8 minutes. Actual timed runs across several lessons and a genuine extended curriculum remain to be done.
+Code audit: a 30-minute plan contains estimated blocks, including provider-pending blocks, but the actual lesson renders only its core exercises and scheduled due reviews. Entry, onboarding, Today, and plan screens now label 30 minutes as available practice time and state the core is usually about 5–8 minutes. Actual timed runs across several lessons and a genuine extended curriculum remain to be done.
 
 Acceptance: a 30-minute choice no longer produces a 5–7-minute lesson without a clear explanation or corrected duration estimate.
 

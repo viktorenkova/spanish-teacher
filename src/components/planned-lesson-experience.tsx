@@ -415,7 +415,7 @@ export function PlannedLessonExperience({
       <section className="lesson-card planner-card" aria-labelledby="planner-title" hidden={Boolean(reviewItems)}>
         <span className="eyebrow">Today</span>
         <h2 id="planner-title">
-          {overview ? `Ready for ${selectedDuration} minutes, ${overview.learner.displayName}?` : "Preparing today’s practice…"}
+          {overview ? `Ready for a short lesson, ${overview.learner.displayName}?` : "Preparing today’s practice…"}
         </h2>
         <p className="support-copy">Your coach uses saved progress to choose what is most useful next.</p>
 
@@ -460,7 +460,7 @@ export function PlannedLessonExperience({
                 <p>{nextLessonObjective}</p>
               </div>
               <dl className="today-snapshot" aria-label="Today’s lesson snapshot">
-                <div><dt>Time</dt><dd>{selectedDuration} min</dd></div>
+                <div><dt>Time available</dt><dd>Up to {selectedDuration} min</dd></div>
                 <div><dt>Level</dt><dd>A1</dd></div>
                 <div><dt>Skills</dt><dd>Listen + speak</dd></div>
               </dl>

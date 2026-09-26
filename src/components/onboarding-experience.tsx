@@ -163,7 +163,7 @@ export function OnboardingExperience({ notice, onCancel, onComplete, onStepChang
                 </select>
               </label>
               <fieldset>
-                <legend>Preferred lesson length</legend>
+                <legend>Time available for practice</legend>
                 <div className="duration-options">
                   {supportedSessionDurations.map((minutes) => (
                     <label key={minutes} className={preferredSessionMinutes === minutes ? "chosen" : ""}>

@@ -9,7 +9,7 @@ test("switches between learner profiles saved in the same browser", async ({ pag
 
   try {
     firstLearnerId = await completeOnboarding(page, firstName);
-    await expect(page.getByRole("heading", { name: `Ready for 10 minutes, ${firstName}?` })).toBeVisible();
+    await expect(page.getByRole("heading", { name: `Ready for a short lesson, ${firstName}?` })).toBeVisible();
     await page.getByRole("button", { name: "Change learner" }).click();
 
     await expect(page.getByRole("heading", { name: "Who is learning today?" })).toBeVisible();
@@ -17,13 +17,13 @@ test("switches between learner profiles saved in the same browser", async ({ pag
     await page.getByRole("button", { name: "Create a new learner profile" }).click();
 
     secondLearnerId = await completeOnboarding(page, secondName, { navigate: false });
-    await expect(page.getByRole("heading", { name: `Ready for 10 minutes, ${secondName}?` })).toBeVisible();
+    await expect(page.getByRole("heading", { name: `Ready for a short lesson, ${secondName}?` })).toBeVisible();
     await page.getByRole("button", { name: "Build today’s lesson" }).click();
     await expect(page.getByRole("heading", { name: /^Ready for/ })).toBeVisible();
     await page.getByRole("button", { name: "Change learner" }).click();
 
     await page.getByRole("button", { name: new RegExp(firstName) }).click();
-    await expect(page.getByRole("heading", { name: `Ready for 10 minutes, ${firstName}?` })).toBeVisible();
+    await expect(page.getByRole("heading", { name: `Ready for a short lesson, ${firstName}?` })).toBeVisible();
   } finally {
     await cleanupLearner(firstName, firstLearnerId);
     await cleanupLearner(secondName, secondLearnerId);
