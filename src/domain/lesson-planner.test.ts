@@ -45,7 +45,7 @@ describe("duration-aware lesson planner", () => {
   });
 
   it("offers home after weather and work/study after home", () => {
-    const completed = Object.fromEntries(lessonKeys.slice(0, -2).map((key) => [
+    const completed = Object.fromEntries(lessonKeys.slice(0, lessonKeys.indexOf("at-home-v1")).map((key) => [
       key, lessonCatalog[key].exercises.map(({ id }) => id),
     ]));
     expect(chooseCurriculumLesson(completed)).toBe("at-home-v1");
@@ -53,6 +53,20 @@ describe("duration-aware lesson planner", () => {
       ...completed,
       "at-home-v1": lessonCatalog["at-home-v1"].exercises.map(({ id }) => id),
     })).toBe("work-study-v1");
+  });
+
+  it("offers neighbourhood, help and invitation in order after work/study", () => {
+    const completed = Object.fromEntries(lessonKeys.slice(0, lessonKeys.indexOf("neighbourhood-v1")).map((key) => [
+      key, lessonCatalog[key].exercises.map(({ id }) => id),
+    ]));
+    expect(chooseCurriculumLesson(completed)).toBe("neighbourhood-v1");
+    for (const [key, next] of [
+      ["neighbourhood-v1", "ask-for-help-v1"],
+      ["ask-for-help-v1", "invite-a-friend-v1"],
+    ] as const) {
+      completed[key] = lessonCatalog[key].exercises.map(({ id }) => id);
+      expect(chooseCurriculumLesson(completed)).toBe(next);
+    }
   });
 
   it("builds the selected curriculum objective into the plan", () => {

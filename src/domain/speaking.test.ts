@@ -14,6 +14,9 @@ import {
   assessWeatherTranscript,
   assessAtHomeTranscript,
   assessWorkStudyTranscript,
+  assessNeighbourhoodTranscript,
+  assessAskForHelpTranscript,
+  assessInviteAFriendTranscript,
   getSpeakingAssessor,
 } from "./speaking";
 
@@ -85,6 +88,9 @@ describe("speaking assessor registry", () => {
     ["weather", assessWeatherTranscript("Hace frío. Tengo frío.")],
     ["at-home", assessAtHomeTranscript("El libro está encima de la mesa.")],
     ["work-study", assessWorkStudyTranscript("Estudio español.")],
+    ["neighbourhood", assessNeighbourhoodTranscript("Hay una panadería cerca de mi casa.")],
+    ["ask-for-help", assessAskForHelpTranscript("No encuentro mi mochila. ¿Me ayudas, por favor?")],
+    ["invite-a-friend", assessInviteAFriendTranscript("¿Quieres venir a mi casa el sábado?")],
   ] as const)("completes the %s A1 task from transcript evidence", (_id, result) => {
     expect(result.complete).toBe(true);
     expect(result.feedback).toContain("Pronunciation was not assessed");
@@ -102,5 +108,26 @@ describe("speaking assessor registry", () => {
     expect(assessWorkStudyTranscript("Estudio español.").complete).toBe(true);
     expect(assessWorkStudyTranscript("Trabajo en casa.").complete).toBe(false);
     expect(assessWorkStudyTranscript("Estudio por la tarde.").complete).toBe(false);
+  });
+
+  it("requires a place and a relation in a neighbourhood description", () => {
+    expect(assessNeighbourhoodTranscript("La farmacia está al lado de la panadería.").complete).toBe(true);
+    expect(assessNeighbourhoodTranscript("Hay una panadería cerca de mi casa.").complete).toBe(true);
+    expect(assessNeighbourhoodTranscript("Hay una panadería.").complete).toBe(false);
+    expect(assessNeighbourhoodTranscript("Está al lado de la farmacia.").complete).toBe(false);
+  });
+
+  it("requires a missing object and a polite request for help", () => {
+    expect(assessAskForHelpTranscript("No encuentro mis llaves. ¿Puedes ayudarme, por favor?").complete).toBe(true);
+    expect(assessAskForHelpTranscript("No encuentro mi mochila.").complete).toBe(false);
+    expect(assessAskForHelpTranscript("¿Me ayudas, por favor?").complete).toBe(false);
+    expect(assessAskForHelpTranscript("No encuentro mi libro. ¿Me ayudas?").complete).toBe(false);
+  });
+
+  it("requires an invitation home and a day or time", () => {
+    expect(assessInviteAFriendTranscript("¿Te apetece venir a mi casa el viernes?").complete).toBe(true);
+    expect(assessInviteAFriendTranscript("¿Quieres venir a mi casa a las seis?").complete).toBe(true);
+    expect(assessInviteAFriendTranscript("¿Quieres venir a mi casa?").complete).toBe(false);
+    expect(assessInviteAFriendTranscript("Puedo el sábado.").complete).toBe(false);
   });
 });

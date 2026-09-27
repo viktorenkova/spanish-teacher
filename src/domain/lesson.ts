@@ -71,6 +71,9 @@ export const lessonKeys = [
   "weather-v1",
   "at-home-v1",
   "work-study-v1",
+  "neighbourhood-v1",
+  "ask-for-help-v1",
+  "invite-a-friend-v1",
 ] as const;
 
 export type LessonKey = (typeof lessonKeys)[number];
@@ -95,7 +98,10 @@ export type LessonDefinition = {
     | "making-plans"
     | "weather"
     | "at-home"
-    | "work-study";
+    | "work-study"
+    | "neighbourhood"
+    | "ask-for-help"
+    | "invite-a-friend";
   title: string;
   objective: string;
   completionTitle: string;
@@ -1474,6 +1480,118 @@ export const workStudyLesson = createCompactLesson({
   },
 });
 
+export const neighbourhoodLesson = createCompactLesson({
+  sourceReference: "internal:a1-neighbourhood-v1",
+  recognition: {
+    id: "meaning-neighbourhood-bakery", itemId: "phrase:bakery-near-home",
+    targetText: "Hay una panadería cerca de mi casa.", supportText: "There is a bakery near my home.",
+    prompt: "What is near the person's home?", context: "A friend describes their neighbourhood.",
+    options: [{ id: "bakery", label: "A bakery" }, { id: "school", label: "A school" }, { id: "park", label: "A park" }],
+    correctOptionId: "bakery", successFeedback: "Yes. ‘Panadería’ is a bakery.",
+    retryFeedback: "Look for ‘panadería’: it is the bakery near the home.",
+  },
+  recall: {
+    id: "retrieve-neighbourhood-next-to", itemId: "construction:bakery-next-to-pharmacy",
+    targetText: "La panadería está al lado de la farmacia.", supportText: "The bakery is next to the pharmacy.",
+    prompt: "Choose the sentence that places the bakery next to the pharmacy.",
+    context: "You explain where the bakery is.",
+    options: [{ id: "next-to", label: "La panadería está al lado de la farmacia." }, { id: "near-home", label: "La panadería está cerca de mi casa." }, { id: "in-pharmacy", label: "La panadería está en la farmacia." }],
+    correctOptionId: "next-to", successFeedback: "Good. ‘Al lado de’ means next to.",
+    retryFeedback: "Choose the sentence with ‘al lado de la farmacia’.",
+  },
+  listening: {
+    id: "listen-neighbourhood-pharmacy", itemId: "listening:pharmacy-next-to-bakery",
+    clipId: "neighbourhood-pharmacy-bakery", targetText: "La farmacia está al lado de la panadería.",
+    supportText: "The pharmacy is next to the bakery.",
+    prompt: "What is next to the bakery?", context: "Play the audio and listen for the first place.",
+    options: [{ id: "pharmacy", label: "The pharmacy" }, { id: "park", label: "The park" }, { id: "school", label: "The school" }],
+    correctOptionId: "pharmacy", successFeedback: "Correct. The pharmacy is next to the bakery.",
+    retryFeedback: "Listen for ‘la farmacia’ before ‘al lado de’.",
+  },
+  speaking: {
+    id: "speak-neighbourhood", itemId: "construction:spoken-neighbourhood-place",
+    targetText: "Hay una panadería cerca de mi casa.", supportText: "Name a nearby place and say where it is.",
+    assessorId: "neighbourhood", prompt: "Name a place near your home and say where it is.",
+    context: "Example: ‘Hay una panadería cerca de mi casa.’ or ‘La farmacia está al lado de la panadería.’",
+    successFeedback: "Task complete: you named a place and described its location.",
+    retryFeedback: "Use ‘Hay… cerca de mi casa’ or ‘Está al lado de…’ with a place.",
+  },
+});
+
+export const askForHelpLesson = createCompactLesson({
+  sourceReference: "internal:a1-ask-for-help-v1",
+  recognition: {
+    id: "meaning-help-missing-bag", itemId: "phrase:missing-my-bag",
+    targetText: "No encuentro mi mochila.", supportText: "I cannot find my bag.",
+    prompt: "What is the problem?", context: "A friend is looking for something at home.",
+    options: [{ id: "missing-bag", label: "They cannot find their bag" }, { id: "heavy-bag", label: "Their bag is heavy" }, { id: "new-bag", label: "They have a new bag" }],
+    correctOptionId: "missing-bag", successFeedback: "Yes. ‘No encuentro’ means I cannot find.",
+    retryFeedback: "Notice ‘No encuentro’: the person cannot find the bag.",
+  },
+  recall: {
+    id: "retrieve-help-polite", itemId: "construction:polite-help-request",
+    targetText: "¿Me ayudas, por favor?", supportText: "Can you help me, please?",
+    prompt: "Choose a polite request for help.", context: "You cannot find your bag.",
+    options: [{ id: "help", label: "¿Me ayudas, por favor?" }, { id: "found", label: "Encuentro mi mochila." }, { id: "location", label: "Está en el dormitorio." }],
+    correctOptionId: "help", successFeedback: "Good. You asked for help politely.",
+    retryFeedback: "Look for ‘Me ayudas’ and ‘por favor’.",
+  },
+  listening: {
+    id: "listen-help-keys", itemId: "listening:missing-keys-help-request",
+    clipId: "help-missing-keys", targetText: "No encuentro mis llaves. ¿Me ayudas, por favor?",
+    supportText: "I cannot find my keys. Can you help me, please?",
+    prompt: "What can the person not find?", context: "Play the audio and listen for the missing item.",
+    options: [{ id: "keys", label: "Their keys" }, { id: "bag", label: "Their bag" }, { id: "book", label: "Their book" }],
+    correctOptionId: "keys", successFeedback: "Correct. ‘Mis llaves’ means my keys.",
+    retryFeedback: "Listen for the item after ‘No encuentro’.",
+  },
+  speaking: {
+    id: "speak-ask-for-help", itemId: "construction:spoken-missing-item-help",
+    targetText: "No encuentro mi mochila. ¿Me ayudas, por favor?", supportText: "Say what is missing and ask politely for help.",
+    assessorId: "ask-for-help", prompt: "Say what you cannot find and ask for help.",
+    context: "Example: ‘No encuentro mi mochila. ¿Me ayudas, por favor?’",
+    successFeedback: "Task complete: you explained the problem and asked for help.",
+    retryFeedback: "Say ‘No encuentro mi…’ and ‘¿Me ayudas, por favor?’",
+  },
+});
+
+export const inviteAFriendLesson = createCompactLesson({
+  sourceReference: "internal:a1-invite-a-friend-v1",
+  recognition: {
+    id: "meaning-invite-home", itemId: "phrase:invite-home-saturday",
+    targetText: "¿Quieres venir a mi casa el sábado?", supportText: "Do you want to come to my home on Saturday?",
+    prompt: "What does the person suggest?", context: "You are arranging a simple plan with a friend.",
+    options: [{ id: "visit", label: "Come to their home on Saturday" }, { id: "work", label: "Work on Saturday" }, { id: "leave", label: "Leave home on Saturday" }],
+    correctOptionId: "visit", successFeedback: "Correct. They invite a friend to their home.",
+    retryFeedback: "‘Quieres venir a mi casa’ is an invitation to come home.",
+  },
+  recall: {
+    id: "retrieve-invite-saturday", itemId: "construction:invite-home-saturday",
+    targetText: "¿Quieres venir a mi casa el sábado?", supportText: "Invite a friend to your home on Saturday.",
+    prompt: "Choose an invitation for Saturday.", context: "You want a friend to visit your home.",
+    options: [{ id: "invite", label: "¿Quieres venir a mi casa el sábado?" }, { id: "decline", label: "Lo siento, no puedo el sábado." }, { id: "work", label: "Trabajo en casa el sábado." }],
+    correctOptionId: "invite", successFeedback: "Good. That is a clear invitation with a day.",
+    retryFeedback: "Choose the question beginning ‘¿Quieres venir…?’",
+  },
+  listening: {
+    id: "listen-invite-decline", itemId: "listening:decline-invitation",
+    clipId: "invite-polite-decline", targetText: "Lo siento, no puedo el sábado.",
+    supportText: "Sorry, I cannot on Saturday.",
+    prompt: "Can the friend come on Saturday?", context: "Play the reply and decide if the friend can come.",
+    options: [{ id: "no", label: "No, they cannot" }, { id: "yes", label: "Yes, they can" }, { id: "unsure", label: "They have not answered" }],
+    correctOptionId: "no", successFeedback: "Correct. ‘No puedo’ means I cannot.",
+    retryFeedback: "Listen for ‘no puedo’: it is a polite refusal.",
+  },
+  speaking: {
+    id: "speak-invite-a-friend", itemId: "construction:spoken-home-invitation",
+    targetText: "¿Quieres venir a mi casa el sábado?", supportText: "Invite a friend home and name a day or time.",
+    assessorId: "invite-a-friend", prompt: "Invite a friend to your home on a day or at a time.",
+    context: "Example: ‘¿Quieres venir a mi casa el sábado?’",
+    successFeedback: "Task complete: you invited someone home and gave a day or time.",
+    retryFeedback: "Ask ‘¿Quieres venir a mi casa…?’ and add a day or time.",
+  },
+});
+
 const lessonTeachingModules: Record<LessonKey, LessonTeachingModule[]> = {
   "introductions-v1": [{
     id: "first-meeting", beforeExerciseId: "meaning-encantada",
@@ -1630,6 +1748,35 @@ const lessonTeachingModules: Record<LessonKey, LessonTeachingModule[]> = {
       { spanish: "Por la tarde", english: "In the afternoon." },
     ],
     example: { spanish: "Trabajo en un hospital y estudio español por la tarde.", english: "I work in a hospital and study Spanish in the afternoon." },
+  }],
+  "neighbourhood-v1": [{
+    id: "nearby-places", beforeExerciseId: "meaning-neighbourhood-bakery",
+    focus: "Say what is near your home and where a place is.",
+    phrases: [
+      { spanish: "Hay una panadería cerca de mi casa.", english: "There is a bakery near my home." },
+      { spanish: "La farmacia está al lado de la panadería.", english: "The pharmacy is next to the bakery." },
+    ],
+    example: { spanish: "Hay una panadería cerca de mi casa. La farmacia está al lado de la panadería.", english: "There is a bakery near my home. The pharmacy is next to the bakery." },
+  }],
+  "ask-for-help-v1": [{
+    id: "missing-item-and-help", beforeExerciseId: "meaning-help-missing-bag",
+    focus: "Say what you cannot find and ask for help.",
+    phrases: [
+      { spanish: "No encuentro mi mochila.", english: "I cannot find my bag." },
+      { spanish: "No encuentro mis llaves.", english: "I cannot find my keys." },
+      { spanish: "¿Me ayudas, por favor?", english: "Can you help me, please?" },
+    ],
+    example: { spanish: "No encuentro mis llaves. ¿Me ayudas, por favor?", english: "I cannot find my keys. Can you help me, please?" },
+  }],
+  "invite-a-friend-v1": [{
+    id: "invitation-and-reply", beforeExerciseId: "meaning-invite-home",
+    focus: "Invite a friend home and understand their answer.",
+    phrases: [
+      { spanish: "¿Quieres venir a mi casa el sábado?", english: "Do you want to come to my home on Saturday?" },
+      { spanish: "Sí, puedo.", english: "Yes, I can." },
+      { spanish: "Lo siento, no puedo.", english: "Sorry, I cannot." },
+    ],
+    example: { spanish: "¿Quieres venir a mi casa el sábado? Lo siento, no puedo.", english: "Do you want to come to my home on Saturday? Sorry, I cannot." },
   }],
 };
 
@@ -1863,6 +2010,42 @@ export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
       progressionReason: "Talking about your home is complete, so the path adds simple work and study conversation.",
     },
     exercises: workStudyLesson, teachingModules: lessonTeachingModules["work-study-v1"],
+  },
+  "neighbourhood-v1": {
+    key: "neighbourhood-v1", topic: "neighbourhood", title: "Find places near home",
+    objective: "Name a place near home and say where it is.",
+    completionTitle: "You can describe a place near home.",
+    completionSummary: "You used hay and al lado de, listened for a place, and described your neighbourhood.",
+    planner: {
+      listeningObjective: "Recognise which nearby place a speaker describes.",
+      speakingTitle: "Describe a nearby place", speakingObjective: "Name a place and say where it is.",
+      progressionReason: "Work and study is complete, so the path adds useful places near home.",
+    },
+    exercises: neighbourhoodLesson, teachingModules: lessonTeachingModules["neighbourhood-v1"],
+  },
+  "ask-for-help-v1": {
+    key: "ask-for-help-v1", topic: "ask-for-help", title: "Ask for help",
+    objective: "Say what you cannot find and ask for help politely.",
+    completionTitle: "You can ask for help with a missing item.",
+    completionSummary: "You explained a small problem, listened for a missing item, and made a polite request.",
+    planner: {
+      listeningObjective: "Recognise the missing item in a short request.",
+      speakingTitle: "Ask for help politely", speakingObjective: "Say what is missing and ask for help.",
+      progressionReason: "Nearby places are complete, so the path adds a practical request for help.",
+    },
+    exercises: askForHelpLesson, teachingModules: lessonTeachingModules["ask-for-help-v1"],
+  },
+  "invite-a-friend-v1": {
+    key: "invite-a-friend-v1", topic: "invite-a-friend", title: "Invite a friend home",
+    objective: "Invite a friend home for a specific day or time.",
+    completionTitle: "You can make a simple invitation.",
+    completionSummary: "You invited someone home and understood a polite yes or no in Spanish.",
+    planner: {
+      listeningObjective: "Distinguish an acceptance from a polite refusal.",
+      speakingTitle: "Invite a friend", speakingObjective: "Invite a friend home and give a day or time.",
+      progressionReason: "Asking for help is complete, so the path adds a friendly invitation.",
+    },
+    exercises: inviteAFriendLesson, teachingModules: lessonTeachingModules["invite-a-friend-v1"],
   },
 };
 

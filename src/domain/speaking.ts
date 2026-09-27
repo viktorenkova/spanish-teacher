@@ -31,6 +31,12 @@ export type SpeakingAssessment = {
     | "home_location"
     | "work_or_study"
     | "workplace_or_subject"
+    | "nearby_place"
+    | "place_relation"
+    | "missing_item"
+    | "help_request"
+    | "invitation"
+    | "invitation_day"
   >;
   feedback: string;
   version:
@@ -47,7 +53,10 @@ export type SpeakingAssessment = {
     | "making-plans-task-v1"
     | "weather-task-v1"
     | "at-home-task-v1"
-    | "work-study-task-v1";
+    | "work-study-task-v1"
+    | "neighbourhood-task-v1"
+    | "ask-for-help-task-v1"
+    | "invite-a-friend-task-v1";
 };
 
 export type SpeakingAssessorId =
@@ -64,7 +73,10 @@ export type SpeakingAssessorId =
   | "making-plans"
   | "weather"
   | "at-home"
-  | "work-study";
+  | "work-study"
+  | "neighbourhood"
+  | "ask-for-help"
+  | "invite-a-friend";
 
 export type SpeakingAssessor = (transcript: string) => SpeakingAssessment;
 
@@ -377,6 +389,59 @@ export function assessWorkStudyTranscript(transcript: string): SpeakingAssessmen
   };
 }
 
+export function assessNeighbourhoodTranscript(transcript: string): SpeakingAssessment {
+  const normalized = normalizeTranscript(transcript);
+  const place = /\b(panaderia|farmacia|parque|supermercado|escuela|tienda|cafe)\b/.test(normalized);
+  const relation = /\b(cerca de (mi casa|la casa|la farmacia|el parque)|al lado de (la farmacia|la panaderia|el parque|mi casa|la escuela))\b/.test(normalized);
+  const location = /\bhay\s+(una?|el|la)\s+\w+\s+cerca de\b/.test(normalized)
+    || /\b(el|la) (panaderia|farmacia|parque|supermercado|escuela|tienda|cafe) esta al lado de\b/.test(normalized);
+  const complete = place && relation && location;
+  const matchedSignals: SpeakingAssessment["matchedSignals"] = [];
+  if (place) matchedSignals.push("nearby_place");
+  if (relation && location) matchedSignals.push("place_relation");
+  return {
+    complete, matchedSignals,
+    feedback: complete
+      ? "Task complete: you named a place and said where it is. Pronunciation was not assessed."
+      : "Try again: name a nearby place and say ‘Hay… cerca de mi casa’ or ‘Está al lado de…’. The transcript may need correction.",
+    version: "neighbourhood-task-v1",
+  };
+}
+
+export function assessAskForHelpTranscript(transcript: string): SpeakingAssessment {
+  const normalized = normalizeTranscript(transcript);
+  const missing = /\bno encuentro\s+(mi|mis|el|la|un|una)\s+(mochila|libro|llaves|bolso|telefono|movil)\b/.test(normalized);
+  const request = /\b(me ayudas|puedes ayudarme|puede ayudarme)\b/.test(normalized)
+    && /\bpor favor\b/.test(normalized);
+  const matchedSignals: SpeakingAssessment["matchedSignals"] = [];
+  if (missing) matchedSignals.push("missing_item");
+  if (request) matchedSignals.push("help_request");
+  return {
+    complete: missing && request, matchedSignals,
+    feedback: missing && request
+      ? "Task complete: you explained the problem and asked politely for help. Pronunciation was not assessed."
+      : "Try again: say ‘No encuentro mi…’ and ask ‘¿Me ayudas, por favor?’ or ‘¿Puedes ayudarme, por favor?’. The transcript may need correction.",
+    version: "ask-for-help-task-v1",
+  };
+}
+
+export function assessInviteAFriendTranscript(transcript: string): SpeakingAssessment {
+  const normalized = normalizeTranscript(transcript);
+  const invitation = /\b(quieres|te apetece) venir a mi casa\b/.test(normalized);
+  const day = /\b(el )?(lunes|martes|miercoles|jueves|viernes|sabado|domingo)\b/.test(normalized)
+    || /\b(a las (cinco|seis|siete|ocho))\b/.test(normalized);
+  const matchedSignals: SpeakingAssessment["matchedSignals"] = [];
+  if (invitation) matchedSignals.push("invitation");
+  if (day) matchedSignals.push("invitation_day");
+  return {
+    complete: invitation && day, matchedSignals,
+    feedback: invitation && day
+      ? "Task complete: you invited someone home and gave a day or time. Pronunciation was not assessed."
+      : "Try again: invite a friend with ‘¿Quieres venir a mi casa…?’ and add a day or time. The transcript may need correction.",
+    version: "invite-a-friend-task-v1",
+  };
+}
+
 export const speakingAssessors: Record<SpeakingAssessorId, SpeakingAssessor> = {
   introduction: assessIntroductionTranscript,
   "morning-routine": assessMorningRoutineTranscript,
@@ -392,6 +457,9 @@ export const speakingAssessors: Record<SpeakingAssessorId, SpeakingAssessor> = {
   weather: assessWeatherTranscript,
   "at-home": assessAtHomeTranscript,
   "work-study": assessWorkStudyTranscript,
+  neighbourhood: assessNeighbourhoodTranscript,
+  "ask-for-help": assessAskForHelpTranscript,
+  "invite-a-friend": assessInviteAFriendTranscript,
 };
 
 export function getSpeakingAssessor(id: SpeakingAssessorId): SpeakingAssessor {

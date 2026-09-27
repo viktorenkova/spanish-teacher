@@ -67,13 +67,38 @@ describe("lesson progress", () => {
   });
 
   it("adds home and work/study after weather without changing previous lesson order", () => {
-    expect(lessonKeys.slice(-3)).toEqual(["weather-v1", "at-home-v1", "work-study-v1"]);
+    expect(lessonKeys.slice(11, 14)).toEqual(["weather-v1", "at-home-v1", "work-study-v1"]);
     for (const key of ["at-home-v1", "work-study-v1"] as const) {
       const lesson = lessonCatalog[key];
       expect(lesson.exercises.map(({ modality }) => modality))
         .toEqual(["recognition", "recall", "listening", "production"]);
       expect(lessonTeachingSequenceIssues(lesson)).toEqual([]);
     }
+  });
+
+  it("teaches and checks all three new A1 situations after work/study", () => {
+    expect(lessonKeys.slice(-4)).toEqual([
+      "work-study-v1", "neighbourhood-v1", "ask-for-help-v1", "invite-a-friend-v1",
+    ]);
+    for (const key of lessonKeys.slice(-3)) {
+      const lesson = lessonCatalog[key];
+      expect(lesson.exercises.map(({ modality }) => modality)).toEqual([
+        "recognition", "recall", "listening", "production",
+      ]);
+      expect(lessonTeachingSequenceIssues(lesson)).toEqual([]);
+      expect(lesson.exercises[2].listeningClipId).toBeTruthy();
+      expect(getListeningClip(lesson.exercises[2].listeningClipId ?? "")?.locale).toBe("es-ES");
+      for (const exercise of lesson.exercises) {
+        expect(exercise.learningItem.sourceReference).toContain(key);
+        expect(exercise.learningItem.qaStatus).toBe("reviewed");
+      }
+    }
+  });
+
+  it("keeps exercise and learning-item IDs unique across the catalogue", () => {
+    const exercises = Object.values(lessonCatalog).flatMap(({ exercises }) => exercises);
+    expect(new Set(exercises.map(({ id }) => id)).size).toBe(exercises.length);
+    expect(new Set(exercises.map(({ learningItem }) => learningItem.id)).size).toBe(exercises.length);
   });
 
   it("detects missing or late teaching before a recall exercise", () => {

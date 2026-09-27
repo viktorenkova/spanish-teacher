@@ -18,6 +18,9 @@ The deterministic A1 curriculum path is:
 12. Talking about the weather.
 13. Finding everyday things at home.
 14. Talking about work and study.
+15. Finding places near home.
+16. Asking for help with a missing item.
+17. Inviting a friend home and understanding the reply.
 
 The next topic unlocks only when every core exercise in the current topic has
 successful evidence. Each topic retains recognition, active retrieval,

@@ -140,6 +140,24 @@ export const listeningClips = {
     sourceReference: "internal:a1-work-study-v1",
     license: "Project-authored", attribution: "Spanish Coach",
   },
+  "neighbourhood-pharmacy-bakery": {
+    id: "neighbourhood-pharmacy-bakery", text: "La farmacia está al lado de la panadería.",
+    locale: "es-ES", rate: 0.9,
+    sourceReference: "internal:a1-neighbourhood-v1",
+    license: "Project-authored", attribution: "Spanish Coach",
+  },
+  "help-missing-keys": {
+    id: "help-missing-keys", text: "No encuentro mis llaves. ¿Me ayudas, por favor?",
+    locale: "es-ES", rate: 0.9,
+    sourceReference: "internal:a1-ask-for-help-v1",
+    license: "Project-authored", attribution: "Spanish Coach",
+  },
+  "invite-polite-decline": {
+    id: "invite-polite-decline", text: "Lo siento, no puedo el sábado.",
+    locale: "es-ES", rate: 0.9,
+    sourceReference: "internal:a1-invite-a-friend-v1",
+    license: "Project-authored", attribution: "Spanish Coach",
+  },
 } as const satisfies Record<string, ListeningClip>;
 
 export type ListeningClipId = keyof typeof listeningClips;

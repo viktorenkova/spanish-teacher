@@ -120,6 +120,9 @@ async function openNewLesson(page: Page, lessonKey: LessonKey, width: number) {
 for (const { lessonKey, width, answer } of [
   { lessonKey: "at-home-v1" as const, width: 1280, answer: "El libro está encima de la mesa." },
   { lessonKey: "work-study-v1" as const, width: 390, answer: "Estudio español." },
+  { lessonKey: "neighbourhood-v1" as const, width: 1280, answer: "Hay una panadería cerca de mi casa." },
+  { lessonKey: "ask-for-help-v1" as const, width: 390, answer: "No encuentro mi mochila. ¿Me ayudas, por favor?" },
+  { lessonKey: "invite-a-friend-v1" as const, width: 1280, answer: "¿Quieres venir a mi casa el sábado?" },
 ]) {
   test(`${lessonKey} runs from teaching through completion at ${width}px`, async ({ page }) => {
     const lesson = await openNewLesson(page, lessonKey, width);
