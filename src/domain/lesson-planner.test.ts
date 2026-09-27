@@ -44,6 +44,17 @@ describe("duration-aware lesson planner", () => {
     })).toBe("cafe-ordering-v1");
   });
 
+  it("offers home after weather and work/study after home", () => {
+    const completed = Object.fromEntries(lessonKeys.slice(0, -2).map((key) => [
+      key, lessonCatalog[key].exercises.map(({ id }) => id),
+    ]));
+    expect(chooseCurriculumLesson(completed)).toBe("at-home-v1");
+    expect(chooseCurriculumLesson({
+      ...completed,
+      "at-home-v1": lessonCatalog["at-home-v1"].exercises.map(({ id }) => id),
+    })).toBe("work-study-v1");
+  });
+
   it("builds the selected curriculum objective into the plan", () => {
     const plan = buildLessonPlan({
       targetMinutes: 10,

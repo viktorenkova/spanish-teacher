@@ -12,6 +12,8 @@ import {
   assessShoppingTranscript,
   assessTransportTranscript,
   assessWeatherTranscript,
+  assessAtHomeTranscript,
+  assessWorkStudyTranscript,
   getSpeakingAssessor,
 } from "./speaking";
 
@@ -81,8 +83,24 @@ describe("speaking assessor registry", () => {
     ["free-time", assessFreeTimeTranscript("A veces leo por la tarde.")],
     ["making-plans", assessMakingPlansTranscript("Puedo el sábado. Quedamos a las seis.")],
     ["weather", assessWeatherTranscript("Hace frío. Tengo frío.")],
+    ["at-home", assessAtHomeTranscript("El libro está encima de la mesa.")],
+    ["work-study", assessWorkStudyTranscript("Estudio español.")],
   ] as const)("completes the %s A1 task from transcript evidence", (_id, result) => {
     expect(result.complete).toBe(true);
     expect(result.feedback).toContain("Pronunciation was not assessed");
+  });
+
+  it("requires an object and a complete home location", () => {
+    expect(assessAtHomeTranscript("El libro está encima de la mesa.").complete).toBe(true);
+    expect(assessAtHomeTranscript("La mochila está en el dormitorio.").complete).toBe(true);
+    expect(assessAtHomeTranscript("El libro está.").complete).toBe(false);
+    expect(assessAtHomeTranscript("Está encima de la mesa.").complete).toBe(false);
+  });
+
+  it("requires a workplace for work or a subject for study", () => {
+    expect(assessWorkStudyTranscript("Trabajo en un hospital.").complete).toBe(true);
+    expect(assessWorkStudyTranscript("Estudio español.").complete).toBe(true);
+    expect(assessWorkStudyTranscript("Trabajo en casa.").complete).toBe(false);
+    expect(assessWorkStudyTranscript("Estudio por la tarde.").complete).toBe(false);
   });
 });

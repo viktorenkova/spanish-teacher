@@ -126,6 +126,20 @@ export const listeningClips = {
     license: "Project-authored",
     attribution: "Spanish Coach",
   },
+  "home-book-bedroom": {
+    id: "home-book-bedroom",
+    text: "El libro está en el dormitorio, encima de la mesa.",
+    locale: "es-ES", rate: 0.9,
+    sourceReference: "internal:a1-at-home-v1",
+    license: "Project-authored", attribution: "Spanish Coach",
+  },
+  "work-hospital-study-spanish": {
+    id: "work-hospital-study-spanish",
+    text: "Trabajo en un hospital y estudio español por la tarde.",
+    locale: "es-ES", rate: 0.9,
+    sourceReference: "internal:a1-work-study-v1",
+    license: "Project-authored", attribution: "Spanish Coach",
+  },
 } as const satisfies Record<string, ListeningClip>;
 
 export type ListeningClipId = keyof typeof listeningClips;

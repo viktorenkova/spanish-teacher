@@ -69,6 +69,8 @@ export const lessonKeys = [
   "free-time-v1",
   "making-plans-v1",
   "weather-v1",
+  "at-home-v1",
+  "work-study-v1",
 ] as const;
 
 export type LessonKey = (typeof lessonKeys)[number];
@@ -91,7 +93,9 @@ export type LessonDefinition = {
     | "family"
     | "free-time"
     | "making-plans"
-    | "weather";
+    | "weather"
+    | "at-home"
+    | "work-study";
   title: string;
   objective: string;
   completionTitle: string;
@@ -1389,6 +1393,87 @@ export const weatherLesson = createCompactLesson({
   },
 });
 
+export const atHomeLesson = createCompactLesson({
+  sourceReference: "internal:a1-at-home-v1",
+  recognition: {
+    id: "meaning-at-home-book", itemId: "phrase:book-on-table",
+    targetText: "El libro está encima de la mesa.", supportText: "The book is on the table.",
+    prompt: "Where is the book?", context: "You are helping a friend find a book at home.",
+    options: [{ id: "on-table", label: "On the table" }, { id: "under-table", label: "Under the table" }, { id: "in-bedroom", label: "In the bedroom" }],
+    correctOptionId: "on-table",
+    successFeedback: "Correct. ‘Encima de la mesa’ means on the table.",
+    retryFeedback: "Look for ‘encima de’: it tells you the book is on top of something.",
+  },
+  recall: {
+    id: "retrieve-at-home-bag", itemId: "construction:bag-under-table",
+    targetText: "La mochila está debajo de la mesa.", supportText: "The bag is under the table.",
+    prompt: "Choose the sentence that says the bag is under the table.",
+    context: "Someone asks where their bag is.",
+    options: [{ id: "under", label: "La mochila está debajo de la mesa." }, { id: "on", label: "La mochila está encima de la mesa." }, { id: "bedroom", label: "La mochila está en el dormitorio." }],
+    correctOptionId: "under",
+    successFeedback: "Good. ‘Debajo de’ means under.",
+    retryFeedback: "Use ‘debajo de’ for under.",
+  },
+  listening: {
+    id: "listen-at-home-bedroom", itemId: "listening:book-in-bedroom",
+    clipId: "home-book-bedroom", targetText: "El libro está en el dormitorio, encima de la mesa.",
+    supportText: "The book is in the bedroom, on the table.",
+    prompt: "Which room is the book in?", context: "Play the audio and listen for the room.",
+    options: [{ id: "bedroom", label: "The bedroom" }, { id: "kitchen", label: "The kitchen" }, { id: "bathroom", label: "The bathroom" }],
+    correctOptionId: "bedroom",
+    successFeedback: "Correct. You heard ‘en el dormitorio’.",
+    retryFeedback: "Listen again for the room after ‘en el’.",
+  },
+  speaking: {
+    id: "speak-at-home", itemId: "construction:spoken-at-home-location",
+    targetText: "El libro está en el dormitorio.", supportText: "Say where an object is at home.",
+    assessorId: "at-home", prompt: "Say where a book or bag is at home.",
+    context: "Example: ‘El libro está encima de la mesa.’ or ‘La mochila está en el dormitorio.’",
+    successFeedback: "Task complete: you named an object and said where it is.",
+    retryFeedback: "Try again with ‘El libro está…’ or ‘La mochila está…’ and a place.",
+  },
+});
+
+export const workStudyLesson = createCompactLesson({
+  sourceReference: "internal:a1-work-study-v1",
+  recognition: {
+    id: "meaning-work-school", itemId: "phrase:work-in-school",
+    targetText: "Trabajo en una escuela.", supportText: "I work in a school.",
+    prompt: "What does the person say?", context: "You meet someone and ask about their day.",
+    options: [{ id: "work", label: "They work in a school" }, { id: "study", label: "They study in a school" }, { id: "live", label: "They live in a school" }],
+    correctOptionId: "work",
+    successFeedback: "Correct. ‘Trabajo’ means I work.",
+    retryFeedback: "‘Trabajo’ tells you the person works there.",
+  },
+  recall: {
+    id: "retrieve-study-spanish", itemId: "construction:study-spanish",
+    targetText: "Estudio español.", supportText: "I study Spanish.",
+    prompt: "Choose the natural way to say you study Spanish.", context: "A new friend asks what you study.",
+    options: [{ id: "study", label: "Estudio español." }, { id: "work", label: "Trabajo español." }, { id: "place", label: "Estoy español." }],
+    correctOptionId: "study",
+    successFeedback: "Good. ‘Estudio’ means I study.",
+    retryFeedback: "Choose the sentence beginning with ‘Estudio’.",
+  },
+  listening: {
+    id: "listen-work-hospital", itemId: "listening:work-hospital-study-spanish",
+    clipId: "work-hospital-study-spanish", targetText: "Trabajo en un hospital y estudio español por la tarde.",
+    supportText: "I work in a hospital and study Spanish in the afternoon.",
+    prompt: "Where does the person work?", context: "Play the audio and listen for the workplace.",
+    options: [{ id: "hospital", label: "In a hospital" }, { id: "school", label: "In a school" }, { id: "hotel", label: "In a hotel" }],
+    correctOptionId: "hospital",
+    successFeedback: "Correct. You heard ‘trabajo en un hospital’.",
+    retryFeedback: "Listen for the place after ‘trabajo en’.",
+  },
+  speaking: {
+    id: "speak-work-study", itemId: "construction:spoken-work-study",
+    targetText: "Trabajo en… / Estudio…", supportText: "Say what you do and add a workplace or subject.",
+    assessorId: "work-study", prompt: "Say where you work or what you study.",
+    context: "Example: ‘Trabajo en una escuela.’ or ‘Estudio español.’",
+    successFeedback: "Task complete: you said what you do and added a place or subject.",
+    retryFeedback: "Try ‘Trabajo en…’ with a workplace or ‘Estudio…’ with a subject.",
+  },
+});
+
 const lessonTeachingModules: Record<LessonKey, LessonTeachingModule[]> = {
   "introductions-v1": [{
     id: "first-meeting", beforeExerciseId: "meaning-encantada",
@@ -1524,6 +1609,27 @@ const lessonTeachingModules: Record<LessonKey, LessonTeachingModule[]> = {
       { spanish: "Tengo frío.", english: "I feel cold." },
     ],
     example: { spanish: "Hace frío. Tengo frío.", english: "It is cold. I feel cold." },
+  }],
+  "at-home-v1": [{
+    id: "home-objects-and-place", beforeExerciseId: "meaning-at-home-book",
+    focus: "Name a familiar object and say where it is at home.",
+    phrases: [
+      { spanish: "El libro está encima de la mesa.", english: "The book is on the table." },
+      { spanish: "La mochila está debajo de la mesa.", english: "The bag is under the table." },
+      { spanish: "En el dormitorio", english: "In the bedroom." },
+    ],
+    example: { spanish: "El libro está en el dormitorio, encima de la mesa.", english: "The book is in the bedroom, on the table." },
+  }],
+  "work-study-v1": [{
+    id: "workplace-and-subject", beforeExerciseId: "meaning-work-school",
+    focus: "Tell someone where you work or what you study.",
+    phrases: [
+      { spanish: "Trabajo en una escuela.", english: "I work in a school." },
+      { spanish: "Trabajo en un hospital.", english: "I work in a hospital." },
+      { spanish: "Estudio español.", english: "I study Spanish." },
+      { spanish: "Por la tarde", english: "In the afternoon." },
+    ],
+    example: { spanish: "Trabajo en un hospital y estudio español por la tarde.", english: "I work in a hospital and study Spanish in the afternoon." },
   }],
 };
 
@@ -1731,6 +1837,32 @@ export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
     },
     exercises: weatherLesson,
     teachingModules: lessonTeachingModules["weather-v1"],
+  },
+  "at-home-v1": {
+    key: "at-home-v1", topic: "at-home", title: "Find things at home",
+    objective: "Say where a familiar object is in a room.",
+    completionTitle: "You can say where something is at home.",
+    completionSummary: "You practised encima de, debajo de, listened for a room, and described an object's location.",
+    planner: {
+      listeningObjective: "Recognise a room and an object's location in a short sentence.",
+      speakingTitle: "Describe an object's place",
+      speakingObjective: "Name an object and say where it is.",
+      progressionReason: "Weather is complete, so the path adds useful language for finding things at home.",
+    },
+    exercises: atHomeLesson, teachingModules: lessonTeachingModules["at-home-v1"],
+  },
+  "work-study-v1": {
+    key: "work-study-v1", topic: "work-study", title: "Talk about work and study",
+    objective: "Say where you work or what you study.",
+    completionTitle: "You can give a simple work or study detail.",
+    completionSummary: "You practised trabajo and estudio, listened for a workplace, and shared a work or study detail.",
+    planner: {
+      listeningObjective: "Recognise a workplace in a short personal description.",
+      speakingTitle: "Share what you do",
+      speakingObjective: "Say you work or study and add a place or subject.",
+      progressionReason: "Talking about your home is complete, so the path adds simple work and study conversation.",
+    },
+    exercises: workStudyLesson, teachingModules: lessonTeachingModules["work-study-v1"],
   },
 };
 

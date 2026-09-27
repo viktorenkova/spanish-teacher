@@ -8,6 +8,7 @@ import {
   introductionLesson,
   lessonCatalog,
   lessonTeachingSequenceIssues,
+  lessonKeys,
   recordAnswer,
 } from "./lesson";
 import { getListeningClip } from "./listening";
@@ -62,6 +63,16 @@ describe("lesson progress", () => {
     for (const lesson of Object.values(lessonCatalog)) {
       expect(lessonTeachingSequenceIssues(lesson), lesson.key).toEqual([]);
       expect(lesson.teachingModules[0].beforeExerciseId).toBe(lesson.exercises[0].id);
+    }
+  });
+
+  it("adds home and work/study after weather without changing previous lesson order", () => {
+    expect(lessonKeys.slice(-3)).toEqual(["weather-v1", "at-home-v1", "work-study-v1"]);
+    for (const key of ["at-home-v1", "work-study-v1"] as const) {
+      const lesson = lessonCatalog[key];
+      expect(lesson.exercises.map(({ modality }) => modality))
+        .toEqual(["recognition", "recall", "listening", "production"]);
+      expect(lessonTeachingSequenceIssues(lesson)).toEqual([]);
     }
   });
 

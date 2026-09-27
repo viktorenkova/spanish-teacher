@@ -1,4 +1,4 @@
-# Teach-before-test audit · 26 September 2026
+# Teach-before-test audit · updated 27 September 2026
 
 Every current A1 lesson now has a short teaching module before its first recognition question. The module shows useful Spanish with English meanings, a contextual example, and optional Spanish playback. The recognition question directly below it is the first comprehension check. The café lesson has a second module before `con/sin` is checked and used in listening. These are teaching steps, not new scored exercises; existing session progress and review scheduling keep their meanings.
 
@@ -16,5 +16,7 @@ Every current A1 lesson now has a short teaching module before its first recogni
 | Free time | `a veces`, `leo`, `los fines de semana`, `corro por la mañana` | Free-time activity |
 | Making plans | `¿Te va bien?`, `puedo`, `quedamos`, `a las seis` | Asking if Saturday works |
 | Weather | `hace frío`, `hace sol`, `tengo frío` | Meaning of `hace frío` |
+| At home | `está encima de`, `está debajo de`, `en el dormitorio` | Location of the book |
+| Work and study | `trabajo en`, `estudio español`, `por la tarde` | Meaning of `trabajo en una escuela` |
 
 The structural test checks module order, a valid recognition check, and introduction before recall, listening, or speaking. It cannot prove that every unfamiliar detail in a dialogue has been taught; future lesson reviews must still inspect the actual target language and the learner's prior curriculum. Incidental words that are not needed to answer may remain in context or audio as natural exposure. Full learner-paced browser QA still needs a database-backed environment.

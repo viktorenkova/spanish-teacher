@@ -27,6 +27,10 @@ export type SpeakingAssessment = {
     | "plan_time"
     | "weather_condition"
     | "weather_feeling"
+    | "home_object"
+    | "home_location"
+    | "work_or_study"
+    | "workplace_or_subject"
   >;
   feedback: string;
   version:
@@ -41,7 +45,9 @@ export type SpeakingAssessment = {
     | "family-task-v1"
     | "free-time-task-v1"
     | "making-plans-task-v1"
-    | "weather-task-v1";
+    | "weather-task-v1"
+    | "at-home-task-v1"
+    | "work-study-task-v1";
 };
 
 export type SpeakingAssessorId =
@@ -56,7 +62,9 @@ export type SpeakingAssessorId =
   | "family"
   | "free-time"
   | "making-plans"
-  | "weather";
+  | "weather"
+  | "at-home"
+  | "work-study";
 
 export type SpeakingAssessor = (transcript: string) => SpeakingAssessment;
 
@@ -332,6 +340,43 @@ export function assessWeatherTranscript(transcript: string): SpeakingAssessment 
   };
 }
 
+export function assessAtHomeTranscript(transcript: string): SpeakingAssessment {
+  const normalized = normalizeTranscript(transcript);
+  const hasObject = /\b(libro|mochila|bolso|telefono|movil|llaves)\b/.test(normalized);
+  const hasLocation = /\b(esta|estan)\s+(en|encima de|debajo de|sobre|al lado de)\s+(el|la|un|una)\s+(dormitorio|cocina|salon|bano|mesa|silla|habitacion|cama)\b/.test(normalized);
+  const matchedSignals: SpeakingAssessment["matchedSignals"] = [];
+  if (hasObject) matchedSignals.push("home_object");
+  if (hasLocation) matchedSignals.push("home_location");
+  return {
+    complete: hasObject && hasLocation,
+    matchedSignals,
+    feedback: hasObject && hasLocation
+      ? "Task complete: you named an object and gave its location. Pronunciation was not assessed."
+      : "Try again: name a book, bag, or another object and say ‘está en/encima de/debajo de…’.",
+    version: "at-home-task-v1",
+  };
+}
+
+export function assessWorkStudyTranscript(transcript: string): SpeakingAssessment {
+  const normalized = normalizeTranscript(transcript);
+  const hasWork = /\b(trabajo|trabajamos)\s+en\b/.test(normalized);
+  const hasStudy = /\b(estudio|estudiamos)\b/.test(normalized);
+  const hasWorkplace = /\b(escuela|hospital|hotel|tienda|oficina|restaurante|cafe|universidad)\b/.test(normalized);
+  const hasSubject = /\b(espanol|ingles|frances|medicina|historia|matematicas|arte)\b/.test(normalized);
+  const complete = (hasWork && hasWorkplace) || (hasStudy && hasSubject);
+  const matchedSignals: SpeakingAssessment["matchedSignals"] = [];
+  if (hasWork || hasStudy) matchedSignals.push("work_or_study");
+  if ((hasWork && hasWorkplace) || (hasStudy && hasSubject)) matchedSignals.push("workplace_or_subject");
+  return {
+    complete,
+    matchedSignals,
+    feedback: complete
+      ? "Task complete: you shared a workplace or a subject you study. Pronunciation was not assessed."
+      : "Try again with ‘Trabajo en…’ and a workplace or ‘Estudio…’ and a subject.",
+    version: "work-study-task-v1",
+  };
+}
+
 export const speakingAssessors: Record<SpeakingAssessorId, SpeakingAssessor> = {
   introduction: assessIntroductionTranscript,
   "morning-routine": assessMorningRoutineTranscript,
@@ -345,6 +390,8 @@ export const speakingAssessors: Record<SpeakingAssessorId, SpeakingAssessor> = {
   "free-time": assessFreeTimeTranscript,
   "making-plans": assessMakingPlansTranscript,
   weather: assessWeatherTranscript,
+  "at-home": assessAtHomeTranscript,
+  "work-study": assessWorkStudyTranscript,
 };
 
 export function getSpeakingAssessor(id: SpeakingAssessorId): SpeakingAssessor {
