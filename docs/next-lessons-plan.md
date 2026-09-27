@@ -1,6 +1,6 @@
 # Next A1 lessons · implementation plan
 
-Status: lessons 13–14 implemented locally; automated unit, lint, and production-build checks passed. A database-backed end-to-end run and deployment remain separate verification steps.
+Status: lessons 13–14 implemented locally; unit, lint, production-build, and mocked browser-flow checks passed. A database-backed end-to-end run and deployment remain separate verification steps.
 
 ## Baseline and scope
 
