@@ -6,6 +6,7 @@ import {
   getExerciseCoaching,
   getLessonRecallItems,
   getLessonDefinition,
+  lessonKeys,
   type LessonExercise,
   type LessonKey,
   type LessonProgress,
@@ -155,6 +156,7 @@ export function LessonExperience({
   const { play: playUiSound, setAudioBusy } = useUiSounds();
   const audioOwner = useId();
   const lesson = getLessonDefinition(lessonKey);
+  const hasNextLesson = lessonKey !== lessonKeys.at(-1);
 
   if (!lesson) throw new Error("Unknown lesson");
   const exercises = useMemo(
@@ -519,6 +521,11 @@ export function LessonExperience({
       ).values(),
     ).slice(0, 4);
     const recallItems = getLessonRecallItems(lesson);
+    let primaryCompletionLabel = hasNextLesson
+      ? nextLessonTitle ? `Continue: ${nextLessonTitle}` : "Continue to the next lesson"
+      : "Return to Today";
+    if (leavingCompletion === "next") primaryCompletionLabel = "Preparing the next lesson…";
+    if (leavingCompletion === "dashboard" && !hasNextLesson) primaryCompletionLabel = "Returning to Today…";
 
     return (
       <section className="lesson-card completion-card" aria-labelledby="lesson-complete">
@@ -529,21 +536,17 @@ export function LessonExperience({
           <button
             className="primary-button"
             disabled={Boolean(leavingCompletion)}
-            onClick={() => void leaveCompletion("next")}
+            onClick={() => void leaveCompletion(hasNextLesson ? "next" : "dashboard")}
           >
-            {leavingCompletion === "next"
-              ? "Preparing the next lesson…"
-              : nextLessonTitle
-                ? `Continue: ${nextLessonTitle}`
-                : "Continue to the next lesson"}
+            {primaryCompletionLabel}
           </button>
-          <button
+          {hasNextLesson && <button
             className="text-button"
             disabled={Boolean(leavingCompletion)}
             onClick={() => void leaveCompletion("dashboard")}
           >
             {leavingCompletion === "dashboard" ? "Saving…" : "Finish for today"}
-          </button>
+          </button>}
         </div>
         <section className="lesson-achievement" aria-labelledby="lesson-achievement-title">
           <span>You can now</span>

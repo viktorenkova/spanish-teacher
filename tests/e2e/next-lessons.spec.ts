@@ -145,6 +145,16 @@ for (const { lessonKey, width, answer } of [
     await expect(page.getByRole("heading", { name: lesson.completionTitle })).toBeVisible();
     await expect(page.getByText("A typed fallback is not counted as speaking.")).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    if (lessonKey === lessonKeys.at(-1)) {
+      await expect(page.getByRole("button", { name: "Return to Today" })).toBeVisible();
+      await expect(page.getByRole("button", { name: /Continue to the next lesson|Continue:/ })).toHaveCount(0);
+      await page.getByRole("button", { name: "Return to Today" }).click();
+      await expect(page.getByRole("tab", { name: "Today" })).toBeVisible();
+    } else if (lessonKey === lessonKeys.at(-2)) {
+      await expect(page.locator(".completion-actions .primary-button")).toContainText("Continue");
+      await page.locator(".completion-actions .primary-button").click();
+      await expect(page.getByRole("heading", { name: new RegExp(`Ready for “${lessonCatalog[lessonKeys.at(-1)!].title}”`) })).toBeVisible();
+    }
     if (lessonKey === "at-home-v1") {
       await page.locator(".completion-actions .primary-button").click();
       await expect(page.getByRole("heading", { name: /Ready for “Talk about work and study”/ })).toBeVisible();
