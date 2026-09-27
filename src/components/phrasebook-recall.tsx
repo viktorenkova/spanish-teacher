@@ -12,11 +12,13 @@ import { useUiSounds } from "./ui-sound-provider";
 
 type Phrase = LearnerOverview["phrasebook"][number];
 
-export function PhrasebookRecall({ items, closeLabel = "Back to phrasebook", onClose, onReturnToToday }: {
+export function PhrasebookRecall({ learnerId, items, closeLabel = "Back to phrasebook", onClose, onReturnToToday, onSaved }: {
+  learnerId: string;
   items: Phrase[];
   closeLabel?: string;
   onClose: () => void;
   onReturnToToday?: () => void;
+  onSaved?: (learningItemId: string, remembered: boolean) => void;
 }) {
   const [round, setRound] = useState(() => items.slice(0, 5));
   const [nextBatchStart, setNextBatchStart] = useState(Math.min(5, items.length));
@@ -26,6 +28,8 @@ export function PhrasebookRecall({ items, closeLabel = "Back to phrasebook", onC
   const [needsHelp, setNeedsHelp] = useState<Phrase[]>([]);
   const [playingAudio, setPlayingAudio] = useState(false);
   const [recording, setRecording] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string>();
   const { setAudioBusy } = useUiSounds();
   const audioOwner = useId();
   const [speechError, setSpeechError] = useState<string>();
@@ -87,13 +91,31 @@ export function PhrasebookRecall({ items, closeLabel = "Back to phrasebook", onC
     }
   }
 
-  function next(remembered: boolean) {
-    if (!revealed || !phrase) return;
-    resetSpeechPractice();
-    setCheckedIds((current) => current.includes(phrase.id) ? current : [...current, phrase.id]);
-    if (!remembered) setNeedsHelp((current) => [...current, phrase]);
-    setRevealed(false);
-    setIndex((current) => current + 1);
+  async function next(remembered: boolean) {
+    if (!revealed || !phrase || saving) return;
+    setSaving(true);
+    setSaveError(undefined);
+    try {
+      const response = await fetch("/api/learner/phrasebook/self-check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ learnerId, learningItemId: phrase.id, remembered }),
+      });
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string };
+        throw new Error(payload.error ?? "The phrase check could not be saved. Try again.");
+      }
+      onSaved?.(phrase.id, remembered);
+      resetSpeechPractice();
+      setCheckedIds((current) => current.includes(phrase.id) ? current : [...current, phrase.id]);
+      if (!remembered) setNeedsHelp((current) => [...current, phrase]);
+      setRevealed(false);
+      setIndex((current) => current + 1);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : "The phrase check could not be saved. Try again.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -114,8 +136,8 @@ export function PhrasebookRecall({ items, closeLabel = "Back to phrasebook", onC
               <div className="phrasebook-recall-answer" ref={answer} tabIndex={-1}>
                 <strong lang="es">{phrase.targetText}</strong>
                 <div className="phrasebook-recall-actions">
-                  <button type="button" className="secondary-button" disabled={recording} onClick={() => next(true)}>I remembered it</button>
-                  <button type="button" className="secondary-button" disabled={recording} onClick={() => next(false)}>I needed help</button>
+                  <button type="button" className="secondary-button" disabled={recording || saving} onClick={() => void next(true)}>I remembered it</button>
+                  <button type="button" className="secondary-button" disabled={recording || saving} onClick={() => void next(false)}>I needed help</button>
                 </div>
                 <details className="phrasebook-extra-practice">
                   <summary>Optional listening and speaking practice</summary>
@@ -206,8 +228,10 @@ export function PhrasebookRecall({ items, closeLabel = "Back to phrasebook", onC
           )}
         </>
       )}
-      <small>This is a self-check. Nothing is recorded or saved, and your scheduled reviews stay the same.</small>
-      <button type="button" className="text-button" onClick={onClose}>{closeLabel}</button>
+      {saving && <p role="status">Saving your check…</p>}
+      {saveError && <p className="feedback retry" role="alert">{saveError}</p>}
+      <small>Your self-check is saved to schedule review. It is not a speaking or pronunciation score.</small>
+      <button type="button" className="text-button" disabled={saving} onClick={onClose}>{closeLabel}</button>
     </section>
   );
 }

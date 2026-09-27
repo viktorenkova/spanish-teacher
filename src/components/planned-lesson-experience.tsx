@@ -406,6 +406,7 @@ export function PlannedLessonExperience({
 
   if (!plan) {
     const dueReviewCount = overview?.dueReviewCount ?? 0;
+    const readyPhraseCount = overview?.practiceQueue.length ?? 0;
     const nextLessonTitle = overview?.nextLesson.title ?? "your next A1 topic";
     const nextLessonObjective = overview?.nextLesson.objective
       ?? "The coach will choose the most useful next step from your saved progress.";
@@ -446,7 +447,7 @@ export function PlannedLessonExperience({
               }}
             >
               {section === "today" ? "Today" : section === "review" ? "Review" : "Progress"}
-              {section === "review" && dueReviewCount > 0 && <span>{dueReviewCount}</span>}
+              {section === "review" && readyPhraseCount > 0 && <span>{readyPhraseCount}</span>}
             </button>
           ))}
         </div>
@@ -560,15 +561,26 @@ export function PlannedLessonExperience({
       </section>
       {reviewItems && (
         <ReviewExperience
+          learnerId={learnerId}
           items={reviewItems}
+          onSaved={(learningItemId, remembered) => {
+            if (!remembered) return;
+            setOverview((current) => current ? {
+              ...current,
+              practiceQueue: current.practiceQueue.filter((item) => item.id !== learningItemId),
+            } : current);
+          }}
           onBackToReview={() => {
             setReviewItems(undefined);
+            setOverviewRefreshKey((value) => value + 1);
             setDashboardSection("review");
             onModeChange("dashboard");
-            requestAnimationFrame(() => document.getElementById("phrasebook-review-start")?.focus());
+            requestAnimationFrame(() => (document.getElementById("phrasebook-review-start")
+              ?? document.getElementById("dashboard-tab-review"))?.focus());
           }}
           onReturnToToday={() => {
             setReviewItems(undefined);
+            setOverviewRefreshKey((value) => value + 1);
             setDashboardSection("today");
             onModeChange("dashboard");
             requestAnimationFrame(() => document.getElementById("dashboard-tab-today")?.focus());

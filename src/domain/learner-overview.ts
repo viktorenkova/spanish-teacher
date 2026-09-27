@@ -30,7 +30,10 @@ export type LearnerOverview = LearnerProgressSummary & {
     id: string;
     targetText: string;
     supportText: string;
+    dueAt?: string;
+    lastSelfCheck?: "remembered" | "help";
   }>;
+  practiceQueue: LearnerOverview["phrasebook"];
 };
 
 type CurriculumEvidence = Partial<Record<LessonKey, string[]>>;
@@ -46,6 +49,7 @@ export function buildLearnerOverview(input: {
   completedLessonCount: number;
   completedExerciseIds: CurriculumEvidence;
   phrasebook?: LearnerOverview["phrasebook"];
+  now?: Date;
 }): LearnerOverview {
   const nextLessonKey = chooseCurriculumLesson(input.completedExerciseIds);
   const nextLesson = getLessonDefinition(nextLessonKey);
@@ -55,6 +59,13 @@ export function buildLearnerOverview(input: {
     lessonIsComplete(key, input.completedExerciseIds)
   )).length;
   const curriculumComplete = completedTopicCount === lessonKeys.length;
+  const now = input.now ?? new Date();
+  const phrasebook = input.phrasebook ?? [];
+  const practiceQueue = phrasebook.filter((item) =>
+    item.lastSelfCheck !== "remembered"
+    || !item.dueAt
+    || new Date(item.dueAt).getTime() <= now.getTime(),
+  );
 
   return {
     learner: input.learner,
@@ -78,6 +89,7 @@ export function buildLearnerOverview(input: {
           ? "current"
           : "upcoming",
     })),
-    phrasebook: input.phrasebook ?? [],
+    phrasebook,
+    practiceQueue,
   };
 }

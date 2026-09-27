@@ -1,7 +1,7 @@
 import "server-only";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { buildLearnerOverview } from "@/domain/learner-overview";
-import type { LessonKey } from "@/domain/lesson";
+import { isLessonKey, type LessonKey } from "@/domain/lesson";
 import { isLearnerPrimaryGoal } from "@/domain/learner-profile";
 import {
   supportedSessionDurations,
@@ -26,7 +26,7 @@ export class LearnerOverviewNotFoundError extends Error {
 
 export async function loadLearnerOverview(learnerId: string) {
   const db = getDatabase();
-  const [learner, progress, correctAttempts, completedLessons, phrasebook] = await Promise.all([
+  const [learner, progress, correctAttempts, completedLessons, savedPhrases, selfChecks] = await Promise.all([
     db
       .select({
         displayName: learners.displayName,
@@ -62,11 +62,23 @@ export async function loadLearnerOverview(learnerId: string) {
         id: learningItems.id,
         targetText: learningItems.targetText,
         supportText: learningItems.supportText,
+        dueAt: learnerItemStates.due,
       })
       .from(learnerItemStates)
       .innerJoin(learningItems, eq(learnerItemStates.learningItemId, learningItems.id))
       .where(eq(learnerItemStates.learnerId, learnerId))
-      .orderBy(learnerItemStates.updatedAt),
+      .orderBy(desc(learnerItemStates.updatedAt)),
+    db
+      .select({
+        learningItemId: exerciseAttempts.learningItemId,
+        selectedOptionId: exerciseAttempts.selectedOptionId,
+      })
+      .from(exerciseAttempts)
+      .where(and(
+        eq(exerciseAttempts.learnerId, learnerId),
+        eq(exerciseAttempts.evidenceProvider, "phrasebook-self-check"),
+      ))
+      .orderBy(desc(exerciseAttempts.occurredAt)),
   ]);
 
   if (!learner) throw new LearnerOverviewNotFoundError();
@@ -82,6 +94,7 @@ export async function loadLearnerOverview(learnerId: string) {
 
   const completedExerciseIds = correctAttempts.reduce<Partial<Record<LessonKey, string[]>>>(
     (byLesson, attempt) => {
+      if (!isLessonKey(attempt.lessonKey)) return byLesson;
       const lessonKey = attempt.lessonKey as LessonKey;
       const ids = byLesson[lessonKey] ?? [];
       if (!ids.includes(attempt.exerciseId)) ids.push(attempt.exerciseId);
@@ -90,6 +103,20 @@ export async function loadLearnerOverview(learnerId: string) {
     },
     {},
   );
+  const latestSelfChecks = new Map<string, "remembered" | "help">();
+  for (const check of selfChecks) {
+    if (!latestSelfChecks.has(check.learningItemId)) {
+      latestSelfChecks.set(check.learningItemId,
+        check.selectedOptionId === "remembered" ? "remembered" : "help");
+    }
+  }
+  const phrasebook = savedPhrases.map((item) => ({
+    id: item.id,
+    targetText: item.targetText,
+    supportText: item.supportText,
+    dueAt: item.dueAt.toISOString(),
+    lastSelfCheck: latestSelfChecks.get(item.id),
+  }));
 
   return buildLearnerOverview({
     learner: { ...learner, primaryGoal, preferredSessionMinutes },

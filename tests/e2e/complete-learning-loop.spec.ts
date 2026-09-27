@@ -163,7 +163,7 @@ test("completes a lesson with listening and speaking, then adapts the next topic
     await page.getByRole("tab", { name: "Review" }).click();
     await expect.poll(async () => (await loadJourneyChoices(learnerId!)).map(({ choice }) => choice))
       .toContain("review");
-    await expect(page.getByRole("heading", { name: "Practise 5 saved phrases" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Practise 5 ready phrases" })).toBeVisible();
     await page.locator("details.phrasebook > summary").click();
     await page.getByRole("button", { name: "Practise saying Me llamo…", exact: true }).first().click();
     await expect(page.getByText(/Listening… Say the phrase/)).toBeVisible();

@@ -40,6 +40,7 @@ describe("learner overview", () => {
     });
     expect(overview.learner).toEqual(learner);
     expect(overview.phrasebook).toEqual([]);
+    expect(overview.practiceQueue).toEqual([]);
   });
 
   it("shows cafe ordering after introductions and routines are complete", () => {
@@ -70,5 +71,22 @@ describe("learner overview", () => {
     expect(overview.phrasebook).toEqual([
       { id: "phrase:name", targetText: "Me llamo…", supportText: "My name is…" },
     ]);
+    expect(overview.practiceQueue).toEqual(overview.phrasebook);
+  });
+
+  it("keeps remembered phrases out of practice until due while including new lesson phrases", () => {
+    const now = new Date("2026-09-27T09:00:00.000Z");
+    const phrasebook = [
+      { id: "old", targetText: "Hola.", supportText: "Hello.", lastSelfCheck: "remembered" as const, dueAt: "2026-09-28T09:00:00.000Z" },
+      { id: "due", targetText: "Buenos días.", supportText: "Good morning.", lastSelfCheck: "remembered" as const, dueAt: "2026-09-27T08:00:00.000Z" },
+      { id: "new", targetText: "Un café, por favor.", supportText: "A coffee, please.", dueAt: "2026-10-01T09:00:00.000Z" },
+      { id: "help", targetText: "Gracias.", supportText: "Thank you.", lastSelfCheck: "help" as const, dueAt: "2026-09-28T09:00:00.000Z" },
+    ];
+    const overview = buildLearnerOverview({
+      learner, progress, completedLessonCount: 0, completedExerciseIds: {}, phrasebook, now,
+    });
+
+    expect(overview.phrasebook).toHaveLength(4);
+    expect(overview.practiceQueue.map((item) => item.id)).toEqual(["due", "new", "help"]);
   });
 });

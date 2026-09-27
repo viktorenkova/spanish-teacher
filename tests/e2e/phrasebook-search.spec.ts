@@ -31,6 +31,7 @@ async function openDashboard(
   savedOverview = overview,
   transcript: string | string[] = "Un café, por favor.",
 ) {
+    let currentOverview = { ...savedOverview, practiceQueue: savedOverview.phrasebook };
     await page.setViewportSize({ width, height: 812 });
     await installMediaMocks(page, transcript);
     await page.addInitScript(() => {
@@ -39,8 +40,19 @@ async function openDashboard(
     // These UI checks use fixed API responses and need no local database.
     await page.route("**/api/**", async (route) => {
       const path = new URL(route.request().url()).pathname;
+      if (path === "/api/learner/phrasebook/self-check" && route.request().method() === "POST") {
+        const answer = route.request().postDataJSON() as { learningItemId: string; remembered: boolean };
+        currentOverview = {
+          ...currentOverview,
+          practiceQueue: answer.remembered
+            ? currentOverview.practiceQueue.filter((item) => item.id !== answer.learningItemId)
+            : currentOverview.practiceQueue,
+        };
+        await route.fulfill({ status: 201, json: { nextReviewAt: "2026-10-01T09:00:00.000Z" } });
+        return;
+      }
       const responses: Record<string, object> = {
-        "/api/learner/overview": { overview: savedOverview },
+        "/api/learner/overview": { overview: currentOverview },
         "/api/lesson/sessions": { session: null },
         "/api/lesson/plan": { plan: null },
         "/api/learner/history": { history: [] },
@@ -67,7 +79,7 @@ test("separates Today, Review and Progress on a mobile dashboard", async ({ page
   await openDashboard(page, 390, { ...overview, dueReviewCount: 2 });
 
   const todayTab = page.getByRole("tab", { name: "Today" });
-  const reviewTab = page.getByRole("tab", { name: "Review 2" });
+  const reviewTab = page.getByRole("tab", { name: "Review 3" });
   const progressTab = page.getByRole("tab", { name: "Progress" });
 
   await expect(todayTab).toHaveAttribute("aria-selected", "true");
@@ -78,7 +90,7 @@ test("separates Today, Review and Progress on a mobile dashboard", async ({ page
   await page.keyboard.press("ArrowRight");
   await expect(reviewTab).toBeFocused();
   await expect(reviewTab).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByRole("heading", { name: "2 phrases are ready" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "3 phrases are ready" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Build today’s lesson" })).toBeHidden();
 
   await page.keyboard.press("End");
@@ -93,8 +105,8 @@ test("runs a bounded phrase review and returns clearly to Today", async ({ page 
   await openDashboard(page, 390);
   await page.getByRole("tab", { name: "Review" }).click();
 
-  await expect(page.getByRole("heading", { name: "Practise 3 saved phrases" })).toBeVisible();
-  await expect(page.getByText("One phrase at a time · about 2 min")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Practise 3 ready phrases" })).toBeVisible();
+  await expect(page.getByText("Up to five at a time · about 2 min per set")).toBeVisible();
   await page.getByRole("button", { name: "Start phrase practice" }).click();
 
   const practice = page.getByRole("region", { name: /Say it from memory|Memory practice complete/ });
@@ -112,6 +124,35 @@ test("runs a bounded phrase review and returns clearly to Today", async ({ page 
   await practice.getByRole("button", { name: "Return to Today" }).click();
   await expect(page.getByRole("tab", { name: "Today" })).toBeFocused();
   await expect(page.getByRole("button", { name: "Build today’s lesson" })).toBeVisible();
+  await page.getByRole("tab", { name: "Review" }).click();
+  await expect(page.getByRole("heading", { name: "Nothing is due right now" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start phrase practice" })).toHaveCount(0);
+  await page.reload();
+  await page.getByRole("tab", { name: "Review" }).click();
+  await expect(page.getByRole("button", { name: "Start phrase practice" })).toHaveCount(0);
+});
+
+test("keeps the phrase in place when a self-check cannot be saved", async ({ page }) => {
+  await openDashboard(page, 390);
+  let failOnce = true;
+  await page.route("**/api/learner/phrasebook/self-check", async (route) => {
+    if (failOnce) {
+      failOnce = false;
+      await route.fulfill({ status: 503, json: { error: "Please try again." } });
+    } else {
+      await route.fallback();
+    }
+  });
+  await page.getByRole("tab", { name: "Review" }).click();
+  await page.getByRole("button", { name: "Start phrase practice" }).click();
+  const practice = page.locator(".phrasebook-recall");
+  await practice.getByRole("button", { name: "Reveal Spanish" }).click();
+  await practice.getByRole("button", { name: "I remembered it" }).click();
+  await expect(practice.getByRole("alert")).toHaveText("Please try again.");
+  await expect(practice.getByRole("heading")).toHaveText("Say it from memory · 1 of 3");
+  await practice.getByRole("button", { name: "I remembered it" }).click();
+  await expect(practice.getByRole("heading")).toHaveText("Say it from memory · 2 of 3");
+  await expect(practice.getByRole("alert")).toHaveCount(0);
 });
 
 for (const width of [1280, 375]) {
@@ -204,7 +245,7 @@ for (const width of [1280, 375]) {
     await practice.getByRole("button", { name: "Listen to the answer" }).click();
     await expect(practice.getByRole("alert")).toContainText("No Spanish voice");
     await practice.getByRole("button", { name: "I needed help" }).click();
-    await expect(practice.getByRole("heading")).toHaveText("Say it from memory · 2 of 3");
+    await expect(practice.getByRole("heading")).toHaveText("Say it from memory · 2 of 2");
     await expect(practice.getByRole("alert")).toHaveCount(0);
   });
 
@@ -314,27 +355,27 @@ for (const width of [1280, 375]) {
       await practice.getByRole("button", { name: index === 0 ? "I needed help" : "I remembered it" }).click();
     }
     await expect(practice).toContainText("You marked 4 of 5 phrases as remembered");
-    await expect(practice).toContainText("You checked 5 of 5 phrases in this practice.");
+    await expect(practice).toContainText("You checked 5 of 6 phrases in this practice.");
     await practice.getByRole("button", { name: "Try difficult phrases again" }).click();
     await expect(practice.getByRole("heading")).toHaveText("Say it from memory · 1 of 1");
     await expect(practice).toContainText("A coffee, please.");
     await practice.getByRole("button", { name: "Reveal Spanish" }).click();
     await practice.getByRole("button", { name: "I remembered it" }).click();
     await expect(practice).toContainText("You marked 1 of 1 phrases as remembered");
-    await expect(practice).toContainText("You checked 5 of 5 phrases in this practice.");
+    await expect(practice).toContainText("You checked 5 of 6 phrases in this practice.");
     await expect(practice.getByRole("button", { name: "Try difficult phrases again" })).toHaveCount(0);
-    await expect(practice).toContainText("You have checked all the phrases in this set.");
-    await expect(practice.getByRole("button", { name: /Practise next/ })).toHaveCount(0);
-    await practice.getByRole("button", { name: "Back to Review" }).click();
-    await expect(page.getByRole("button", { name: "Start phrase practice" })).toBeFocused();
-    await page.getByRole("searchbox").fill("morning");
-    await start.click();
-    await expect(practice).toContainText("Good morning.");
+    await practice.getByRole("button", { name: "Practise next phrase" }).click();
     await expect(practice.getByRole("heading")).toHaveText("Say it from memory · 1 of 1");
+    await expect(practice).toContainText("Water, please.");
+    await practice.getByRole("button", { name: "Reveal Spanish" }).click();
+    await practice.getByRole("button", { name: "I remembered it" }).click();
+    await expect(practice).toContainText("You checked 6 of 6 phrases in this practice.");
+    await expect(practice).toContainText("You have checked all the phrases in this set.");
     await practice.getByRole("button", { name: "Back to Review" }).click();
-    await expect(page.getByRole("searchbox")).toHaveValue("morning");
-    await start.click();
-    await expect(practice.getByRole("button", { name: "Reveal Spanish" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Nothing is due right now" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Start phrase practice" })).toHaveCount(0);
+    await page.getByRole("searchbox").fill("morning");
+    await expect(page.getByRole("button", { name: "Practise from memory" })).toBeDisabled();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
 }

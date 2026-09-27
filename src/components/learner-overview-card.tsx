@@ -70,6 +70,7 @@ export function LearnerOverviewCard({
   const { setAudioBusy } = useUiSounds();
   const audioOwner = useId();
   const searchedPhrases = filterPhrasebook(overview.phrasebook, phraseQuery);
+  const queuedIds = new Set(overview.practiceQueue.map((item) => item.id));
   const visiblePhrases = speakingFilter === "repair"
     ? searchedPhrases.filter((item) => phraseRepairState[item.id] === "needs-repair")
     : speakingFilter === "unchecked"
@@ -253,29 +254,29 @@ export function LearnerOverviewCard({
         <div className="review-overview-heading">
           <span className="eyebrow">Review</span>
           <h3 id="review-overview-title">
-            {overview.dueReviewCount > 0
-              ? `${overview.dueReviewCount} phrase${overview.dueReviewCount === 1 ? " is" : "s are"} ready`
+            {overview.practiceQueue.length > 0
+              ? `${overview.practiceQueue.length} phrase${overview.practiceQueue.length === 1 ? " is" : "s are"} ready`
               : "Nothing is due right now"}
           </h3>
           <p>
-            {overview.dueReviewCount > 0
-              ? "Bring these phrases back before they fade. Your next lesson will include the due review."
-              : "You can still practise saved phrases, but today’s lesson is the recommended next step."}
+            {overview.practiceQueue.length > 0
+              ? "Practise new phrases and ones ready for review. Remembered phrases leave this queue until they are due again."
+              : "Your saved phrases are available below. New lesson phrases and due reviews will appear here."}
           </p>
         </div>
       )}
-      {view === "review" && overview.phrasebook.length > 0 && (
+      {view === "review" && overview.practiceQueue.length > 0 && (
         <section className="review-launch" aria-labelledby="review-launch-title">
           <div>
             <span>Optional self-check</span>
-            <h4 id="review-launch-title">Practise {Math.min(5, overview.phrasebook.length)} saved phrase{Math.min(5, overview.phrasebook.length) === 1 ? "" : "s"}</h4>
-            <p>One phrase at a time · about {Math.max(1, Math.ceil(Math.min(5, overview.phrasebook.length) / 2))} min</p>
+            <h4 id="review-launch-title">Practise {overview.practiceQueue.length} ready phrase{overview.practiceQueue.length === 1 ? "" : "s"}</h4>
+            <p>Up to five at a time · about {Math.max(1, Math.ceil(Math.min(5, overview.practiceQueue.length) / 2))} min per set</p>
           </div>
           <button
             id="phrasebook-review-start"
             className="primary-button"
             type="button"
-            onClick={() => onStartReview?.(overview.phrasebook.slice(0, 5))}
+            onClick={() => onStartReview?.(overview.practiceQueue)}
           >
             Start phrase practice
           </button>
@@ -284,11 +285,11 @@ export function LearnerOverviewCard({
       {view === "review" && overview.phrasebook.length > 0 && (
         <details className="phrasebook">
           <summary>
-            <span>{overview.dueReviewCount > 0 ? "Practise saved Spanish" : "Optional phrase practice"}</span>
+            <span>Saved Spanish</span>
             <strong>{overview.phrasebook.length} phrase{overview.phrasebook.length === 1 ? "" : "s"}</strong>
           </summary>
           <p className="phrasebook-help">
-            Read the Spanish first. Remember the meaning, listen, then say the phrase aloud.
+            This is your full saved phrasebook. Remembered phrases stay here for reference but leave the practice queue until due again.
           </p>
           <div className="phrasebook-search">
             <label htmlFor="phrasebook-query">Find a phrase</label>
@@ -333,8 +334,8 @@ export function LearnerOverviewCard({
           <button
             className="secondary-button phrasebook-recall-start"
             type="button"
-            disabled={visiblePhrases.length === 0 || Boolean(recordingPhraseId) || Boolean(playingPhraseId)}
-            onClick={() => onStartReview?.(visiblePhrases.slice(0, 5))}
+            disabled={!visiblePhrases.some((item) => queuedIds.has(item.id)) || Boolean(recordingPhraseId) || Boolean(playingPhraseId)}
+            onClick={() => onStartReview?.(visiblePhrases.filter((item) => queuedIds.has(item.id)))}
           >
             Practise from memory
           </button>
@@ -507,7 +508,7 @@ export function LearnerOverviewCard({
           {phraseAudioError && <p className="phrasebook-audio-error" role="alert">{phraseAudioError}</p>}
           {phraseSpeechError && <p className="phrasebook-audio-error" role="alert">{phraseSpeechError}</p>}
           <p className="phrasebook-privacy-note">
-            Audio is not saved by Spanish Coach. Browser transcription can be wrong, and this practice does not score pronunciation or change your saved progress.
+            Audio is not saved by Spanish Coach. Browser transcription can be wrong; speaking here does not score pronunciation or change your review schedule.
           </p>
         </details>
       )}
