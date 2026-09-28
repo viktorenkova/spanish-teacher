@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { lessonKeys } from "../../src/domain/lesson";
 import {
   cleanupLearner,
   completeOnboarding,
@@ -158,7 +159,7 @@ test("completes a lesson with listening and speaking, then adapts the next topic
     await expect(recentLesson.getByText("Done", { exact: true })).toBeVisible();
     await expect(page.getByText(`Saved progress · ${displayName}`, { exact: true })).toBeVisible();
     await expect(
-      page.locator(".learner-overview-progress").getByText("1/17", { exact: true }),
+      page.locator(".learner-overview-progress").getByText(`1/${lessonKeys.length}`, { exact: true }),
     ).toBeVisible();
     await page.getByRole("tab", { name: "Review" }).click();
     await expect.poll(async () => (await loadJourneyChoices(learnerId!)).map(({ choice }) => choice))
@@ -296,7 +297,7 @@ test("mobile learner finishes for today, reviews phrases, and keeps saved progre
     await expect(page.getByRole("heading", { name: "Talk about your morning" })).toBeVisible();
     await page.getByRole("tab", { name: "Progress" }).click();
     await expect(page.getByRole("heading", { name: "Recent lessons" })).toBeVisible();
-    await expect(page.locator(".learner-overview-progress").getByText("1/17", { exact: true })).toBeVisible();
+    await expect(page.locator(".learner-overview-progress").getByText(`1/${lessonKeys.length}`, { exact: true })).toBeVisible();
     await page.getByRole("tab", { name: "Review" }).click();
     await expect.poll(async () => (await loadJourneyChoices(learnerId!)).map(({ choice }) => choice))
       .toEqual(["review"]);

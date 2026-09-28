@@ -74,6 +74,7 @@ export const lessonKeys = [
   "neighbourhood-v1",
   "ask-for-help-v1",
   "invite-a-friend-v1",
+  "reply-to-invitation-v1",
 ] as const;
 
 export type LessonKey = (typeof lessonKeys)[number];
@@ -101,7 +102,8 @@ export type LessonDefinition = {
     | "work-study"
     | "neighbourhood"
     | "ask-for-help"
-    | "invite-a-friend";
+    | "invite-a-friend"
+    | "reply-to-invitation";
   title: string;
   objective: string;
   completionTitle: string;
@@ -1592,6 +1594,45 @@ export const inviteAFriendLesson = createCompactLesson({
   },
 });
 
+export const replyToInvitationLesson = createCompactLesson({
+  sourceReference: "internal:a1-reply-to-invitation-v1",
+  recognition: {
+    id: "meaning-reply-alternative-day", itemId: "phrase:invitation-alternative-sunday",
+    targetText: "Lo siento, no puedo el sábado, pero puedo el domingo.",
+    supportText: "Sorry, I cannot on Saturday, but I can on Sunday.",
+    prompt: "What day can the friend come instead?", context: "A friend replies to your invitation.",
+    options: [{ id: "sunday", label: "Sunday" }, { id: "saturday", label: "Saturday" }, { id: "friday", label: "Friday" }],
+    correctOptionId: "sunday", successFeedback: "Yes. The friend cannot on Saturday but can on Sunday.",
+    retryFeedback: "Listen to the part after ‘pero puedo’: it gives another day.",
+  },
+  recall: {
+    id: "retrieve-reply-accept-saturday", itemId: "construction:accept-invitation-saturday",
+    targetText: "Sí, puedo el sábado.", supportText: "Yes, I can on Saturday.",
+    prompt: "Choose a simple yes for Saturday.", context: "You are free to visit on Saturday.",
+    options: [{ id: "accept", label: "Sí, puedo el sábado." }, { id: "decline", label: "Lo siento, no puedo el sábado." }, { id: "question", label: "¿Quieres venir el sábado?" }],
+    correctOptionId: "accept", successFeedback: "Good. ‘Sí, puedo’ accepts the invitation.",
+    retryFeedback: "Choose the answer beginning ‘Sí, puedo’.",
+  },
+  listening: {
+    id: "listen-reply-alternative-sunday", itemId: "listening:reply-alternative-sunday",
+    clipId: "reply-alternative-sunday", targetText: "Lo siento, no puedo el sábado, pero puedo el domingo.",
+    supportText: "Sorry, I cannot on Saturday, but I can on Sunday.",
+    prompt: "Which day is possible instead?", context: "Play the reply and listen after ‘pero puedo’.",
+    options: [{ id: "sunday", label: "Sunday" }, { id: "saturday", label: "Saturday" }, { id: "monday", label: "Monday" }],
+    correctOptionId: "sunday", successFeedback: "Correct. The alternative is Sunday.",
+    retryFeedback: "Listen for the day after ‘pero puedo’.",
+  },
+  speaking: {
+    id: "speak-reply-to-invitation", itemId: "construction:spoken-invitation-reply",
+    targetText: "Sí, puedo el sábado. / Lo siento, no puedo el sábado, pero puedo el domingo.",
+    supportText: "Accept with a day or decline and offer another day.",
+    assessorId: "reply-to-invitation", prompt: "Reply to a friend's invitation for Saturday.",
+    context: "Say ‘Sí, puedo el sábado.’ or ‘Lo siento, no puedo el sábado, pero puedo el domingo.’",
+    successFeedback: "Task complete: you gave a clear reply with a day.",
+    retryFeedback: "Accept with ‘Sí, puedo…’ and a day, or say ‘Lo siento, no puedo… pero puedo…’ with a different day.",
+  },
+});
+
 const lessonTeachingModules: Record<LessonKey, LessonTeachingModule[]> = {
   "introductions-v1": [{
     id: "first-meeting", beforeExerciseId: "meaning-encantada",
@@ -1777,6 +1818,16 @@ const lessonTeachingModules: Record<LessonKey, LessonTeachingModule[]> = {
       { spanish: "Lo siento, no puedo.", english: "Sorry, I cannot." },
     ],
     example: { spanish: "¿Quieres venir a mi casa el sábado? Lo siento, no puedo.", english: "Do you want to come to my home on Saturday? Sorry, I cannot." },
+  }],
+  "reply-to-invitation-v1": [{
+    id: "reply-with-alternative-day", beforeExerciseId: "meaning-reply-alternative-day",
+    focus: "Reply to an invitation and, if needed, offer another day.",
+    phrases: [
+      { spanish: "Sí, puedo el sábado.", english: "Yes, I can on Saturday." },
+      { spanish: "Lo siento, no puedo el sábado.", english: "Sorry, I cannot on Saturday." },
+      { spanish: "Pero puedo el domingo.", english: "But I can on Sunday." },
+    ],
+    example: { spanish: "Lo siento, no puedo el sábado, pero puedo el domingo.", english: "Sorry, I cannot on Saturday, but I can on Sunday." },
   }],
 };
 
@@ -2046,6 +2097,18 @@ export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
       progressionReason: "Asking for help is complete, so the path adds a friendly invitation.",
     },
     exercises: inviteAFriendLesson, teachingModules: lessonTeachingModules["invite-a-friend-v1"],
+  },
+  "reply-to-invitation-v1": {
+    key: "reply-to-invitation-v1", topic: "reply-to-invitation", title: "Reply to an invitation",
+    objective: "Accept an invitation or offer a different day.",
+    completionTitle: "You can reply to a friend's invitation.",
+    completionSummary: "You understood another day and gave a clear yes or a polite alternative.",
+    planner: {
+      listeningObjective: "Hear which day works instead of the invited day.",
+      speakingTitle: "Reply with a day", speakingObjective: "Accept with a day or decline and suggest another day.",
+      progressionReason: "Inviting a friend is complete, so now you practise giving a useful reply.",
+    },
+    exercises: replyToInvitationLesson, teachingModules: lessonTeachingModules["reply-to-invitation-v1"],
   },
 };
 

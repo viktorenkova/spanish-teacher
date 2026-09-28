@@ -69,6 +69,15 @@ describe("duration-aware lesson planner", () => {
     }
   });
 
+  it("offers a reply after the invitation is complete", () => {
+    const completed = Object.fromEntries(lessonKeys.slice(0, lessonKeys.indexOf("reply-to-invitation-v1")).map((key) => [
+      key, lessonCatalog[key].exercises.map(({ id }) => id),
+    ]));
+    expect(chooseCurriculumLesson(completed)).toBe("reply-to-invitation-v1");
+    expect(chooseCurriculumLesson({ ...completed, "reply-to-invitation-v1": ["meaning-reply-alternative-day"] }))
+      .toBe("reply-to-invitation-v1");
+  });
+
   it("builds the selected curriculum objective into the plan", () => {
     const plan = buildLessonPlan({
       targetMinutes: 10,

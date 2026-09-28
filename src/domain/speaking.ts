@@ -37,6 +37,8 @@ export type SpeakingAssessment = {
     | "help_request"
     | "invitation"
     | "invitation_day"
+    | "invitation_reply"
+    | "reply_day"
   >;
   feedback: string;
   version:
@@ -56,7 +58,8 @@ export type SpeakingAssessment = {
     | "work-study-task-v1"
     | "neighbourhood-task-v1"
     | "ask-for-help-task-v1"
-    | "invite-a-friend-task-v1";
+    | "invite-a-friend-task-v1"
+    | "reply-to-invitation-task-v1";
 };
 
 export type SpeakingAssessorId =
@@ -76,7 +79,8 @@ export type SpeakingAssessorId =
   | "work-study"
   | "neighbourhood"
   | "ask-for-help"
-  | "invite-a-friend";
+  | "invite-a-friend"
+  | "reply-to-invitation";
 
 export type SpeakingAssessor = (transcript: string) => SpeakingAssessment;
 
@@ -442,6 +446,25 @@ export function assessInviteAFriendTranscript(transcript: string): SpeakingAsses
   };
 }
 
+const spanishWeekdays = "lunes|martes|miercoles|jueves|viernes|sabado|domingo";
+
+export function assessReplyToInvitationTranscript(transcript: string): SpeakingAssessment {
+  const normalized = normalizeTranscript(transcript);
+  const accept = new RegExp(`\\b(si|claro) puedo el (${spanishWeekdays})\\b`).exec(normalized);
+  const decline = new RegExp(`\\blo siento no puedo el (${spanishWeekdays}) pero puedo el (${spanishWeekdays})\\b`).exec(normalized);
+  const complete = Boolean(accept || (decline && decline[1] !== decline[2]));
+  const matchedSignals: SpeakingAssessment["matchedSignals"] = [];
+  if (accept || decline) matchedSignals.push("invitation_reply");
+  if (complete) matchedSignals.push("reply_day");
+  return {
+    complete, matchedSignals,
+    feedback: complete
+      ? "Task complete: you replied with a possible day. Pronunciation was not assessed."
+      : "Try again: say ‘Sí, puedo el sábado’ or ‘Lo siento, no puedo el sábado, pero puedo el domingo’. Give a different day after ‘pero’. The transcript may need correction.",
+    version: "reply-to-invitation-task-v1",
+  };
+}
+
 export const speakingAssessors: Record<SpeakingAssessorId, SpeakingAssessor> = {
   introduction: assessIntroductionTranscript,
   "morning-routine": assessMorningRoutineTranscript,
@@ -460,6 +483,7 @@ export const speakingAssessors: Record<SpeakingAssessorId, SpeakingAssessor> = {
   neighbourhood: assessNeighbourhoodTranscript,
   "ask-for-help": assessAskForHelpTranscript,
   "invite-a-friend": assessInviteAFriendTranscript,
+  "reply-to-invitation": assessReplyToInvitationTranscript,
 };
 
 export function getSpeakingAssessor(id: SpeakingAssessorId): SpeakingAssessor {

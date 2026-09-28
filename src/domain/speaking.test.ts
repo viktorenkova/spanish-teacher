@@ -17,6 +17,7 @@ import {
   assessNeighbourhoodTranscript,
   assessAskForHelpTranscript,
   assessInviteAFriendTranscript,
+  assessReplyToInvitationTranscript,
   getSpeakingAssessor,
 } from "./speaking";
 
@@ -91,6 +92,7 @@ describe("speaking assessor registry", () => {
     ["neighbourhood", assessNeighbourhoodTranscript("Hay una panadería cerca de mi casa.")],
     ["ask-for-help", assessAskForHelpTranscript("No encuentro mi mochila. ¿Me ayudas, por favor?")],
     ["invite-a-friend", assessInviteAFriendTranscript("¿Quieres venir a mi casa el sábado?")],
+    ["reply-to-invitation", assessReplyToInvitationTranscript("Sí, puedo el sábado.")],
   ] as const)("completes the %s A1 task from transcript evidence", (_id, result) => {
     expect(result.complete).toBe(true);
     expect(result.feedback).toContain("Pronunciation was not assessed");
@@ -129,5 +131,13 @@ describe("speaking assessor registry", () => {
     expect(assessInviteAFriendTranscript("¿Quieres venir a mi casa a las seis?").complete).toBe(true);
     expect(assessInviteAFriendTranscript("¿Quieres venir a mi casa?").complete).toBe(false);
     expect(assessInviteAFriendTranscript("Puedo el sábado.").complete).toBe(false);
+  });
+
+  it("accepts a yes with a day or a polite no with a different day", () => {
+    expect(assessReplyToInvitationTranscript("Claro, puedo el domingo.").complete).toBe(true);
+    expect(assessReplyToInvitationTranscript("Lo siento, no puedo el sábado, pero puedo el domingo.").complete).toBe(true);
+    expect(assessReplyToInvitationTranscript("Sí, puedo.").complete).toBe(false);
+    expect(assessReplyToInvitationTranscript("Lo siento, no puedo el sábado.").complete).toBe(false);
+    expect(assessReplyToInvitationTranscript("Lo siento, no puedo el sábado, pero puedo el sábado.").complete).toBe(false);
   });
 });

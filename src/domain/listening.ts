@@ -158,6 +158,13 @@ export const listeningClips = {
     sourceReference: "internal:a1-invite-a-friend-v1",
     license: "Project-authored", attribution: "Spanish Coach",
   },
+  "reply-alternative-sunday": {
+    id: "reply-alternative-sunday",
+    text: "Lo siento, no puedo el sábado, pero puedo el domingo.",
+    locale: "es-ES", rate: 0.9,
+    sourceReference: "internal:a1-reply-to-invitation-v1",
+    license: "Project-authored", attribution: "Spanish Coach",
+  },
 } as const satisfies Record<string, ListeningClip>;
 
 export type ListeningClipId = keyof typeof listeningClips;

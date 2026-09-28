@@ -77,10 +77,10 @@ describe("lesson progress", () => {
   });
 
   it("teaches and checks all three new A1 situations after work/study", () => {
-    expect(lessonKeys.slice(-4)).toEqual([
+    expect(lessonKeys.slice(13, 17)).toEqual([
       "work-study-v1", "neighbourhood-v1", "ask-for-help-v1", "invite-a-friend-v1",
     ]);
-    for (const key of lessonKeys.slice(-3)) {
+    for (const key of lessonKeys.slice(14, 17)) {
       const lesson = lessonCatalog[key];
       expect(lesson.exercises.map(({ modality }) => modality)).toEqual([
         "recognition", "recall", "listening", "production",
@@ -93,6 +93,15 @@ describe("lesson progress", () => {
         expect(exercise.learningItem.qaStatus).toBe("reviewed");
       }
     }
+  });
+
+  it("adds a taught reply after the invitation lesson", () => {
+    expect(lessonKeys.slice(16, 18)).toEqual(["invite-a-friend-v1", "reply-to-invitation-v1"]);
+    const lesson = lessonCatalog["reply-to-invitation-v1"];
+    expect(lesson.exercises.map(({ modality }) => modality))
+      .toEqual(["recognition", "recall", "listening", "production"]);
+    expect(lessonTeachingSequenceIssues(lesson)).toEqual([]);
+    expect(getListeningClip(lesson.exercises[2].listeningClipId ?? "")?.locale).toBe("es-ES");
   });
 
   it("keeps exercise and learning-item IDs unique across the catalogue", () => {
