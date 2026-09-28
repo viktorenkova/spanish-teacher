@@ -2,9 +2,10 @@ import { expect, test, type Page } from "@playwright/test";
 import { buildLearnerOverview } from "../../src/domain/learner-overview";
 import { createEmptyProgress, lessonCatalog, lessonKeys, type LessonKey } from "../../src/domain/lesson";
 import { buildLessonPlan } from "../../src/domain/lesson-planner";
+import { getSpeakingAssessor } from "../../src/domain/speaking";
 import { installMediaMocks } from "./helpers";
 
-async function openNewLesson(page: Page, lessonKey: LessonKey, width: number) {
+async function openNewLesson(page: Page, lessonKey: LessonKey, width: number, transcript: string) {
   const lesson = lessonCatalog[lessonKey];
   const completedExerciseIds = Object.fromEntries(
     lessonKeys.slice(0, lessonKeys.indexOf(lessonKey)).map((key) => [
@@ -33,7 +34,7 @@ async function openNewLesson(page: Page, lessonKey: LessonKey, width: number) {
   });
 
   await page.setViewportSize({ width, height: 812 });
-  await installMediaMocks(page, "El libro está encima de la mesa.");
+  await installMediaMocks(page, transcript);
   await page.addInitScript(() => {
     localStorage.setItem("spanish-coach:learner-id:v1", "new-lessons-test");
   });
@@ -53,7 +54,7 @@ async function openNewLesson(page: Page, lessonKey: LessonKey, width: number) {
       const exercise = lesson.exercises.find(({ id }) => id === answer.exerciseId);
       if (!exercise) throw new Error(`Unknown exercise: ${answer.exerciseId}`);
       const correct = exercise.speakingTask
-        ? Boolean(answer.transcript?.trim())
+        ? getSpeakingAssessor(exercise.speakingTask.assessorId)(answer.transcript ?? "").complete
         : answer.selectedOptionId === exercise.correctOptionId;
       progress = {
         ...progress,
@@ -125,9 +126,10 @@ for (const { lessonKey, width, answer } of [
   { lessonKey: "invite-a-friend-v1" as const, width: 1280, answer: "¿Quieres venir a mi casa el sábado?" },
   { lessonKey: "reply-to-invitation-v1" as const, width: 390, answer: "Sí, puedo el sábado." },
   { lessonKey: "choose-an-activity-v1" as const, width: 1280, answer: "Prefiero ir al parque." },
+  { lessonKey: "plan-for-tomorrow-v1" as const, width: 390, answer: "Mañana voy a ir al parque." },
 ]) {
   test(`${lessonKey} runs from teaching through completion at ${width}px`, async ({ page }) => {
-    const lesson = await openNewLesson(page, lessonKey, width);
+    const lesson = await openNewLesson(page, lessonKey, width, answer);
     await expect(page.getByRole("region", { name: "Learn before practising" })).toBeVisible();
     for (const exercise of lesson.exercises) {
       await expect(page.getByRole("heading", { name: exercise.prompt })).toBeVisible();
@@ -135,9 +137,16 @@ for (const { lessonKey, width, answer } of [
         await page.getByRole("button", { name: "Play Spanish audio" }).click();
       }
       if (exercise.speakingTask) {
-        await page.getByRole("button", { name: "Use a typed answer instead" }).click();
-        await page.getByLabel("Type your answer in Spanish").fill(answer);
-        await page.getByRole("button", { name: "Check typed answer" }).click();
+        if (lessonKey === lessonKeys.at(-1)) {
+          await page.getByRole("button", { name: /Start microphone/ }).click();
+          await page.getByRole("button", { name: /Stop listening/ }).click();
+          await expect(page.getByText(answer, { exact: true })).toBeVisible();
+          await page.getByRole("button", { name: "Check spoken answer" }).click();
+        } else {
+          await page.getByRole("button", { name: "Use a typed answer instead" }).click();
+          await page.getByLabel("Type your answer in Spanish").fill(answer);
+          await page.getByRole("button", { name: "Check typed answer" }).click();
+        }
       } else {
         await page.getByRole("radio", { name: exercise.options.find(({ id }) => id === exercise.correctOptionId)?.label }).click();
         await page.getByRole("button", { name: "Check answer" }).click();
@@ -145,7 +154,11 @@ for (const { lessonKey, width, answer } of [
       await page.getByRole("button", { name: exercise === lesson.exercises.at(-1) ? "View lesson summary" : "Continue" }).click();
     }
     await expect(page.getByRole("heading", { name: lesson.completionTitle })).toBeVisible();
-    await expect(page.getByText("A typed fallback is not counted as speaking.")).toBeVisible();
+    if (lessonKey === lessonKeys.at(-1)) {
+      await expect(page.getByText("Your speech transcript is saved; audio is not.")).toBeVisible();
+    } else {
+      await expect(page.getByText("A typed fallback is not counted as speaking.")).toBeVisible();
+    }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     if (lessonKey === lessonKeys.at(-1)) {
       await expect(page.getByRole("button", { name: "Return to Today" })).toBeVisible();
@@ -156,6 +169,11 @@ for (const { lessonKey, width, answer } of [
       await expect(page.locator(".completion-actions .primary-button")).toContainText("Continue");
       await page.locator(".completion-actions .primary-button").click();
       await expect(page.getByRole("heading", { name: new RegExp(`Ready for “${lessonCatalog[lessonKeys.at(-1)!].title}”`) })).toBeVisible();
+    } else if (lessonKey === "invite-a-friend-v1" || lessonKey === "reply-to-invitation-v1") {
+      const nextKey = lessonKeys[lessonKeys.indexOf(lessonKey) + 1];
+      await expect(page.locator(".completion-actions .primary-button")).toContainText("Continue");
+      await page.locator(".completion-actions .primary-button").click();
+      await expect(page.getByRole("heading", { name: `Ready for “${lessonCatalog[nextKey].title}”?` })).toBeVisible();
     }
     if (lessonKey === "at-home-v1") {
       await page.locator(".completion-actions .primary-button").click();

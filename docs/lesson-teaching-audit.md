@@ -21,5 +21,8 @@ Every current A1 lesson now has a short teaching module before its first recogni
 | Near my home | `hay una panadería cerca de mi casa`, `la farmacia está al lado de la panadería` | Place near the home |
 | Ask for help | `no encuentro mi mochila/mis llaves`, `¿me ayudas, por favor?` | Meaning of the missing bag |
 | Invite a friend | `¿quieres venir a mi casa el sábado?`, `sí, puedo`, `lo siento, no puedo` | Meaning of the invitation |
+| Reply to an invitation | `sí, puedo el sábado`, `lo siento, no puedo el sábado`, `pero puedo el domingo` | Which alternative day works |
+| Choose an activity | `me gusta pasear`, `prefiero ir al parque`, `pero` | Preferred activity |
+| A plan for tomorrow | `mañana`, `voy a ir al parque`, `voy a pasear`, `por la tarde` | Meaning of the plan for tomorrow |
 
 The structural test checks module order, a valid recognition check, and introduction before recall, listening, or speaking. It cannot prove that every unfamiliar detail in a dialogue has been taught; future lesson reviews must still inspect the actual target language and the learner's prior curriculum. Incidental words that are not needed to answer may remain in context or audio as natural exposure. Full learner-paced browser QA still needs a database-backed environment.

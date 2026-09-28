@@ -172,6 +172,13 @@ export const listeningClips = {
     sourceReference: "internal:a1-choose-an-activity-v1",
     license: "Project-authored", attribution: "Spanish Coach",
   },
+  "tomorrow-park-afternoon": {
+    id: "tomorrow-park-afternoon",
+    text: "Mañana voy a ir al parque por la tarde.",
+    locale: "es-ES", rate: 0.9,
+    sourceReference: "internal:a1-plan-for-tomorrow-v1",
+    license: "Project-authored", attribution: "Spanish Coach",
+  },
 } as const satisfies Record<string, ListeningClip>;
 
 export type ListeningClipId = keyof typeof listeningClips;

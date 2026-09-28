@@ -41,6 +41,8 @@ export type SpeakingAssessment = {
     | "reply_day"
     | "activity_preference"
     | "preferred_activity"
+    | "tomorrow_plan"
+    | "plan_detail"
   >;
   feedback: string;
   version:
@@ -62,7 +64,8 @@ export type SpeakingAssessment = {
     | "ask-for-help-task-v1"
     | "invite-a-friend-task-v1"
     | "reply-to-invitation-task-v1"
-    | "choose-an-activity-task-v1";
+    | "choose-an-activity-task-v1"
+    | "plan-for-tomorrow-task-v1";
 };
 
 export type SpeakingAssessorId =
@@ -84,7 +87,8 @@ export type SpeakingAssessorId =
   | "ask-for-help"
   | "invite-a-friend"
   | "reply-to-invitation"
-  | "choose-an-activity";
+  | "choose-an-activity"
+  | "plan-for-tomorrow";
 
 export type SpeakingAssessor = (transcript: string) => SpeakingAssessment;
 
@@ -485,6 +489,23 @@ export function assessChooseAnActivityTranscript(transcript: string): SpeakingAs
   };
 }
 
+export function assessPlanForTomorrowTranscript(transcript: string): SpeakingAssessment {
+  const normalized = normalizeTranscript(transcript);
+  const tomorrowPlan = /\bmanana voy a (ir|pasear)\b/.test(normalized);
+  const complete = /\bmanana voy a ir al parque\b/.test(normalized)
+    || /\bmanana voy a pasear (por la (tarde|manana)|a las (cinco|seis|siete|ocho)|en el parque)\b/.test(normalized);
+  const matchedSignals: SpeakingAssessment["matchedSignals"] = [];
+  if (tomorrowPlan) matchedSignals.push("tomorrow_plan");
+  if (complete) matchedSignals.push("plan_detail");
+  return {
+    complete, matchedSignals,
+    feedback: complete
+      ? "Task complete: you shared tomorrow's activity with a place or time. Pronunciation was not assessed."
+      : "Try again with ‘Mañana voy a ir al parque’ or ‘Mañana voy a pasear por la tarde’. The transcript may need correction.",
+    version: "plan-for-tomorrow-task-v1",
+  };
+}
+
 export const speakingAssessors: Record<SpeakingAssessorId, SpeakingAssessor> = {
   introduction: assessIntroductionTranscript,
   "morning-routine": assessMorningRoutineTranscript,
@@ -505,6 +526,7 @@ export const speakingAssessors: Record<SpeakingAssessorId, SpeakingAssessor> = {
   "invite-a-friend": assessInviteAFriendTranscript,
   "reply-to-invitation": assessReplyToInvitationTranscript,
   "choose-an-activity": assessChooseAnActivityTranscript,
+  "plan-for-tomorrow": assessPlanForTomorrowTranscript,
 };
 
 export function getSpeakingAssessor(id: SpeakingAssessorId): SpeakingAssessor {

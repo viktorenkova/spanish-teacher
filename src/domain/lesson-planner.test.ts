@@ -85,6 +85,15 @@ describe("duration-aware lesson planner", () => {
     expect(chooseCurriculumLesson(completed)).toBe("choose-an-activity-v1");
   });
 
+  it("offers a plan for tomorrow after the activity choice", () => {
+    const completed = Object.fromEntries(lessonKeys.slice(0, lessonKeys.indexOf("plan-for-tomorrow-v1")).map((key) => [
+      key, lessonCatalog[key].exercises.map(({ id }) => id),
+    ]));
+    expect(chooseCurriculumLesson(completed)).toBe("plan-for-tomorrow-v1");
+    expect(chooseCurriculumLesson({ ...completed, "plan-for-tomorrow-v1": ["meaning-tomorrow-park"] }))
+      .toBe("plan-for-tomorrow-v1");
+  });
+
   it("builds the selected curriculum objective into the plan", () => {
     const plan = buildLessonPlan({
       targetMinutes: 10,

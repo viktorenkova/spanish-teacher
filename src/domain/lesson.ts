@@ -76,6 +76,7 @@ export const lessonKeys = [
   "invite-a-friend-v1",
   "reply-to-invitation-v1",
   "choose-an-activity-v1",
+  "plan-for-tomorrow-v1",
 ] as const;
 
 export type LessonKey = (typeof lessonKeys)[number];
@@ -105,7 +106,8 @@ export type LessonDefinition = {
     | "ask-for-help"
     | "invite-a-friend"
     | "reply-to-invitation"
-    | "choose-an-activity";
+    | "choose-an-activity"
+    | "plan-for-tomorrow";
   title: string;
   objective: string;
   completionTitle: string;
@@ -1673,6 +1675,44 @@ export const chooseAnActivityLesson = createCompactLesson({
   },
 });
 
+export const planForTomorrowLesson = createCompactLesson({
+  sourceReference: "internal:a1-plan-for-tomorrow-v1",
+  recognition: {
+    id: "meaning-tomorrow-park", itemId: "phrase:tomorrow-going-to-park",
+    targetText: "Mañana voy a ir al parque.", supportText: "Tomorrow I am going to go to the park.",
+    prompt: "What is the person's plan?", context: "A friend tells you about tomorrow.",
+    options: [{ id: "park", label: "Go to the park tomorrow" }, { id: "home", label: "Stay at home today" }, { id: "work", label: "Work in the park" }],
+    correctOptionId: "park", successFeedback: "Yes. ‘Mañana’ means tomorrow and ‘voy a ir’ introduces a plan to go.",
+    retryFeedback: "Look for ‘mañana’ and ‘voy a ir al parque’.",
+  },
+  recall: {
+    id: "retrieve-tomorrow-walk", itemId: "construction:tomorrow-walk-afternoon",
+    targetText: "Mañana voy a pasear por la tarde.", supportText: "Tomorrow I am going to walk in the afternoon.",
+    prompt: "Choose a plan to walk tomorrow afternoon.", context: "Tell a friend what you will do tomorrow.",
+    options: [{ id: "walk", label: "Mañana voy a pasear por la tarde." }, { id: "today", label: "Hoy paseo por la tarde." }, { id: "park", label: "Mañana voy a ir al parque." }],
+    correctOptionId: "walk", successFeedback: "Good. You gave an action and a time.",
+    retryFeedback: "Choose the sentence with ‘Mañana voy a pasear’ and ‘por la tarde’.",
+  },
+  listening: {
+    id: "listen-tomorrow-park-afternoon", itemId: "listening:tomorrow-park-afternoon",
+    clipId: "tomorrow-park-afternoon", targetText: "Mañana voy a ir al parque por la tarde.",
+    supportText: "Tomorrow I am going to go to the park in the afternoon.",
+    prompt: "When will the person go to the park?", context: "Play the audio and listen for the time of day.",
+    options: [{ id: "afternoon", label: "Tomorrow afternoon" }, { id: "morning", label: "Tomorrow morning" }, { id: "today", label: "This afternoon" }],
+    correctOptionId: "afternoon", successFeedback: "Correct. You heard ‘mañana’ and ‘por la tarde’.",
+    retryFeedback: "Listen for both ‘mañana’ and ‘por la tarde’.",
+  },
+  speaking: {
+    id: "speak-plan-for-tomorrow", itemId: "construction:spoken-tomorrow-plan",
+    targetText: "Mañana voy a ir al parque. / Mañana voy a pasear por la tarde.",
+    supportText: "Say a plan for tomorrow with a place or time.",
+    assessorId: "plan-for-tomorrow", prompt: "Say what you are going to do tomorrow.",
+    context: "Use a familiar action and add a place or time. Example: ‘Mañana voy a ir al parque.’ or ‘Mañana voy a pasear por la tarde.’",
+    successFeedback: "Task complete: you gave a plan for tomorrow with a place or time.",
+    retryFeedback: "Say ‘Mañana voy a…’ with ‘ir al parque’ or ‘pasear por la tarde’.",
+  },
+});
+
 const lessonTeachingModules: Record<LessonKey, LessonTeachingModule[]> = {
   "introductions-v1": [{
     id: "first-meeting", beforeExerciseId: "meaning-encantada",
@@ -1878,6 +1918,17 @@ const lessonTeachingModules: Record<LessonKey, LessonTeachingModule[]> = {
       { spanish: "Pero", english: "But; it joins two different ideas." },
     ],
     example: { spanish: "Me gusta ir al parque, pero prefiero pasear.", english: "I like going to the park, but I prefer walking." },
+  }],
+  "plan-for-tomorrow-v1": [{
+    id: "tomorrow-plan", beforeExerciseId: "meaning-tomorrow-park",
+    focus: "Say one simple plan for tomorrow.",
+    phrases: [
+      { spanish: "Mañana", english: "Tomorrow; a different word from ‘por la mañana’ (in the morning)." },
+      { spanish: "Voy a ir al parque.", english: "I am going to go to the park." },
+      { spanish: "Voy a pasear.", english: "I am going to walk." },
+      { spanish: "Por la tarde", english: "In the afternoon." },
+    ],
+    example: { spanish: "Mañana voy a ir al parque por la tarde.", english: "Tomorrow I am going to go to the park in the afternoon." },
   }],
 };
 
@@ -2171,6 +2222,18 @@ export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
       progressionReason: "Replying to an invitation is complete, so now you choose something to do together.",
     },
     exercises: chooseAnActivityLesson, teachingModules: lessonTeachingModules["choose-an-activity-v1"],
+  },
+  "plan-for-tomorrow-v1": {
+    key: "plan-for-tomorrow-v1", topic: "plan-for-tomorrow", title: "Make a plan for tomorrow",
+    objective: "Say one activity you plan for tomorrow with a place or time.",
+    completionTitle: "You can share a simple plan for tomorrow.",
+    completionSummary: "You practised voy a, heard a time of day, and shared your own near-future plan.",
+    planner: {
+      listeningObjective: "Recognise when a familiar activity is planned.",
+      speakingTitle: "Share tomorrow's plan", speakingObjective: "Say what you will do tomorrow and where or when.",
+      progressionReason: "Choosing an activity is complete, so the path adds a simple plan for tomorrow.",
+    },
+    exercises: planForTomorrowLesson, teachingModules: lessonTeachingModules["plan-for-tomorrow-v1"],
   },
 };
 
