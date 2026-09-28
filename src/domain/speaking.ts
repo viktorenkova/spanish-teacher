@@ -39,6 +39,8 @@ export type SpeakingAssessment = {
     | "invitation_day"
     | "invitation_reply"
     | "reply_day"
+    | "activity_preference"
+    | "preferred_activity"
   >;
   feedback: string;
   version:
@@ -59,7 +61,8 @@ export type SpeakingAssessment = {
     | "neighbourhood-task-v1"
     | "ask-for-help-task-v1"
     | "invite-a-friend-task-v1"
-    | "reply-to-invitation-task-v1";
+    | "reply-to-invitation-task-v1"
+    | "choose-an-activity-task-v1";
 };
 
 export type SpeakingAssessorId =
@@ -80,7 +83,8 @@ export type SpeakingAssessorId =
   | "neighbourhood"
   | "ask-for-help"
   | "invite-a-friend"
-  | "reply-to-invitation";
+  | "reply-to-invitation"
+  | "choose-an-activity";
 
 export type SpeakingAssessor = (transcript: string) => SpeakingAssessment;
 
@@ -465,6 +469,22 @@ export function assessReplyToInvitationTranscript(transcript: string): SpeakingA
   };
 }
 
+export function assessChooseAnActivityTranscript(transcript: string): SpeakingAssessment {
+  const normalized = normalizeTranscript(transcript);
+  const preference = /\b(me gusta|prefiero)\b/.test(normalized);
+  const complete = /\b(me gusta|prefiero) (pasear|ir al parque)\b/.test(normalized);
+  const matchedSignals: SpeakingAssessment["matchedSignals"] = [];
+  if (preference) matchedSignals.push("activity_preference");
+  if (complete) matchedSignals.push("preferred_activity");
+  return {
+    complete, matchedSignals,
+    feedback: complete
+      ? "Task complete: you said which activity you like or prefer. Pronunciation was not assessed."
+      : "Try again: say ‘Me gusta pasear’ or ‘Prefiero ir al parque’. The transcript may need correction.",
+    version: "choose-an-activity-task-v1",
+  };
+}
+
 export const speakingAssessors: Record<SpeakingAssessorId, SpeakingAssessor> = {
   introduction: assessIntroductionTranscript,
   "morning-routine": assessMorningRoutineTranscript,
@@ -484,6 +504,7 @@ export const speakingAssessors: Record<SpeakingAssessorId, SpeakingAssessor> = {
   "ask-for-help": assessAskForHelpTranscript,
   "invite-a-friend": assessInviteAFriendTranscript,
   "reply-to-invitation": assessReplyToInvitationTranscript,
+  "choose-an-activity": assessChooseAnActivityTranscript,
 };
 
 export function getSpeakingAssessor(id: SpeakingAssessorId): SpeakingAssessor {

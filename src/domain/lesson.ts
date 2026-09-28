@@ -75,6 +75,7 @@ export const lessonKeys = [
   "ask-for-help-v1",
   "invite-a-friend-v1",
   "reply-to-invitation-v1",
+  "choose-an-activity-v1",
 ] as const;
 
 export type LessonKey = (typeof lessonKeys)[number];
@@ -103,7 +104,8 @@ export type LessonDefinition = {
     | "neighbourhood"
     | "ask-for-help"
     | "invite-a-friend"
-    | "reply-to-invitation";
+    | "reply-to-invitation"
+    | "choose-an-activity";
   title: string;
   objective: string;
   completionTitle: string;
@@ -1633,6 +1635,44 @@ export const replyToInvitationLesson = createCompactLesson({
   },
 });
 
+export const chooseAnActivityLesson = createCompactLesson({
+  sourceReference: "internal:a1-choose-an-activity-v1",
+  recognition: {
+    id: "meaning-prefer-park", itemId: "phrase:prefer-going-to-park",
+    targetText: "Prefiero ir al parque.", supportText: "I prefer to go to the park.",
+    prompt: "Which activity does the person prefer?", context: "Two friends choose what to do together.",
+    options: [{ id: "park", label: "Go to the park" }, { id: "read", label: "Read a book" }, { id: "work", label: "Go to work" }],
+    correctOptionId: "park", successFeedback: "Yes. ‘Prefiero’ introduces the activity they choose.",
+    retryFeedback: "‘Ir al parque’ means to go to the park.",
+  },
+  recall: {
+    id: "retrieve-like-walking", itemId: "construction:like-walking",
+    targetText: "Me gusta pasear.", supportText: "I like walking.",
+    prompt: "Choose how to say you like walking.", context: "A friend asks which activity you enjoy.",
+    options: [{ id: "walking", label: "Me gusta pasear." }, { id: "park", label: "Prefiero ir al parque." }, { id: "cannot", label: "No puedo pasear." }],
+    correctOptionId: "walking", successFeedback: "Good. ‘Me gusta pasear’ means I like walking.",
+    retryFeedback: "Choose the sentence beginning ‘Me gusta’ and ending ‘pasear’.",
+  },
+  listening: {
+    id: "listen-prefer-walking", itemId: "listening:prefer-walking",
+    clipId: "activity-prefer-walking", targetText: "Me gusta ir al parque, pero prefiero pasear.",
+    supportText: "I like going to the park, but I prefer walking.",
+    prompt: "Which activity does the person prefer?", context: "Play the audio; listen after ‘prefiero’.",
+    options: [{ id: "walking", label: "Walking" }, { id: "park", label: "Going to the park" }, { id: "reading", label: "Reading" }],
+    correctOptionId: "walking", successFeedback: "Correct. They like the park but prefer walking.",
+    retryFeedback: "Listen for the activity after ‘prefiero’.",
+  },
+  speaking: {
+    id: "speak-activity-preference", itemId: "construction:spoken-activity-preference",
+    targetText: "Me gusta pasear. / Prefiero ir al parque.",
+    supportText: "Say that you like or prefer a familiar activity.",
+    assessorId: "choose-an-activity", prompt: "Say which activity you like or prefer.",
+    context: "Choose walking or going to the park. Example: ‘Me gusta pasear.’ or ‘Prefiero ir al parque.’",
+    successFeedback: "Task complete: you expressed a preference for an activity.",
+    retryFeedback: "Say ‘Me gusta…’ or ‘Prefiero…’ with ‘pasear’ or ‘ir al parque’.",
+  },
+});
+
 const lessonTeachingModules: Record<LessonKey, LessonTeachingModule[]> = {
   "introductions-v1": [{
     id: "first-meeting", beforeExerciseId: "meaning-encantada",
@@ -1828,6 +1868,16 @@ const lessonTeachingModules: Record<LessonKey, LessonTeachingModule[]> = {
       { spanish: "Pero puedo el domingo.", english: "But I can on Sunday." },
     ],
     example: { spanish: "Lo siento, no puedo el sábado, pero puedo el domingo.", english: "Sorry, I cannot on Saturday, but I can on Sunday." },
+  }],
+  "choose-an-activity-v1": [{
+    id: "activity-preference", beforeExerciseId: "meaning-prefer-park",
+    focus: "Choose between two familiar activities.",
+    phrases: [
+      { spanish: "Me gusta pasear.", english: "I like walking." },
+      { spanish: "Prefiero ir al parque.", english: "I prefer to go to the park." },
+      { spanish: "Pero", english: "But; it joins two different ideas." },
+    ],
+    example: { spanish: "Me gusta ir al parque, pero prefiero pasear.", english: "I like going to the park, but I prefer walking." },
   }],
 };
 
@@ -2109,6 +2159,18 @@ export const lessonCatalog: Record<LessonKey, LessonDefinition> = {
       progressionReason: "Inviting a friend is complete, so now you practise giving a useful reply.",
     },
     exercises: replyToInvitationLesson, teachingModules: lessonTeachingModules["reply-to-invitation-v1"],
+  },
+  "choose-an-activity-v1": {
+    key: "choose-an-activity-v1", topic: "choose-an-activity", title: "Choose an activity",
+    objective: "Say which familiar activity you like or prefer.",
+    completionTitle: "You can choose an activity with a friend.",
+    completionSummary: "You used me gusta and prefiero, listened for a choice, and expressed your preference.",
+    planner: {
+      listeningObjective: "Recognise the preferred activity in a short reply.",
+      speakingTitle: "Say what you prefer", speakingObjective: "Name one familiar activity you like or prefer.",
+      progressionReason: "Replying to an invitation is complete, so now you choose something to do together.",
+    },
+    exercises: chooseAnActivityLesson, teachingModules: lessonTeachingModules["choose-an-activity-v1"],
   },
 };
 

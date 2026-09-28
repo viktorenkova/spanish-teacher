@@ -78,6 +78,13 @@ describe("duration-aware lesson planner", () => {
       .toBe("reply-to-invitation-v1");
   });
 
+  it("offers activity choice after the reply is complete", () => {
+    const completed = Object.fromEntries(lessonKeys.slice(0, lessonKeys.indexOf("choose-an-activity-v1")).map((key) => [
+      key, lessonCatalog[key].exercises.map(({ id }) => id),
+    ]));
+    expect(chooseCurriculumLesson(completed)).toBe("choose-an-activity-v1");
+  });
+
   it("builds the selected curriculum objective into the plan", () => {
     const plan = buildLessonPlan({
       targetMinutes: 10,

@@ -104,6 +104,15 @@ describe("lesson progress", () => {
     expect(getListeningClip(lesson.exercises[2].listeningClipId ?? "")?.locale).toBe("es-ES");
   });
 
+  it("adds a taught activity choice after the reply lesson", () => {
+    expect(lessonKeys.slice(17, 19)).toEqual(["reply-to-invitation-v1", "choose-an-activity-v1"]);
+    const lesson = lessonCatalog["choose-an-activity-v1"];
+    expect(lesson.exercises.map(({ modality }) => modality))
+      .toEqual(["recognition", "recall", "listening", "production"]);
+    expect(lessonTeachingSequenceIssues(lesson)).toEqual([]);
+    expect(getListeningClip(lesson.exercises[2].listeningClipId ?? "")?.locale).toBe("es-ES");
+  });
+
   it("keeps exercise and learning-item IDs unique across the catalogue", () => {
     const exercises = Object.values(lessonCatalog).flatMap(({ exercises }) => exercises);
     expect(new Set(exercises.map(({ id }) => id)).size).toBe(exercises.length);

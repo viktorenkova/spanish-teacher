@@ -18,6 +18,7 @@ import {
   assessAskForHelpTranscript,
   assessInviteAFriendTranscript,
   assessReplyToInvitationTranscript,
+  assessChooseAnActivityTranscript,
   getSpeakingAssessor,
 } from "./speaking";
 
@@ -93,6 +94,7 @@ describe("speaking assessor registry", () => {
     ["ask-for-help", assessAskForHelpTranscript("No encuentro mi mochila. ¿Me ayudas, por favor?")],
     ["invite-a-friend", assessInviteAFriendTranscript("¿Quieres venir a mi casa el sábado?")],
     ["reply-to-invitation", assessReplyToInvitationTranscript("Sí, puedo el sábado.")],
+    ["choose-an-activity", assessChooseAnActivityTranscript("Prefiero ir al parque.")],
   ] as const)("completes the %s A1 task from transcript evidence", (_id, result) => {
     expect(result.complete).toBe(true);
     expect(result.feedback).toContain("Pronunciation was not assessed");
@@ -139,5 +141,13 @@ describe("speaking assessor registry", () => {
     expect(assessReplyToInvitationTranscript("Sí, puedo.").complete).toBe(false);
     expect(assessReplyToInvitationTranscript("Lo siento, no puedo el sábado.").complete).toBe(false);
     expect(assessReplyToInvitationTranscript("Lo siento, no puedo el sábado, pero puedo el sábado.").complete).toBe(false);
+  });
+
+  it("requires a preference and one studied activity", () => {
+    expect(assessChooseAnActivityTranscript("Me gusta pasear.").complete).toBe(true);
+    expect(assessChooseAnActivityTranscript("Prefiero pasear.").complete).toBe(true);
+    expect(assessChooseAnActivityTranscript("Me gusta ir al parque.").complete).toBe(true);
+    expect(assessChooseAnActivityTranscript("Ir al parque.").complete).toBe(false);
+    expect(assessChooseAnActivityTranscript("Prefiero.").complete).toBe(false);
   });
 });
